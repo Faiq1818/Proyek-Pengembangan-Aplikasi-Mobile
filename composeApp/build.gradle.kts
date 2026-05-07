@@ -1,6 +1,4 @@
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -11,24 +9,14 @@ plugins {
     alias(libs.plugins.sqldelight)
 }
 
-// Load local.properties for API keys
-val localProperties = Properties().apply {
-    val localPropertiesFile = rootProject.file("local.properties")
-    if (localPropertiesFile.exists()) {
-        load(localPropertiesFile.inputStream())
-    }
-}
-
 kotlin {
     androidTarget {
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_17)
+            jvmTarget.set(JvmTarget.JVM_11)
         }
     }
-    
+
     listOf(
-        iosX64(),
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
@@ -37,123 +25,108 @@ kotlin {
             isStatic = true
         }
     }
-    
+
     sourceSets {
+        androidMain.dependencies {
+            implementation(libs.compose.uiToolingPreview)
+            implementation(libs.androidx.activity.compose)
+            implementation(libs.koin.androidx.compose)
+            implementation(libs.ktor.client.android)
+            implementation(libs.sqlDelight.android.driver)
+            implementation(libs.compose.material.icons.extended)
+        }
+
+        iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
+            implementation(libs.sqlDelight.native.driver)
+        }
+
         commonMain.dependencies {
-            // Compose
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)
-            implementation(compose.materialIconsExtended)
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
-            
-            // Kotlin
-            implementation(libs.kotlinx.coroutines.core)
-            implementation(libs.kotlinx.serialization.json)
-            implementation(libs.kotlinx.datetime)
-            
-            // Ktor
-            implementation(libs.ktor.client.core)
-            implementation(libs.ktor.client.content.negotiation)
-            implementation(libs.ktor.serialization.json)
-            implementation(libs.ktor.client.logging)
-            
-            // Koin DI
+            implementation(libs.androidx.lifecycle.viewmodelCompose)
+            implementation(libs.androidx.lifecycle.runtimeCompose)
+
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
-            
-            // SQLDelight
-            implementation(libs.sqldelight.runtime)
-            implementation(libs.sqldelight.coroutines)
-            
-            // DataStore + Okio
-            implementation(libs.datastore.preferences)
+
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.client.logging)
+            implementation(libs.ktor.serialization.kotlinx.json)
+
+            implementation(libs.sqlDelight.runtime)
+            implementation(libs.sqlDelight.coroutines)
+
+            implementation(libs.kotlinx.datetime)
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.serialization.json)
+
+            implementation(libs.datastore.preferences.core)
+
             implementation(libs.okio)
-            
-            // Lifecycle & ViewModel
-            implementation(libs.lifecycle.viewmodel)
-            implementation(libs.lifecycle.runtime.compose)
-            
-            // Navigation
+
             implementation(libs.navigation.compose)
-            
-            // Coil
-            implementation(libs.coil.compose)
-            implementation(libs.coil.network.ktor)
         }
-        
+
         commonTest.dependencies {
             implementation(libs.kotlin.test)
-            implementation(libs.kotlinx.coroutines.test)
-            implementation(libs.turbine)
-        }
-        
-        androidMain.dependencies {
-            implementation(compose.preview)
-            implementation(libs.koin.android)
-            implementation(libs.ktor.client.okhttp)
-            implementation(libs.sqldelight.android.driver)
-        }
-        
-        iosMain.dependencies {
-            implementation(libs.ktor.client.darwin)
-            implementation(libs.sqldelight.native.driver)
         }
     }
 }
 
 android {
-    namespace = "com.example.noteai"
-    compileSdk = 35
-    
+    namespace = "com.example.mybawanggacha"
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
+
     defaultConfig {
-        applicationId = "com.example.noteai"
-        minSdk = 24
-        targetSdk = 35
+        applicationId = "com.example.mybawanggacha"
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
-        versionName = "1.0.0"
-        
-        // Inject API key from local.properties
-        buildConfigField(
-            "String",
-            "GEMINI_API_KEY",
-            "\"${localProperties.getProperty("GEMINI_API_KEY", "")}\""
-        )
+        versionName = "1.0"
+
+        val geminiApiKey = project.findProperty("GEMINI_API_KEY")?.toString()
+            ?: System.getenv("GEMINI_API_KEY")
+            ?: ""
+        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
     }
-    
+
+    buildFeatures {
+        buildConfig = true
+    }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
-    
+
     buildTypes {
-        release {
-            isMinifyEnabled = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+        getByName("release") {
+            isMinifyEnabled = false
         }
     }
-    
-    buildFeatures {
-        buildConfig = true
-    }
-    
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
+}
+
+dependencies {
+    debugImplementation(libs.compose.uiTooling)
 }
 
 sqldelight {
     databases {
         create("NoteDatabase") {
-            packageName.set("com.example.noteai.data.local")
+            packageName.set("com.example.mybawanggacha.data.local")
         }
     }
 }
