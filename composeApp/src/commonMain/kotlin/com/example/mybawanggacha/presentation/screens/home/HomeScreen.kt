@@ -125,15 +125,6 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            CategoryFilterRow(
-                selectedCategory = when (val state = uiState) {
-                    is HomeUiState.Success -> state.category
-                    is HomeUiState.Empty -> state.category
-                    else -> null
-                },
-                onCategorySelected = viewModel::onCategorySelected
-            )
-
             when (val state = uiState) {
                 is HomeUiState.Loading -> LoadingIndicator()
 
@@ -228,36 +219,6 @@ private fun SortDropdownMenu(
     }
 }
 
-@Composable
-private fun CategoryFilterRow(
-    selectedCategory: NoteCategory?,
-    onCategorySelected: (NoteCategory?) -> Unit
-) {
-    LazyRow(
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        item {
-            FilterChip(
-                selected = selectedCategory == null,
-                onClick = { onCategorySelected(null) },
-                label = { Text("Semua") }
-            )
-        }
-
-        items(NoteCategory.entries) { category ->
-            FilterChip(
-                selected = selectedCategory == category,
-                onClick = {
-                    onCategorySelected(
-                        if (selectedCategory == category) null else category
-                    )
-                },
-                label = { Text(category.displayName) }
-            )
-        }
-    }
-}
 
 @Composable
 private fun NotesList(

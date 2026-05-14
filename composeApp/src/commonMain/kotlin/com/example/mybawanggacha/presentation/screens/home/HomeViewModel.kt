@@ -26,9 +26,25 @@ class HomeViewModel(
     private val getAllNotesUseCase: GetAllNotesUseCase,
     private val searchNotesUseCase: SearchNotesUseCase,
     private val deleteNoteUseCase: DeleteNoteUseCase,
-    private val repository: NoteRepository
+    private val repository: NoteRepository,
+    private val jikanService: com.example.mybawanggacha.data.remote.api.JikanService
 ) : ViewModel() {
     
+    init {
+        fetchJikanData()
+    }
+
+    private fun fetchJikanData() {
+        viewModelScope.launch {
+            try {
+                val result = jikanService.fetch()
+                println("Jikan result: $result")
+            } catch (e: Exception) {
+                println("Jikan error: ${e.message}")
+            }
+        }
+    }
+
     private val _searchQuery = MutableStateFlow("")
     private val _selectedCategory = MutableStateFlow<NoteCategory?>(null)
     private val _sortBy = MutableStateFlow(NoteSortBy.UPDATED_DESC)
