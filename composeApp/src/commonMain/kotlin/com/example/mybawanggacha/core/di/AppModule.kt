@@ -7,6 +7,7 @@ import com.example.mybawanggacha.data.local.datastore.DataStoreFactory
 import com.example.mybawanggacha.data.local.datastore.UserPreferences
 import com.example.mybawanggacha.data.local.datastore.create
 import com.example.mybawanggacha.data.remote.api.GeminiService
+import com.example.mybawanggacha.data.remote.api.JikanService
 import com.example.mybawanggacha.data.repository.AIRepositoryImpl
 import com.example.mybawanggacha.data.repository.NoteRepositoryImpl
 import com.example.mybawanggacha.domain.repository.AIRepository
@@ -35,6 +36,7 @@ import org.koin.dsl.module
 val networkModule = module {
     single { HttpClientFactory.create(enableLogging = true) }
     singleOf(::GeminiService)
+    singleOf(::JikanService)
 }
 
 // ==================== DATABASE MODULE ====================

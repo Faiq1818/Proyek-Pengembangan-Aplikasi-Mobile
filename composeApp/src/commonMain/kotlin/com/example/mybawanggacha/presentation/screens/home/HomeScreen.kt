@@ -53,6 +53,9 @@ import com.example.mybawanggacha.presentation.components.LoadingIndicator
 import com.example.mybawanggacha.presentation.components.NoteCard
 import org.koin.compose.viewmodel.koinViewModel
 
+import androidx.compose.foundation.lazy.LazyRow
+import com.example.mybawanggacha.presentation.components.AnimeRecommendationCard
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -63,6 +66,7 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val currentSortBy by viewModel.sortBy.collectAsStateWithLifecycle()
+    val animeRecommendations by viewModel.animeRecommendations.collectAsStateWithLifecycle()
     var showSearch by remember { mutableStateOf(false) }
     var showSortMenu by remember { mutableStateOf(false) }
 
@@ -125,51 +129,27 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            CategoryFilterRow(
-                selectedCategory = when (val state = uiState) {
-                    is HomeUiState.Success -> state.category
-                    is HomeUiState.Empty -> state.category
-                    else -> null
-                },
-                onCategorySelected = viewModel::onCategorySelected
-            )
-
-            when (val state = uiState) {
-                is HomeUiState.Loading -> LoadingIndicator()
-
-                is HomeUiState.Success -> NotesList(
-                    notes = state.notes,
-                    onNoteClick = onNavigateToDetail,
-                    onPinClick = viewModel::togglePin,
-                    onDeleteClick = viewModel::deleteNote
+            // Recommendation Section
+            if (animeRecommendations.isNotEmpty()) {
+                Text(
+                    "Rekomendasi Anime",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp)
                 )
-
-                is HomeUiState.Empty -> EmptyState(
-                    title = if (state.query.isNotBlank() || state.category != null) {
-                        "Tidak Ditemukan"
-                    } else {
-                        "Belum Ada Catatan"
-                    },
-                    message = if (state.query.isNotBlank() || state.category != null) {
-                        "Coba ubah kata kunci atau filter"
-                    } else {
-                        "Tap + untuk membuat catatan baru"
-                    },
-                    icon = {
-                        Icon(
-                            Icons.Outlined.NoteAlt,
-                            contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                LazyColumn(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    items(animeRecommendations) { anime ->
+                        AnimeRecommendationCard(
+                            anime = anime,
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
-                )
-
-                is HomeUiState.Error -> ErrorState(
-                    message = state.message,
-                    onRetry = { viewModel.clearSearch() }
-                )
+                }
             }
+
         }
     }
 }
@@ -228,36 +208,6 @@ private fun SortDropdownMenu(
     }
 }
 
-@Composable
-private fun CategoryFilterRow(
-    selectedCategory: NoteCategory?,
-    onCategorySelected: (NoteCategory?) -> Unit
-) {
-    LazyRow(
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        item {
-            FilterChip(
-                selected = selectedCategory == null,
-                onClick = { onCategorySelected(null) },
-                label = { Text("Semua") }
-            )
-        }
-
-        items(NoteCategory.entries) { category ->
-            FilterChip(
-                selected = selectedCategory == category,
-                onClick = {
-                    onCategorySelected(
-                        if (selectedCategory == category) null else category
-                    )
-                },
-                label = { Text(category.displayName) }
-            )
-        }
-    }
-}
 
 @Composable
 private fun NotesList(
