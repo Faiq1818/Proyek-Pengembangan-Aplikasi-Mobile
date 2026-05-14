@@ -63,33 +63,26 @@ fun AnimeRecommendationCard(
 ) {
     Card(
         modifier = modifier
-            .height(110.dp),
+            .fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Row {
+        Column {
             KtorImage(
-                url = anime.images.jpg.image_url,
+                url = anime.images.jpg.large_image_url,
                 modifier = Modifier
-                    .width(80.dp)
-                    .fillMaxHeight(),
+                    .fillMaxWidth()
+                    .height(180.dp),
                 contentDescription = anime.title
             )
-            
-            Column(
-                modifier = Modifier
-                    .padding(12.dp)
-                    .fillMaxHeight(),
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = anime.title,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+
+            Text(
+                text = anime.title,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(8.dp)
+            )
         }
     }
 }
@@ -103,7 +96,7 @@ fun KtorImage(
 ) {
     val client = koinInject<HttpClient>()
     var bytes by remember(url) { mutableStateOf<ByteArray?>(null) }
-    
+
     LaunchedEffect(url) {
         try {
             bytes = client.get(url).bodyAsBytes()
@@ -111,9 +104,9 @@ fun KtorImage(
             println("Error loading image: ${e.message}")
         }
     }
-    
+
     val imageBitmap = bytes?.decodeToImageBitmap()
-    
+
     Box(modifier = modifier.background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
         if (imageBitmap != null) {
             androidx.compose.foundation.Image(
@@ -140,7 +133,7 @@ fun NoteCard(
         targetValue = Color(note.color.hexValue),
         label = "card_bg"
     )
-    
+
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -163,7 +156,7 @@ fun NoteCard(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
                 )
-                
+
                 Row {
                     IconButton(
                         onClick = onPinClick,
@@ -176,7 +169,7 @@ fun NoteCard(
                             modifier = Modifier.size(18.dp)
                         )
                     }
-                    
+
                     IconButton(
                         onClick = onDeleteClick,
                         modifier = Modifier.size(32.dp)
@@ -190,7 +183,7 @@ fun NoteCard(
                     }
                 }
             }
-            
+
             if (note.content.isNotBlank()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -201,7 +194,7 @@ fun NoteCard(
                     overflow = TextOverflow.Ellipsis
                 )
             }
-            
+
             Spacer(modifier = Modifier.height(8.dp))
             CategoryBadge(category = note.category.displayName)
         }
@@ -252,17 +245,17 @@ fun EmptyState(
         verticalArrangement = Arrangement.Center
     ) {
         icon?.invoke()
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         Text(
             text = title,
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface
         )
-        
+
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         Text(
             text = message,
             style = MaterialTheme.typography.bodyMedium,
@@ -289,15 +282,15 @@ fun ErrorState(
             style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.error
         )
-        
+
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         Text(
             text = message,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        
+
         if (onRetry != null) {
             Spacer(modifier = Modifier.height(16.dp))
             Button(onClick = onRetry) {
@@ -323,7 +316,7 @@ fun ColorPickerRow(
                 targetValue = if (isSelected) 1f else 0.6f,
                 label = "color_alpha"
             )
-            
+
             Box(
                 modifier = Modifier
                     .size(32.dp)
