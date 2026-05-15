@@ -27,7 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.mybawanggacha.data.remote.dto.AnimeEntry
+import com.example.mybawanggacha.domain.model.AnimeSummary
 import com.example.mybawanggacha.presentation.components.AnimePosterCard
 import com.example.mybawanggacha.presentation.components.EmptyState
 import com.example.mybawanggacha.presentation.components.ErrorState
@@ -162,7 +162,7 @@ private fun RecommendationListContent(
 
 @Composable
 private fun AnimeGrid(
-    anime: List<AnimeEntry>,
+    anime: List<AnimeSummary>,
     onAnimeClick: (Int) -> Unit
 ) {
     if (anime.isEmpty()) {
@@ -182,12 +182,12 @@ private fun AnimeGrid(
     ) {
         items(
             items = anime,
-            key = { it.mal_id }
+            key = { it.malId }
         ) { item ->
             AnimePosterCard(
                 title = item.title,
-                imageUrl = item.images.jpg.large_image_url,
-                onClick = { onAnimeClick(item.mal_id) }
+                imageUrl = item.imageUrl.orEmpty(),
+                onClick = { onAnimeClick(item.malId) }
             )
         }
     }

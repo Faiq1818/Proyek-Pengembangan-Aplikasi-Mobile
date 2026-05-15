@@ -85,13 +85,15 @@ class AnimeRepositoryImpl(
         animeId: Int,
         episodeNumber: Int,
         watched: Boolean
-    ) = withContext(Dispatchers.Default) {
-        animeQueries.upsertEpisodeProgress(
-            anime_id = animeId.toLong(),
-            episode_number = episodeNumber.toLong(),
-            watched = if (watched) 1L else 0L,
-            updated_at = Clock.System.now().toEpochMilliseconds()
-        )
+    ) {
+        withContext(Dispatchers.Default) {
+            animeQueries.upsertEpisodeProgress(
+                anime_id = animeId.toLong(),
+                episode_number = episodeNumber.toLong(),
+                watched = if (watched) 1L else 0L,
+                updated_at = Clock.System.now().toEpochMilliseconds()
+            )
+        }
     }
 
     private fun getWatchedEpisodeNumbers(animeId: Int): Set<Int> {

@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.mybawanggacha.data.remote.dto.AnimeEntry
+import com.example.mybawanggacha.domain.model.AnimeSummary
 import com.example.mybawanggacha.presentation.components.AnimeOverviewCard
 import com.example.mybawanggacha.presentation.components.EmptyState
 import com.example.mybawanggacha.presentation.components.ErrorState
@@ -32,6 +31,7 @@ import com.example.mybawanggacha.presentation.components.SectionHeader
 import com.example.mybawanggacha.presentation.screens.anime.AnimeHomeUiState
 import com.example.mybawanggacha.presentation.screens.anime.AnimeHomeViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import androidx.compose.foundation.lazy.items
 
 @Composable
 fun HomeScreen(
@@ -73,7 +73,7 @@ fun HomeScreen(
 
 @Composable
 private fun HomeAnimeOverview(
-    recommendations: List<AnimeEntry>,
+    recommendations: List<AnimeSummary>,
     onAnimeClick: (Int) -> Unit,
     onOpenAnimeList: () -> Unit
 ) {
@@ -120,7 +120,7 @@ private fun HomeAnimeOverview(
 
         items(
             items = recommendations.take(8).chunked(2),
-            key = { row -> row.joinToString { it.mal_id.toString() } }
+            key = { row -> row.joinToString { it.malId.toString() } }
         ) { rowItems ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -129,8 +129,8 @@ private fun HomeAnimeOverview(
                 rowItems.forEach { anime ->
                     AnimeOverviewCard(
                         title = anime.title,
-                        imageUrl = anime.images.jpg.large_image_url,
-                        onClick = { onAnimeClick(anime.mal_id) },
+                        imageUrl = anime.imageUrl.orEmpty(),
+                        onClick = { onAnimeClick(anime.malId) },
                         modifier = Modifier.weight(1f)
                     )
                 }
