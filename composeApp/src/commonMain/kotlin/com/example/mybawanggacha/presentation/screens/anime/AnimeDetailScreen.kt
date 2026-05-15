@@ -257,13 +257,27 @@ private fun AnimeOverviewSection(anime: AnimeDetailData) {
 
         DetailInfoRows(
             rows = listOf(
-                "Status" to anime.status.orUnknown(),
-                "Airing" to anime.airing.formatAiringStatus(),
                 "Season" to formatSeason(anime),
                 "Aired" to anime.aired?.string.orUnknown(),
                 "Broadcast" to anime.broadcast?.string.orUnknown(),
                 "Rating" to anime.rating.orUnknown(),
-                "Duration" to anime.duration.orUnknown(),
+                "Duration" to anime.duration.orUnknown()
+            )
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        OverviewMetricGrid(
+            items = listOf(
+                "Status" to anime.status.orUnknown(),
+                "Airing" to anime.airing.formatAiringStatus()
+            )
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        OverviewMetricGrid(
+            items = listOf(
                 "Rank" to anime.rank.formatRank(),
                 "Popularity" to anime.popularity.formatRank(),
                 "Members" to anime.members.formatNumber(),
@@ -661,6 +675,68 @@ private fun ScoreCard(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun OverviewMetricGrid(
+    items: List<Pair<String, String>>
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        items.chunked(2).forEach { rowItems ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                rowItems.forEach { (label, value) ->
+                    OverviewMetricCard(
+                        label = label,
+                        value = value,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                if (rowItems.size == 1) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun OverviewMetricCard(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.36f))
+            .padding(horizontal = 12.dp, vertical = 10.dp)
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Bold,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 
