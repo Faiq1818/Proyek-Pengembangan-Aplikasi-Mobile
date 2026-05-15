@@ -42,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -434,24 +435,42 @@ private fun AnimeInfoSection(anime: AnimeDetailData) {
 
 @Composable
 private fun AnimeMediaSection(anime: AnimeDetailData) {
+    val uriHandler = LocalUriHandler.current
+    val trailerUrl = anime.trailer?.url
+        ?: anime.trailer?.embed_url
+        ?: anime.trailer?.youtube_id?.let { "https://www.youtube.com/watch?v=$it" }
+
     DetailSectionColumn(title = "Media") {
-        val trailerUrl = anime.trailer?.url
-            ?: anime.trailer?.embed_url
-            ?: anime.trailer?.youtube_id?.let { "YouTube ID: $it" }
+        if (trailerUrl.isNullOrBlank() && anime.streaming.isEmpty() && anime.external.isEmpty()) {
+            DetailTextBlock(
+                title = "Belum ada media",
+                body = "Jikan belum menyediakan trailer, streaming, atau external link untuk anime ini."
+            )
+            return@DetailSectionColumn
+        }
 
-        DetailTextBlockIfNotEmpty(
-            title = "Trailer",
-            body = trailerUrl.orEmpty()
-        )
+        if (!trailerUrl.isNullOrBlank()) {
+            MediaGroupHeader(title = "Trailer", count = 1)
+            MediaLinkCard(
+                title = "Watch trailer",
+                subtitle = trailerUrl.toReadableUrl(),
+                label = trailerUrl.toMediaSourceLabel(),
+                onClick = { runCatching { uriHandler.openUri(trailerUrl) } }
+            )
 
-        DetailLinkList(
+            Spacer(modifier = Modifier.height(18.dp))
+        }
+
+        MediaLinkGroup(
             title = "Streaming",
-            links = anime.streaming
+            links = anime.streaming,
+            onOpen = { url -> runCatching { uriHandler.openUri(url) } }
         )
 
-        DetailLinkList(
+        MediaLinkGroup(
             title = "External",
-            links = anime.external
+            links = anime.external,
+            onOpen = { url -> runCatching { uriHandler.openUri(url) } }
         )
     }
 }
@@ -1048,20 +1067,155 @@ private fun DetailTextBlock(
 }
 
 @Composable
-private fun DetailLinkList(
+private fun MediaLinkGroup(
     title: String,
-    links: List<AnimeExternalLinkDto>
+    links: List<AnimeExternalLinkDto>,
+    onOpen: (String) -> Unit
 ) {
     if (links.isEmpty()) return
 
-    DetailTextBlock(
-        title = title,
-        body = links.joinToString(separator = "\n\n") { link ->
-            "${link.name}\n${link.url}"
-        }
-    )
+    MediaGroupHeader(title = title, count = links.size)
 
-    Spacer(modifier = Modifier.height(16.dp))
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        links.forEach { link ->
+            MediaLinkCard(
+                title = link.name,
+                subtitle = link.url.toReadableUrl(),
+                label = link.url.toMediaSourceLabel(),
+                onClick = { onOpen(link.url) }
+            )
+        }
+    }
+
+    Spacer(modifier = Modifier.height(18.dp))
+}
+
+@Composable
+private fun MediaGroupHeader(
+    title: String,
+    count: Int
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .width(3.dp)
+                    .height(18.dp)
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(MaterialTheme.colorScheme.primary)
+            )
+
+            Spacer(modifier = Modifier.width(10.dp))
+
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Text(
+            text = count.toString(),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .clip(RoundedCornerShape(999.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                .padding(horizontal = 10.dp, vertical = 4.dp)
+        )
+    }
+
+    Spacer(modifier = Modifier.height(10.dp))
+}
+
+@Composable
+private fun MediaLinkCard(
+    title: String,
+    subtitle: String,
+    label: String,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.42f))
+            .clickable(onClick = onClick)
+            .padding(14.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(42.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = label.uppercase(),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+
+        Text(
+            text = "↗",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+private fun String.toReadableUrl(): String {
+    return trim()
+        .removePrefix("https://")
+        .removePrefix("http://")
+        .removePrefix("www.")
+        .removeSuffix("/")
+}
+
+private fun String.toMediaSourceLabel(): String {
+    val readable = toReadableUrl().lowercase()
+    return when {
+        "youtube" in readable || "youtu.be" in readable -> "YT"
+        "crunchyroll" in readable -> "CR"
+        "netflix" in readable -> "NF"
+        "bilibili" in readable -> "BL"
+        "anidb" in readable -> "DB"
+        "animenewsnetwork" in readable -> "ANN"
+        "wikipedia" in readable -> "WK"
+        "twitter" in readable || "x.com" in readable -> "X"
+        else -> readable.take(2).ifBlank { "URL" }
+    }
 }
 
 @Composable
