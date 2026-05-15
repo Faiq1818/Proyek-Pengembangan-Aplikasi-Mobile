@@ -8,6 +8,20 @@ data class AnimeDetailResponse(
 )
 
 @Serializable
+data class RelationEntryPreviewResponse(
+    val data: RelationEntryPreviewDto
+)
+
+@Serializable
+data class RelationEntryPreviewDto(
+    val mal_id: Int,
+    val url: String? = null,
+    val images: AnimeImages? = null,
+    val title: String? = null,
+    val type: String? = null
+)
+
+@Serializable
 data class AnimeDetailData(
     val mal_id: Int,
     val url: String,
