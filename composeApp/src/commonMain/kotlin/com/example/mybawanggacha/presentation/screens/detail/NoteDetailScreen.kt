@@ -14,10 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.outlined.PushPin
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -26,7 +23,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,8 +36,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mybawanggacha.core.util.formatToDisplay
 import com.example.mybawanggacha.presentation.components.CategoryBadge
+import com.example.mybawanggacha.presentation.components.ConfirmationDialog
 import com.example.mybawanggacha.presentation.components.EmptyState
 import com.example.mybawanggacha.presentation.components.LoadingIndicator
+import com.example.mybawanggacha.presentation.components.PinIconButton
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -71,7 +69,11 @@ fun NoteDetailScreen(
     }
 
     if (showDeleteDialog) {
-        DeleteConfirmationDialog(
+        ConfirmationDialog(
+            title = "Hapus Catatan",
+            message = "Apakah Anda yakin ingin menghapus catatan ini? Tindakan ini tidak dapat dibatalkan.",
+            confirmText = "Hapus",
+            isDestructive = true,
             onConfirm = {
                 showDeleteDialog = false
                 viewModel.deleteNote()
@@ -93,12 +95,10 @@ fun NoteDetailScreen(
                 actions = {
                     if (uiState is NoteDetailUiState.Success) {
                         val successState = uiState as NoteDetailUiState.Success
-                        IconButton(onClick = { viewModel.togglePin() }) {
-                            Icon(
-                                imageVector = if (successState.note.isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
-                                contentDescription = if (successState.note.isPinned) "Lepas Pin" else "Pin"
-                            )
-                        }
+                        PinIconButton(
+                            isPinned = successState.note.isPinned,
+                            onClick = viewModel::togglePin
+                        )
 
                         IconButton(onClick = {
                             viewModel.getShareContent()?.let { onShare(it) }
@@ -169,26 +169,4 @@ fun NoteDetailScreen(
             )
         }
     }
-}
-
-@Composable
-private fun DeleteConfirmationDialog(
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Hapus Catatan") },
-        text = { Text("Apakah Anda yakin ingin menghapus catatan ini? Tindakan ini tidak dapat dibatalkan.") },
-        confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text("Hapus", color = MaterialTheme.colorScheme.error)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Batal")
-            }
-        }
-    )
 }
