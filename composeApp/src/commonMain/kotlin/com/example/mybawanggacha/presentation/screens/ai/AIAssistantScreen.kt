@@ -28,7 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.mybawanggacha.presentation.components.AIResultCard
+import com.example.mybawanggacha.presentation.components.ai.AIResultCard
 import com.example.mybawanggacha.presentation.components.MBGTopBar
 import com.example.mybawanggacha.presentation.components.SelectableChipRow
 import org.koin.compose.viewmodel.koinViewModel

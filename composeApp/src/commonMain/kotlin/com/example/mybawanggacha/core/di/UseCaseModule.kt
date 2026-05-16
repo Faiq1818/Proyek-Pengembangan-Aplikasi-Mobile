@@ -1,12 +1,12 @@
 package com.example.mybawanggacha.core.di
 
-import com.example.mybawanggacha.domain.usecase.DeleteNoteUseCase
-import com.example.mybawanggacha.domain.usecase.GenerateIdeasUseCase
-import com.example.mybawanggacha.domain.usecase.GetAllNotesUseCase
-import com.example.mybawanggacha.domain.usecase.ImproveWritingUseCase
-import com.example.mybawanggacha.domain.usecase.SaveNoteUseCase
-import com.example.mybawanggacha.domain.usecase.SearchNotesUseCase
-import com.example.mybawanggacha.domain.usecase.SummarizeNoteUseCase
+import com.example.mybawanggacha.domain.note.usecase.DeleteNoteUseCase
+import com.example.mybawanggacha.domain.note.usecase.GenerateIdeasUseCase
+import com.example.mybawanggacha.domain.note.usecase.GetAllNotesUseCase
+import com.example.mybawanggacha.domain.note.usecase.ImproveWritingUseCase
+import com.example.mybawanggacha.domain.note.usecase.SaveNoteUseCase
+import com.example.mybawanggacha.domain.note.usecase.SearchNotesUseCase
+import com.example.mybawanggacha.domain.note.usecase.SummarizeNoteUseCase
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 

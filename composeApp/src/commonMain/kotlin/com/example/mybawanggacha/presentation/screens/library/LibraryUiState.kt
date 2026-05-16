@@ -1,8 +1,8 @@
 package com.example.mybawanggacha.presentation.screens.library
 
-import com.example.mybawanggacha.domain.model.LibraryEntry
-import com.example.mybawanggacha.domain.model.LibraryStatus
-import com.example.mybawanggacha.domain.model.MediaType
+import com.example.mybawanggacha.domain.library.model.LibraryEntry
+import com.example.mybawanggacha.domain.library.model.LibraryStatus
+import com.example.mybawanggacha.domain.library.model.MediaType
 
 sealed interface LibraryUiState {
     data object Loading : LibraryUiState

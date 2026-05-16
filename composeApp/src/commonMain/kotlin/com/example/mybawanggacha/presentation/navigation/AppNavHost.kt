@@ -7,17 +7,17 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.example.mybawanggacha.presentation.screens.addnote.AddNoteScreen
+import com.example.mybawanggacha.presentation.screens.notes.addnote.AddNoteScreen
 import com.example.mybawanggacha.presentation.screens.ai.AIAssistantScreen
-import com.example.mybawanggacha.presentation.screens.anime.AnimeDetailScreen
-import com.example.mybawanggacha.presentation.screens.anime.AnimeListScreen
-import com.example.mybawanggacha.presentation.screens.detail.NoteDetailScreen
-import com.example.mybawanggacha.presentation.screens.home.HomeScreen
-import com.example.mybawanggacha.presentation.screens.library.LibraryEntryEditorScreen
-import com.example.mybawanggacha.presentation.screens.library.MyListScreen
+import com.example.mybawanggacha.presentation.screens.anime.detail.AnimeDetailScreen
+import com.example.mybawanggacha.presentation.screens.anime.list.AnimeListScreen
+import com.example.mybawanggacha.presentation.screens.notes.detail.NoteDetailScreen
+import com.example.mybawanggacha.presentation.screens.discover.HomeScreen
+import com.example.mybawanggacha.presentation.screens.library.editor.LibraryEntryEditorScreen
+import com.example.mybawanggacha.presentation.screens.library.list.MyListScreen
 import com.example.mybawanggacha.presentation.screens.manga.MangaListScreen
 import com.example.mybawanggacha.presentation.screens.settings.SettingsScreen
-import com.example.mybawanggacha.domain.model.MediaType
+import com.example.mybawanggacha.domain.library.model.MediaType
 
 @Composable
 fun AppNavHost(
