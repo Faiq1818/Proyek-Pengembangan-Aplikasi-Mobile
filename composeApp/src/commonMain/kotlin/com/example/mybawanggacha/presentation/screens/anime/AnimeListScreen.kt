@@ -4,21 +4,30 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -105,7 +114,9 @@ fun AnimeListScreen(
 
             AnimeListContent(
                 uiState = uiState,
+                selectedTab = selectedTab,
                 onRetry = viewModel::refresh,
+                onLoadMore = viewModel::loadNextPage,
                 onAnimeClick = onNavigateToAnimeDetail
             )
         }
@@ -174,7 +185,9 @@ private fun AnimeSeasonArchiveRow(
 @Composable
 private fun AnimeListContent(
     uiState: AnimeListUiState,
+    selectedTab: AnimeListTab,
     onRetry: () -> Unit,
+    onLoadMore: () -> Unit,
     onAnimeClick: (Int) -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -206,6 +219,10 @@ private fun AnimeListContent(
 
                 AnimeGrid(
                     anime = uiState.anime,
+                    showTopAnimeBadges = selectedTab == AnimeListTab.TopAnime,
+                    canLoadMore = uiState.canLoadMore,
+                    isLoadingMore = uiState.isLoadingMore,
+                    onLoadMore = onLoadMore,
                     onAnimeClick = onAnimeClick,
                     modifier = Modifier.weight(1f)
                 )
@@ -217,6 +234,10 @@ private fun AnimeListContent(
 @Composable
 private fun AnimeGrid(
     anime: List<AnimeSummary>,
+    showTopAnimeBadges: Boolean,
+    canLoadMore: Boolean,
+    isLoadingMore: Boolean,
+    onLoadMore: () -> Unit,
     onAnimeClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -229,8 +250,23 @@ private fun AnimeGrid(
         return
     }
 
+    val gridState = rememberLazyGridState()
+    val shouldLoadMore by remember(gridState, anime.size, canLoadMore, isLoadingMore) {
+        derivedStateOf {
+            val lastVisibleIndex = gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1
+            canLoadMore &&
+                !isLoadingMore &&
+                lastVisibleIndex >= anime.lastIndex - LOAD_MORE_THRESHOLD
+        }
+    }
+
+    LaunchedEffect(shouldLoadMore) {
+        if (shouldLoadMore) onLoadMore()
+    }
+
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 132.dp),
+        state = gridState,
         contentPadding = PaddingValues(bottom = 32.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp),
@@ -243,8 +279,40 @@ private fun AnimeGrid(
             AnimePosterCard(
                 title = item.title,
                 imageUrl = item.imageUrl.orEmpty(),
+                leadingBadge = item.takeIf { showTopAnimeBadges }?.rankLabel(),
+                trailingBadge = item.takeIf { showTopAnimeBadges }?.scoreLabel(),
                 onClick = { onAnimeClick(item.malId) }
             )
         }
+
+        if (isLoadingMore) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                    Spacer(modifier = Modifier.size(10.dp))
+                    Text(
+                        text = "Memuat lagi...",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
     }
+}
+
+private const val LOAD_MORE_THRESHOLD = 6
+
+private fun AnimeSummary.rankLabel(): String? {
+    return rank?.let { "#$it" }
+}
+
+private fun AnimeSummary.scoreLabel(): String? {
+    return score?.let { "★ ${it.toString().take(4)}" }
 }

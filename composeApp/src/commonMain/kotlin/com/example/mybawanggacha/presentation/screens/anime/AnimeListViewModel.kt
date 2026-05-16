@@ -2,6 +2,7 @@ package com.example.mybawanggacha.presentation.screens.anime
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mybawanggacha.domain.model.AnimePage
 import com.example.mybawanggacha.domain.model.AnimeSeason
 import com.example.mybawanggacha.domain.model.AnimeSeasonPeriod
 import com.example.mybawanggacha.domain.model.AnimeSummary
@@ -29,8 +30,9 @@ class AnimeListViewModel(
         }
 
     private val fallbackPreviousSeasonPeriod = currentSeasonPeriod.previous()
-    private val cachedAnime = mutableMapOf<String, List<AnimeSummary>>()
+    private val cachedAnime = mutableMapOf<String, AnimeListCacheEntry>()
     private var loadJob: Job? = null
+    private var loadMoreJob: Job? = null
 
     private val _selectedTab = MutableStateFlow(AnimeListTab.CurrentSeason)
     val selectedTab: StateFlow<AnimeListTab> = _selectedTab.asStateFlow()
@@ -67,6 +69,37 @@ class AnimeListViewModel(
         load(tab = _selectedTab.value, forceRefresh = true)
     }
 
+    fun loadNextPage() {
+        val currentState = _uiState.value as? AnimeListUiState.Success ?: return
+        if (!currentState.canLoadMore || currentState.isLoadingMore) return
+
+        val tab = _selectedTab.value
+        val key = cacheKey(tab)
+        val cachedEntry = cachedAnime[key] ?: return
+        val nextPage = cachedEntry.nextPage ?: return
+
+        loadMoreJob?.cancel()
+        loadMoreJob = viewModelScope.launch {
+            _uiState.value = currentState.copy(isLoadingMore = true)
+
+            runCatching {
+                fetchAnimePage(tab = tab, page = nextPage)
+            }.onSuccess { page ->
+                val mergedAnime = (cachedEntry.anime + page.items).distinctBy { it.malId }
+                val updatedEntry = AnimeListCacheEntry(
+                    anime = mergedAnime,
+                    nextPage = page.nextPage,
+                    canLoadMore = page.hasNextPage
+                )
+
+                cachedAnime[key] = updatedEntry
+                showSuccess(tab = tab, entry = updatedEntry)
+            }.onFailure {
+                _uiState.value = currentState.copy(isLoadingMore = false)
+            }
+        }
+    }
+
     private fun loadSeasonPeriods() {
         viewModelScope.launch {
             runCatching {
@@ -88,6 +121,7 @@ class AnimeListViewModel(
 
     private fun load(tab: AnimeListTab, forceRefresh: Boolean) {
         loadJob?.cancel()
+        loadMoreJob?.cancel()
         loadJob = viewModelScope.launch {
             _uiState.value = AnimeListUiState.Loading
             val key = cacheKey(tab)
@@ -96,14 +130,11 @@ class AnimeListViewModel(
                 if (!forceRefresh && cachedAnime.containsKey(key)) {
                     cachedAnime.getValue(key)
                 } else {
-                    fetchAnime(tab).also { anime -> cachedAnime[key] = anime }
+                    fetchAnimePage(tab = tab, page = FIRST_PAGE).toCacheEntry()
+                        .also { entry -> cachedAnime[key] = entry }
                 }
-            }.onSuccess { anime ->
-                _uiState.value = AnimeListUiState.Success(
-                    title = tab.contentTitle(),
-                    subtitle = tab.contentSubtitle(),
-                    anime = anime
-                )
+            }.onSuccess { entry ->
+                showSuccess(tab = tab, entry = entry)
             }.onFailure { error ->
                 _uiState.value = AnimeListUiState.Error(
                     error.message ?: "Gagal memuat katalog anime"
@@ -112,17 +143,40 @@ class AnimeListViewModel(
         }
     }
 
-    private suspend fun fetchAnime(tab: AnimeListTab): List<AnimeSummary> {
+    private suspend fun fetchAnimePage(tab: AnimeListTab, page: Int): AnimePage {
         return when (tab) {
-            AnimeListTab.CurrentSeason -> animeRepository.getCurrentSeasonAnime()
-            AnimeListTab.SeasonArchive -> animeRepository.getSeasonAnime(
+            AnimeListTab.CurrentSeason -> animeRepository.getCurrentSeasonAnimePage(page = page)
+            AnimeListTab.SeasonArchive -> animeRepository.getSeasonAnimePage(
                 year = _selectedSeasonPeriod.value.year,
-                season = _selectedSeasonPeriod.value.season
+                season = _selectedSeasonPeriod.value.season,
+                page = page
             )
-            AnimeListTab.Upcoming -> animeRepository.getUpcomingSeasonAnime()
-            AnimeListTab.TopAnime -> animeRepository.getTopAnime()
-            AnimeListTab.Recommendations -> animeRepository.getRecommendations()
+            AnimeListTab.Upcoming -> animeRepository.getUpcomingSeasonAnimePage(page = page)
+            AnimeListTab.TopAnime -> animeRepository.getTopAnimePage(page = page)
+            AnimeListTab.Recommendations -> AnimePage(
+                items = animeRepository.getRecommendations(),
+                nextPage = null,
+                hasNextPage = false
+            )
         }
+    }
+
+    private fun showSuccess(tab: AnimeListTab, entry: AnimeListCacheEntry) {
+        _uiState.value = AnimeListUiState.Success(
+            title = tab.contentTitle(),
+            subtitle = tab.contentSubtitle(),
+            anime = entry.anime,
+            canLoadMore = entry.canLoadMore,
+            isLoadingMore = false
+        )
+    }
+
+    private fun AnimePage.toCacheEntry(): AnimeListCacheEntry {
+        return AnimeListCacheEntry(
+            anime = items,
+            nextPage = nextPage,
+            canLoadMore = hasNextPage
+        )
     }
 
     private fun cacheKey(tab: AnimeListTab): String {
@@ -153,4 +207,14 @@ class AnimeListViewModel(
             AnimeListTab.Recommendations -> "Rekomendasi komunitas dari Jikan/MyAnimeList."
         }
     }
+
+    private companion object {
+        const val FIRST_PAGE = 1
+    }
 }
+
+private data class AnimeListCacheEntry(
+    val anime: List<AnimeSummary>,
+    val nextPage: Int?,
+    val canLoadMore: Boolean
+)

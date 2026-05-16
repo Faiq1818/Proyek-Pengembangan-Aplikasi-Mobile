@@ -3,7 +3,16 @@ package com.example.mybawanggacha.domain.model
 data class AnimeSummary(
     val malId: Int,
     val title: String,
-    val imageUrl: String?
+    val imageUrl: String?,
+    val rank: Int? = null,
+    val score: Double? = null,
+    val rating: String? = null
+)
+
+data class AnimePage(
+    val items: List<AnimeSummary>,
+    val nextPage: Int?,
+    val hasNextPage: Boolean
 )
 
 data class AnimeDetail(

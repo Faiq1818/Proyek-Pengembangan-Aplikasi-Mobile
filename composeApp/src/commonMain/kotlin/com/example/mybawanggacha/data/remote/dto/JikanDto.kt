@@ -5,7 +5,15 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class JikanAnimeListResponse(
-    val data: List<AnimeCatalogItemDto> = emptyList()
+    val data: List<AnimeCatalogItemDto> = emptyList(),
+    val pagination: JikanPaginationDto? = null
+)
+
+@Serializable
+data class JikanPaginationDto(
+    val last_visible_page: Int? = null,
+    val has_next_page: Boolean = false,
+    val current_page: Int? = null
 )
 
 @Serializable
@@ -19,6 +27,8 @@ data class AnimeCatalogItemDto(
     val episodes: Int? = null,
     val status: String? = null,
     val score: Double? = null,
+    val rank: Int? = null,
+    val rating: String? = null,
     val season: String? = null,
     val year: Int? = null
 )

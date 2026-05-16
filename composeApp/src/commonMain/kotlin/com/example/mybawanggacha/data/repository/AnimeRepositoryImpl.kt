@@ -11,7 +11,9 @@ import com.example.mybawanggacha.data.remote.dto.RelationEntryPreviewDto
 import com.example.mybawanggacha.domain.model.AnimeDetail
 import com.example.mybawanggacha.domain.model.AnimeDetailBundle
 import com.example.mybawanggacha.domain.model.AnimeEpisode
+import com.example.mybawanggacha.data.remote.dto.JikanAnimeListResponse
 import com.example.mybawanggacha.domain.model.AnimeLink
+import com.example.mybawanggacha.domain.model.AnimePage
 import com.example.mybawanggacha.domain.model.AnimeRelation
 import com.example.mybawanggacha.domain.model.AnimeRelationEntry
 import com.example.mybawanggacha.domain.model.AnimeRelationPreview
@@ -49,31 +51,47 @@ class AnimeRepositoryImpl(
             }
     }
 
-    override suspend fun getCurrentSeasonAnime(): List<AnimeSummary> = withContext(Dispatchers.Default) {
-        jikanService.fetchCurrentSeasonAnime()
-            .data
-            .toSummaryList()
+    override suspend fun getCurrentSeasonAnime(): List<AnimeSummary> {
+        return getCurrentSeasonAnimePage(page = 1).items
     }
 
     override suspend fun getSeasonAnime(
         year: Int,
         season: AnimeSeason
-    ): List<AnimeSummary> = withContext(Dispatchers.Default) {
-        jikanService.fetchSeasonAnime(year = year, season = season.apiKey)
-            .data
-            .toSummaryList()
+    ): List<AnimeSummary> {
+        return getSeasonAnimePage(year = year, season = season, page = 1).items
     }
 
-    override suspend fun getUpcomingSeasonAnime(): List<AnimeSummary> = withContext(Dispatchers.Default) {
-        jikanService.fetchUpcomingSeasonAnime()
-            .data
-            .toSummaryList()
+    override suspend fun getUpcomingSeasonAnime(): List<AnimeSummary> {
+        return getUpcomingSeasonAnimePage(page = 1).items
     }
 
-    override suspend fun getTopAnime(): List<AnimeSummary> = withContext(Dispatchers.Default) {
-        jikanService.fetchTopAnime()
-            .data
-            .toSummaryList()
+    override suspend fun getTopAnime(): List<AnimeSummary> {
+        return getTopAnimePage(page = 1).items
+    }
+
+    override suspend fun getCurrentSeasonAnimePage(page: Int): AnimePage = withContext(Dispatchers.Default) {
+        jikanService.fetchCurrentSeasonAnime(page = page).toDomainPage(requestedPage = page)
+    }
+
+    override suspend fun getSeasonAnimePage(
+        year: Int,
+        season: AnimeSeason,
+        page: Int
+    ): AnimePage = withContext(Dispatchers.Default) {
+        jikanService.fetchSeasonAnime(
+            year = year,
+            season = season.apiKey,
+            page = page
+        ).toDomainPage(requestedPage = page)
+    }
+
+    override suspend fun getUpcomingSeasonAnimePage(page: Int): AnimePage = withContext(Dispatchers.Default) {
+        jikanService.fetchUpcomingSeasonAnime(page = page).toDomainPage(requestedPage = page)
+    }
+
+    override suspend fun getTopAnimePage(page: Int): AnimePage = withContext(Dispatchers.Default) {
+        jikanService.fetchTopAnime(page = page).toDomainPage(requestedPage = page)
     }
 
     override suspend fun getAvailableSeasonPeriods(): List<AnimeSeasonPeriod> = withContext(Dispatchers.Default) {
@@ -179,6 +197,15 @@ class AnimeRepositoryImpl(
 }
 
 
+private fun JikanAnimeListResponse.toDomainPage(requestedPage: Int): AnimePage {
+    val hasNextPage = pagination?.has_next_page == true
+    return AnimePage(
+        items = data.toSummaryList(),
+        nextPage = if (hasNextPage) requestedPage + 1 else null,
+        hasNextPage = hasNextPage
+    )
+}
+
 private fun List<AnimeCatalogItemDto>.toSummaryList(): List<AnimeSummary> {
     return distinctBy { it.mal_id }
         .map { item ->
@@ -186,7 +213,10 @@ private fun List<AnimeCatalogItemDto>.toSummaryList(): List<AnimeSummary> {
                 malId = item.mal_id,
                 title = item.title_english?.takeIf { it.isNotBlank() } ?: item.title,
                 imageUrl = item.images?.jpg?.large_image_url
-                    ?: item.images?.jpg?.image_url
+                    ?: item.images?.jpg?.image_url,
+                rank = item.rank,
+                score = item.score,
+                rating = item.rating
             )
         }
 }

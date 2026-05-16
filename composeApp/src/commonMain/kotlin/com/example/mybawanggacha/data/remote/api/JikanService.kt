@@ -9,6 +9,7 @@ import com.example.mybawanggacha.data.remote.dto.RelationEntryPreviewResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import io.ktor.client.request.parameter
 
 class JikanService(private val client: HttpClient) {
     companion object {
@@ -19,20 +20,32 @@ class JikanService(private val client: HttpClient) {
         return client.get("${BASE_URL}recommendations/anime").body()
     }
 
-    suspend fun fetchCurrentSeasonAnime(): JikanAnimeListResponse {
-        return client.get("${BASE_URL}seasons/now").body()
+    suspend fun fetchCurrentSeasonAnime(page: Int = 1): JikanAnimeListResponse {
+        return client.get("${BASE_URL}seasons/now") {
+            parameter("page", page)
+        }.body()
     }
 
-    suspend fun fetchSeasonAnime(year: Int, season: String): JikanAnimeListResponse {
-        return client.get("${BASE_URL}seasons/$year/$season").body()
+    suspend fun fetchSeasonAnime(
+        year: Int,
+        season: String,
+        page: Int = 1
+    ): JikanAnimeListResponse {
+        return client.get("${BASE_URL}seasons/$year/$season") {
+            parameter("page", page)
+        }.body()
     }
 
-    suspend fun fetchUpcomingSeasonAnime(): JikanAnimeListResponse {
-        return client.get("${BASE_URL}seasons/upcoming").body()
+    suspend fun fetchUpcomingSeasonAnime(page: Int = 1): JikanAnimeListResponse {
+        return client.get("${BASE_URL}seasons/upcoming") {
+            parameter("page", page)
+        }.body()
     }
 
-    suspend fun fetchTopAnime(): JikanAnimeListResponse {
-        return client.get("${BASE_URL}top/anime").body()
+    suspend fun fetchTopAnime(page: Int = 1): JikanAnimeListResponse {
+        return client.get("${BASE_URL}top/anime") {
+            parameter("page", page)
+        }.body()
     }
 
     suspend fun fetchSeasonArchive(): JikanSeasonArchiveResponse {

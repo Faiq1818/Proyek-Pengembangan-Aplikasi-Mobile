@@ -2,8 +2,10 @@ package com.example.mybawanggacha.presentation.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -47,7 +49,9 @@ fun AnimePosterCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     posterWidth: Dp = 132.dp,
-    posterHeight: Dp = 188.dp
+    posterHeight: Dp = 188.dp,
+    leadingBadge: String? = null,
+    trailingBadge: String? = null
 ) {
     Column(
         modifier = modifier
@@ -64,15 +68,31 @@ fun AnimePosterCard(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant
             )
         ) {
-            AsyncImage(
-                model = imageUrl,
-                contentDescription = title,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(posterHeight)
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentScale = ContentScale.Crop
-            )
+            Box {
+                AsyncImage(
+                    model = imageUrl,
+                    contentDescription = title,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(posterHeight)
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    contentScale = ContentScale.Crop
+                )
+
+                if (leadingBadge != null || trailingBadge != null) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        leadingBadge?.let { AnimePosterBadge(text = it) }
+                        Spacer(modifier = Modifier.weight(1f))
+                        trailingBadge?.let { AnimePosterBadge(text = it) }
+                    }
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -86,6 +106,23 @@ fun AnimePosterCard(
             overflow = TextOverflow.Ellipsis
         )
     }
+}
+
+
+@Composable
+private fun AnimePosterBadge(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurface,
+        fontWeight = FontWeight.Bold,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier
+            .clip(RoundedCornerShape(999.dp))
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.86f))
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+    )
 }
 
 @Composable
