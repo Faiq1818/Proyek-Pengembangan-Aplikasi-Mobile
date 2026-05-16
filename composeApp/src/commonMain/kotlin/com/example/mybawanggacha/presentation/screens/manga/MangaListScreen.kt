@@ -53,7 +53,7 @@ fun MangaListScreen(
 
             EmptyState(
                 title = "Manga List belum diimplementasikan",
-                message = "Screen ini disiapkan dagar navigasi root rapi. Status read/reading akan di implementasikan di sprint berikutnya."
+                message = "Screen ini disiapkan agar navigasi root rapi. Status read/reading akan di implementasikan di sprint berikutnya."
             )
         }
     }

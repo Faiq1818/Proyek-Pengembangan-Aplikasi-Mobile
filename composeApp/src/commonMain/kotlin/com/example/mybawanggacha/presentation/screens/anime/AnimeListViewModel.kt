@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.mybawanggacha.domain.model.AnimePage
 import com.example.mybawanggacha.domain.model.AnimeSeason
 import com.example.mybawanggacha.domain.model.AnimeSeasonPeriod
-import com.example.mybawanggacha.domain.model.AnimeSummary
 import com.example.mybawanggacha.domain.repository.AnimeRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +29,7 @@ class AnimeListViewModel(
         }
 
     private val fallbackPreviousSeasonPeriod = currentSeasonPeriod.previous()
-    private val cachedAnime = mutableMapOf<String, AnimeListCacheEntry>()
+    private val cache = AnimeListPageCache()
     private var loadJob: Job? = null
     private var loadMoreJob: Job? = null
 
@@ -75,7 +74,7 @@ class AnimeListViewModel(
 
         val tab = _selectedTab.value
         val key = cacheKey(tab)
-        val cachedEntry = cachedAnime[key] ?: return
+        val cachedEntry = cache.get(key) ?: return
         val nextPage = cachedEntry.nextPage ?: return
 
         loadMoreJob?.cancel()
@@ -92,7 +91,7 @@ class AnimeListViewModel(
                     canLoadMore = page.hasNextPage
                 )
 
-                cachedAnime[key] = updatedEntry
+                cache.put(key, updatedEntry)
                 showSuccess(tab = tab, entry = updatedEntry)
             }.onFailure {
                 _uiState.value = currentState.copy(isLoadingMore = false)
@@ -127,11 +126,11 @@ class AnimeListViewModel(
             val key = cacheKey(tab)
 
             runCatching {
-                if (!forceRefresh && cachedAnime.containsKey(key)) {
-                    cachedAnime.getValue(key)
+                if (!forceRefresh && cache.contains(key)) {
+                    cache.get(key) ?: fetchAnimePage(tab = tab, page = FIRST_PAGE).toCacheEntry()
                 } else {
                     fetchAnimePage(tab = tab, page = FIRST_PAGE).toCacheEntry()
-                        .also { entry -> cachedAnime[key] = entry }
+                        .also { entry -> cache.put(key, entry) }
                 }
             }.onSuccess { entry ->
                 showSuccess(tab = tab, entry = entry)
@@ -163,19 +162,17 @@ class AnimeListViewModel(
 
     private fun showSuccess(tab: AnimeListTab, entry: AnimeListCacheEntry) {
         _uiState.value = AnimeListUiState.Success(
-            title = tab.contentTitle(),
-            subtitle = tab.contentSubtitle(),
+            title = tab.contentTitle(
+                currentSeasonPeriod = currentSeasonPeriod,
+                selectedSeasonPeriod = _selectedSeasonPeriod.value
+            ),
+            subtitle = tab.contentSubtitle(
+                currentSeasonPeriod = currentSeasonPeriod,
+                selectedSeasonPeriod = _selectedSeasonPeriod.value
+            ),
             anime = entry.anime,
             canLoadMore = entry.canLoadMore,
             isLoadingMore = false
-        )
-    }
-
-    private fun AnimePage.toCacheEntry(): AnimeListCacheEntry {
-        return AnimeListCacheEntry(
-            anime = items,
-            nextPage = nextPage,
-            canLoadMore = hasNextPage
         )
     }
 
@@ -188,33 +185,7 @@ class AnimeListViewModel(
         }
     }
 
-    private fun AnimeListTab.contentTitle(): String {
-        return when (this) {
-            AnimeListTab.CurrentSeason -> currentSeasonPeriod.displayLabel
-            AnimeListTab.SeasonArchive -> _selectedSeasonPeriod.value.displayLabel
-            AnimeListTab.Upcoming -> "Akan Tayang"
-            AnimeListTab.TopAnime -> "Top Anime"
-            AnimeListTab.Recommendations -> "Rekomendasi Anime"
-        }
-    }
-
-    private fun AnimeListTab.contentSubtitle(): String {
-        return when (this) {
-            AnimeListTab.CurrentSeason -> "Anime yang sedang tayang pada ${currentSeasonPeriod.displayLabel}."
-            AnimeListTab.SeasonArchive -> "Arsip anime dari ${_selectedSeasonPeriod.value.displayLabel}."
-            AnimeListTab.Upcoming -> "Anime musim mendatang yang cocok masuk Rencana Tonton."
-            AnimeListTab.TopAnime -> "Anime dengan ranking tinggi dari katalog MyAnimeList."
-            AnimeListTab.Recommendations -> "Rekomendasi komunitas dari Jikan/MyAnimeList."
-        }
-    }
-
     private companion object {
         const val FIRST_PAGE = 1
     }
 }
-
-private data class AnimeListCacheEntry(
-    val anime: List<AnimeSummary>,
-    val nextPage: Int?,
-    val canLoadMore: Boolean
-)

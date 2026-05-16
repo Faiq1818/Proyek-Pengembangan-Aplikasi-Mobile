@@ -26,17 +26,17 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.example.mybawanggacha.data.remote.dto.AnimeEntry
+import com.example.mybawanggacha.domain.model.AnimeSummary
 
 @Composable
 fun AnimeRecommendationCard(
-    anime: AnimeEntry,
+    anime: AnimeSummary,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     AnimePosterCard(
         title = anime.title,
-        imageUrl = anime.images.jpg.large_image_url,
+        imageUrl = anime.imageUrl.orEmpty(),
         onClick = onClick,
         modifier = modifier
     )
