@@ -14,12 +14,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.mybawanggacha.data.remote.dto.AnimeEntry
+import com.example.mybawanggacha.domain.model.AnimeSummary
 
 @Composable
 fun AnimeHorizontalSection(
     title: String,
-    anime: List<AnimeEntry>,
+    anime: List<AnimeSummary>,
     onViewAllClick: () -> Unit,
     onAnimeClick: (Int) -> Unit,
     modifier: Modifier = Modifier
@@ -38,12 +38,12 @@ fun AnimeHorizontalSection(
     ) {
         items(
             items = anime,
-            key = { it.mal_id }
+            key = { it.malId }
         ) { item ->
             AnimePosterCard(
                 title = item.title,
-                imageUrl = item.images.jpg.large_image_url,
-                onClick = { onAnimeClick(item.mal_id) }
+                imageUrl = item.imageUrl.orEmpty(),
+                onClick = { onAnimeClick(item.malId) }
             )
         }
     }

@@ -8,10 +8,6 @@ import com.example.mybawanggacha.domain.model.AnimeSummary
 
 interface AnimeRepository {
     suspend fun getRecommendations(): List<AnimeSummary>
-    suspend fun getCurrentSeasonAnime(): List<AnimeSummary>
-    suspend fun getSeasonAnime(year: Int, season: AnimeSeason): List<AnimeSummary>
-    suspend fun getUpcomingSeasonAnime(): List<AnimeSummary>
-    suspend fun getTopAnime(): List<AnimeSummary>
     suspend fun getCurrentSeasonAnimePage(page: Int): AnimePage
     suspend fun getSeasonAnimePage(year: Int, season: AnimeSeason, page: Int): AnimePage
     suspend fun getUpcomingSeasonAnimePage(page: Int): AnimePage

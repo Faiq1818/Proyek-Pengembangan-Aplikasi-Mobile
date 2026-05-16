@@ -3,6 +3,7 @@ package com.example.mybawanggacha.data.repository
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneOrNull
+import com.example.mybawanggacha.core.coroutines.AppDispatchers
 import com.example.mybawanggacha.data.local.LibraryEntryEntity
 import com.example.mybawanggacha.data.local.NoteDatabase
 import com.example.mybawanggacha.domain.model.LibraryEntry
@@ -11,7 +12,6 @@ import com.example.mybawanggacha.domain.model.MediaType
 import com.example.mybawanggacha.domain.model.UserProgress
 import com.example.mybawanggacha.domain.model.UserScore
 import com.example.mybawanggacha.domain.repository.LibraryRepository
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -19,7 +19,8 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 
 class LibraryRepositoryImpl(
-    private val database: NoteDatabase
+    private val database: NoteDatabase,
+    private val dispatchers: AppDispatchers
 ) : LibraryRepository {
 
     private val queries = database.libraryQueries
@@ -27,14 +28,14 @@ class LibraryRepositoryImpl(
     override fun observeEntries(): Flow<List<LibraryEntry>> {
         return queries.getLibraryEntries()
             .asFlow()
-            .mapToList(Dispatchers.Default)
+            .mapToList(dispatchers.io)
             .map { rows -> rows.map { it.toDomain() } }
     }
 
     override fun observeEntriesByStatus(status: LibraryStatus): Flow<List<LibraryEntry>> {
         return queries.getLibraryEntriesByStatus(status.storageKey)
             .asFlow()
-            .mapToList(Dispatchers.Default)
+            .mapToList(dispatchers.io)
             .map { rows -> rows.map { it.toDomain() } }
     }
 
@@ -44,22 +45,22 @@ class LibraryRepositoryImpl(
             media_type = mediaType.storageKey
         )
             .asFlow()
-            .mapToOneOrNull(Dispatchers.Default)
+            .mapToOneOrNull(dispatchers.io)
             .map { row -> row?.toDomain() }
     }
 
-    override suspend fun getEntryById(id: Long): LibraryEntry? = withContext(Dispatchers.Default) {
+    override suspend fun getEntryById(id: Long): LibraryEntry? = withContext(dispatchers.io) {
         queries.getLibraryEntryById(id).executeAsOneOrNull()?.toDomain()
     }
 
-    override suspend fun getEntry(mediaId: Int, mediaType: MediaType): LibraryEntry? = withContext(Dispatchers.Default) {
+    override suspend fun getEntry(mediaId: Int, mediaType: MediaType): LibraryEntry? = withContext(dispatchers.io) {
         queries.getLibraryEntryByMedia(
             media_id = mediaId.toLong(),
             media_type = mediaType.storageKey
         ).executeAsOneOrNull()?.toDomain()
     }
 
-    override suspend fun upsertEntry(entry: LibraryEntry): Long = withContext(Dispatchers.Default) {
+    override suspend fun upsertEntry(entry: LibraryEntry): Long = withContext(dispatchers.io) {
         val now = Clock.System.now().toEpochMilliseconds()
         val existing = if (entry.id > 0L) {
             queries.getLibraryEntryById(entry.id).executeAsOneOrNull()
@@ -102,13 +103,13 @@ class LibraryRepositoryImpl(
     }
 
     override suspend fun deleteEntry(id: Long) {
-        withContext(Dispatchers.Default) {
+        withContext(dispatchers.io) {
             queries.deleteLibraryEntryById(id)
         }
     }
 
     override suspend fun deleteEntry(mediaId: Int, mediaType: MediaType) {
-        withContext(Dispatchers.Default) {
+        withContext(dispatchers.io) {
             queries.deleteLibraryEntryByMedia(
                 media_id = mediaId.toLong(),
                 media_type = mediaType.storageKey

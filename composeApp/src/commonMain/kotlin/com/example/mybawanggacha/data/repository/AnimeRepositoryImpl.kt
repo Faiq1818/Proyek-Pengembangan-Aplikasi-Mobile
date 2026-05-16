@@ -1,5 +1,6 @@
 package com.example.mybawanggacha.data.repository
 
+import com.example.mybawanggacha.core.coroutines.AppDispatchers
 import com.example.mybawanggacha.data.local.source.AnimeProgressLocalDataSource
 import com.example.mybawanggacha.data.mapper.previewKey
 import com.example.mybawanggacha.data.mapper.toDomain
@@ -14,7 +15,6 @@ import com.example.mybawanggacha.domain.model.AnimeSeason
 import com.example.mybawanggacha.domain.model.AnimeSeasonPeriod
 import com.example.mybawanggacha.domain.model.AnimeSummary
 import com.example.mybawanggacha.domain.repository.AnimeRepository
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
@@ -22,13 +22,14 @@ private const val JIKAN_REQUEST_SPACING_MS = 360L
 
 class AnimeRepositoryImpl(
     private val remoteDataSource: JikanAnimeRemoteDataSource,
-    private val progressLocalDataSource: AnimeProgressLocalDataSource
+    private val progressLocalDataSource: AnimeProgressLocalDataSource,
+    private val dispatchers: AppDispatchers
 ) : AnimeRepository {
 
     private val relationPreviewCache = mutableMapOf<String, AnimeRelationPreview>()
 
-    override suspend fun getRecommendations(): List<AnimeSummary> = withContext(Dispatchers.Default) {
-        remoteDataSource.fetchRecommendations()
+    override suspend fun getRecommendations(): List<AnimeSummary> = withContext(dispatchers.default) {
+        remoteDataSource.fetchAnimeRecommendations()
             .data
             .flatMap { it.entry }
             .distinctBy { it.mal_id }
@@ -41,26 +42,8 @@ class AnimeRepositoryImpl(
             }
     }
 
-    override suspend fun getCurrentSeasonAnime(): List<AnimeSummary> {
-        return getCurrentSeasonAnimePage(page = 1).items
-    }
 
-    override suspend fun getSeasonAnime(
-        year: Int,
-        season: AnimeSeason
-    ): List<AnimeSummary> {
-        return getSeasonAnimePage(year = year, season = season, page = 1).items
-    }
-
-    override suspend fun getUpcomingSeasonAnime(): List<AnimeSummary> {
-        return getUpcomingSeasonAnimePage(page = 1).items
-    }
-
-    override suspend fun getTopAnime(): List<AnimeSummary> {
-        return getTopAnimePage(page = 1).items
-    }
-
-    override suspend fun getCurrentSeasonAnimePage(page: Int): AnimePage = withContext(Dispatchers.Default) {
+    override suspend fun getCurrentSeasonAnimePage(page: Int): AnimePage = withContext(dispatchers.default) {
         remoteDataSource.fetchCurrentSeasonAnime(page = page).toDomainPage(requestedPage = page)
     }
 
@@ -68,7 +51,7 @@ class AnimeRepositoryImpl(
         year: Int,
         season: AnimeSeason,
         page: Int
-    ): AnimePage = withContext(Dispatchers.Default) {
+    ): AnimePage = withContext(dispatchers.default) {
         remoteDataSource.fetchSeasonAnime(
             year = year,
             season = season.apiKey,
@@ -76,15 +59,15 @@ class AnimeRepositoryImpl(
         ).toDomainPage(requestedPage = page)
     }
 
-    override suspend fun getUpcomingSeasonAnimePage(page: Int): AnimePage = withContext(Dispatchers.Default) {
+    override suspend fun getUpcomingSeasonAnimePage(page: Int): AnimePage = withContext(dispatchers.default) {
         remoteDataSource.fetchUpcomingSeasonAnime(page = page).toDomainPage(requestedPage = page)
     }
 
-    override suspend fun getTopAnimePage(page: Int): AnimePage = withContext(Dispatchers.Default) {
+    override suspend fun getTopAnimePage(page: Int): AnimePage = withContext(dispatchers.default) {
         remoteDataSource.fetchTopAnime(page = page).toDomainPage(requestedPage = page)
     }
 
-    override suspend fun getAvailableSeasonPeriods(): List<AnimeSeasonPeriod> = withContext(Dispatchers.Default) {
+    override suspend fun getAvailableSeasonPeriods(): List<AnimeSeasonPeriod> = withContext(dispatchers.default) {
         remoteDataSource.fetchSeasonArchive()
             .data
             .flatMap { yearDto ->
@@ -98,7 +81,7 @@ class AnimeRepositoryImpl(
             .sortedByDescending { it.sortValue }
     }
 
-    override suspend fun getAnimeDetail(malId: Int): AnimeDetailBundle = withContext(Dispatchers.Default) {
+    override suspend fun getAnimeDetail(malId: Int): AnimeDetailBundle = withContext(dispatchers.default) {
         val animeDto = remoteDataSource.fetchAnimeFullDetail(malId).data
         val watchedNumbers = progressLocalDataSource.getWatchedEpisodeNumbers(malId)
         val episodeDtos = runCatching {
@@ -138,7 +121,7 @@ class AnimeRepositoryImpl(
         episodeNumber: Int,
         watched: Boolean
     ) {
-        withContext(Dispatchers.Default) {
+        withContext(dispatchers.default) {
             progressLocalDataSource.setEpisodeWatched(
                 animeId = animeId,
                 episodeNumber = episodeNumber,

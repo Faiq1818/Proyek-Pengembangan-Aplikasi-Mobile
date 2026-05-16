@@ -3,6 +3,7 @@ package com.example.mybawanggacha.data.repository
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneOrNull
+import com.example.mybawanggacha.core.coroutines.AppDispatchers
 import com.example.mybawanggacha.data.local.NoteDatabase
 import com.example.mybawanggacha.data.local.entity.toDomain
 import com.example.mybawanggacha.data.local.entity.toDomainList
@@ -10,52 +11,54 @@ import com.example.mybawanggacha.data.local.entity.toEntityValues
 import com.example.mybawanggacha.domain.model.Note
 import com.example.mybawanggacha.domain.model.NoteCategory
 import com.example.mybawanggacha.domain.repository.NoteRepository
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlin.time.Clock
 
-class NoteRepositoryImpl(private val database: NoteDatabase) : NoteRepository {
+class NoteRepositoryImpl(
+    private val database: NoteDatabase,
+    private val dispatchers: AppDispatchers
+) : NoteRepository {
 
     private val queries = database.noteQueries
 
     override fun getAllNotes(): Flow<List<Note>> {
         return queries.getAllNotes()
             .asFlow()
-            .mapToList(Dispatchers.Default)
+            .mapToList(dispatchers.io)
             .map { entities -> entities.toDomainList() }
     }
 
     override fun getPinnedNotes(): Flow<List<Note>> {
         return queries.getPinnedNotes()
             .asFlow()
-            .mapToList(Dispatchers.Default)
+            .mapToList(dispatchers.io)
             .map { entities -> entities.toDomainList() }
     }
 
     override fun getNotesByCategory(category: NoteCategory): Flow<List<Note>> {
         return queries.getNotesByCategory(category.name)
             .asFlow()
-            .mapToList(Dispatchers.Default)
+            .mapToList(dispatchers.io)
             .map { entities -> entities.toDomainList() }
     }
 
     override fun searchNotes(query: String): Flow<List<Note>> {
         return queries.searchNotes(query, query)
             .asFlow()
-            .mapToList(Dispatchers.Default)
+            .mapToList(dispatchers.io)
             .map { entities -> entities.toDomainList() }
     }
 
     override fun getNoteById(id: Long): Flow<Note?> {
         return queries.getNoteById(id)
             .asFlow()
-            .mapToOneOrNull(Dispatchers.Default)
+            .mapToOneOrNull(dispatchers.io)
             .map { entity -> entity?.toDomain() }
     }
 
-    override suspend fun insertNote(note: Note): Long = withContext(Dispatchers.Default) {
+    override suspend fun insertNote(note: Note): Long = withContext(dispatchers.io) {
         val values = note.toEntityValues()
         queries.insertNote(
             title = values.title,
@@ -70,7 +73,7 @@ class NoteRepositoryImpl(private val database: NoteDatabase) : NoteRepository {
     }
 
     override suspend fun updateNote(note: Note) {
-        withContext(Dispatchers.Default) {
+        withContext(dispatchers.io) {
             val values = note.toEntityValues()
             queries.updateNote(
                 id = note.id,
@@ -85,13 +88,13 @@ class NoteRepositoryImpl(private val database: NoteDatabase) : NoteRepository {
     }
 
     override suspend fun deleteNote(id: Long) {
-        withContext(Dispatchers.Default) {
+        withContext(dispatchers.io) {
             queries.deleteNoteById(id)
         }
     }
 
     override suspend fun togglePinNote(id: Long) {
-        withContext(Dispatchers.Default) {
+        withContext(dispatchers.io) {
             queries.togglePin(
                 id = id,
                 updated_at = Clock.System.now().toEpochMilliseconds()
@@ -100,7 +103,7 @@ class NoteRepositoryImpl(private val database: NoteDatabase) : NoteRepository {
     }
 
     override suspend fun deleteNotes(ids: List<Long>) {
-        withContext(Dispatchers.Default) {
+        withContext(dispatchers.io) {
             queries.deleteNotesByIds(ids)
         }
     }
