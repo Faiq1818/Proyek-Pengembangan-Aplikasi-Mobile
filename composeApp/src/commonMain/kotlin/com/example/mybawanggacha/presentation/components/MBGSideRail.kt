@@ -41,7 +41,9 @@ import androidx.compose.ui.unit.dp
 
 object MBGMainRailKey {
     const val Home = "home"
+    const val MyLibrary = "my_library"
     const val AnimeList = "anime_list"
+    const val MangaList = "manga_list"
 }
 
 @Stable
@@ -58,8 +60,18 @@ fun animeMainRailItems(): List<MBGSideRailItem> = listOf(
         icon = Icons.Default.Home
     ),
     MBGSideRailItem(
+        key = MBGMainRailKey.MyLibrary,
+        label = "My Library",
+        icon = Icons.Default.Menu
+    ),
+    MBGSideRailItem(
         key = MBGMainRailKey.AnimeList,
-        label = "My List",
+        label = "Anime List",
+        icon = Icons.Default.Menu
+    ),
+    MBGSideRailItem(
+        key = MBGMainRailKey.MangaList,
+        label = "Manga List",
         icon = Icons.Default.Menu
     )
 )

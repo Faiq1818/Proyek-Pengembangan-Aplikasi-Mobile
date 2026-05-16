@@ -8,7 +8,13 @@ sealed interface Route {
     data object Home : Route
 
     @Serializable
+    data object MyLibrary : Route
+
+    @Serializable
     data object AnimeList : Route
+
+    @Serializable
+    data object MangaList : Route
 
     @Serializable
     data class LibraryEntryEditor(
@@ -41,7 +47,9 @@ sealed interface Route {
 
 interface NavigationActions {
     fun navigateToHome()
+    fun navigateToMyLibrary()
     fun navigateToAnimeList()
+    fun navigateToMangaList()
     fun navigateToLibraryEntryEditor(
         mediaId: Int,
         mediaType: String,

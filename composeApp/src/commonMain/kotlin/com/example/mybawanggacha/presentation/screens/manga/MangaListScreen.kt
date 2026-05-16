@@ -1,4 +1,4 @@
-package com.example.mybawanggacha.presentation.screens.settings
+package com.example.mybawanggacha.presentation.screens.manga
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -11,26 +11,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.mybawanggacha.presentation.components.EmptyState
 import com.example.mybawanggacha.presentation.components.MBGMainRailKey
 import com.example.mybawanggacha.presentation.components.MBGRailBackButton
 import com.example.mybawanggacha.presentation.components.MBGSideRailScaffold
 
 @Composable
-fun SettingsScreen(
+fun MangaListScreen(
     onNavigateBack: () -> Unit,
     onNavigateHome: () -> Unit,
     onNavigateToMyLibrary: () -> Unit,
-    onNavigateToAnimeList: () -> Unit,
-    onNavigateToMangaList: () -> Unit
+    onNavigateToAnimeList: () -> Unit
 ) {
     MBGSideRailScaffold(
-        selectedRailKey = "",
+        selectedRailKey = MBGMainRailKey.MangaList,
         onRailItemClick = { key ->
             when (key) {
                 MBGMainRailKey.Home -> onNavigateHome()
                 MBGMainRailKey.MyLibrary -> onNavigateToMyLibrary()
                 MBGMainRailKey.AnimeList -> onNavigateToAnimeList()
-                MBGMainRailKey.MangaList -> onNavigateToMangaList()
+                MBGMainRailKey.MangaList -> Unit
             }
         },
         topAction = {
@@ -43,7 +43,7 @@ fun SettingsScreen(
                 .padding(start = 4.dp, top = 32.dp, end = 18.dp)
         ) {
             Text(
-                text = "Settings",
+                text = "Manga List",
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold
@@ -51,10 +51,9 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = "Pengaturan masih kosong untuk menjaga skeleton project tetap bersih.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+            EmptyState(
+                title = "Manga List belum diimplementasikan",
+                message = "Slot ini disiapkan dulu supaya navigasi root sudah rapi. Status read/reading bisa masuk sprint berikutnya."
             )
         }
     }

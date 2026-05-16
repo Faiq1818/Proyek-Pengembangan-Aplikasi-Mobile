@@ -36,7 +36,9 @@ import androidx.compose.foundation.lazy.items
 @Composable
 fun HomeScreen(
     onNavigateToAnimeDetail: (Int) -> Unit,
+    onNavigateToMyLibrary: () -> Unit,
     onNavigateToAnimeList: () -> Unit,
+    onNavigateToMangaList: () -> Unit,
     onNavigateToSettings: () -> Unit,
     viewModel: AnimeHomeViewModel = koinViewModel()
 ) {
@@ -47,7 +49,9 @@ fun HomeScreen(
         onRailItemClick = { key ->
             when (key) {
                 MBGMainRailKey.Home -> Unit
+                MBGMainRailKey.MyLibrary -> onNavigateToMyLibrary()
                 MBGMainRailKey.AnimeList -> onNavigateToAnimeList()
+                MBGMainRailKey.MangaList -> onNavigateToMangaList()
             }
         },
         topAction = {

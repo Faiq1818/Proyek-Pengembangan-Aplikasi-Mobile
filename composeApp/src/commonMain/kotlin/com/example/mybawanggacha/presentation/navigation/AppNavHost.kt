@@ -10,10 +10,12 @@ import androidx.navigation.toRoute
 import com.example.mybawanggacha.presentation.screens.addnote.AddNoteScreen
 import com.example.mybawanggacha.presentation.screens.ai.AIAssistantScreen
 import com.example.mybawanggacha.presentation.screens.anime.AnimeDetailScreen
+import com.example.mybawanggacha.presentation.screens.anime.AnimeListScreen
 import com.example.mybawanggacha.presentation.screens.detail.NoteDetailScreen
 import com.example.mybawanggacha.presentation.screens.home.HomeScreen
 import com.example.mybawanggacha.presentation.screens.library.LibraryEntryEditorScreen
 import com.example.mybawanggacha.presentation.screens.library.MyListScreen
+import com.example.mybawanggacha.presentation.screens.manga.MangaListScreen
 import com.example.mybawanggacha.presentation.screens.settings.SettingsScreen
 import com.example.mybawanggacha.domain.model.MediaType
 
@@ -32,15 +34,19 @@ fun AppNavHost(
         composable<Route.Home> {
             HomeScreen(
                 onNavigateToAnimeDetail = { malId -> navigationActions.navigateToAnimeDetail(malId) },
+                onNavigateToMyLibrary = { navigationActions.navigateToMyLibrary() },
                 onNavigateToAnimeList = { navigationActions.navigateToAnimeList() },
+                onNavigateToMangaList = { navigationActions.navigateToMangaList() },
                 onNavigateToSettings = { navigationActions.navigateToSettings() }
             )
         }
 
-        composable<Route.AnimeList> {
+        composable<Route.MyLibrary> {
             MyListScreen(
                 onNavigateBack = { navigationActions.navigateBack() },
                 onNavigateHome = { navigationActions.navigateToHome() },
+                onNavigateToAnimeList = { navigationActions.navigateToAnimeList() },
+                onNavigateToMangaList = { navigationActions.navigateToMangaList() },
                 onNavigateToDetail = { mediaId, mediaType ->
                     when (mediaType) {
                         MediaType.Anime -> navigationActions.navigateToAnimeDetail(mediaId)
@@ -57,6 +63,25 @@ fun AppNavHost(
                         entryId = entry.id
                     )
                 }
+            )
+        }
+
+        composable<Route.AnimeList> {
+            AnimeListScreen(
+                onNavigateBack = { navigationActions.navigateBack() },
+                onNavigateHome = { navigationActions.navigateToHome() },
+                onNavigateToMyLibrary = { navigationActions.navigateToMyLibrary() },
+                onNavigateToMangaList = { navigationActions.navigateToMangaList() },
+                onNavigateToAnimeDetail = { malId -> navigationActions.navigateToAnimeDetail(malId) }
+            )
+        }
+
+        composable<Route.MangaList> {
+            MangaListScreen(
+                onNavigateBack = { navigationActions.navigateBack() },
+                onNavigateHome = { navigationActions.navigateToHome() },
+                onNavigateToMyLibrary = { navigationActions.navigateToMyLibrary() },
+                onNavigateToAnimeList = { navigationActions.navigateToAnimeList() }
             )
         }
 
@@ -77,7 +102,9 @@ fun AppNavHost(
             SettingsScreen(
                 onNavigateBack = { navigationActions.navigateBack() },
                 onNavigateHome = { navigationActions.navigateToHome() },
-                onNavigateToAnimeList = { navigationActions.navigateToAnimeList() }
+                onNavigateToMyLibrary = { navigationActions.navigateToMyLibrary() },
+                onNavigateToAnimeList = { navigationActions.navigateToAnimeList() },
+                onNavigateToMangaList = { navigationActions.navigateToMangaList() }
             )
         }
         
@@ -143,8 +170,16 @@ private fun createNavigationActions(navController: NavHostController): Navigatio
             }
         }
 
+        override fun navigateToMyLibrary() {
+            navController.navigate(Route.MyLibrary)
+        }
+
         override fun navigateToAnimeList() {
             navController.navigate(Route.AnimeList)
+        }
+
+        override fun navigateToMangaList() {
+            navController.navigate(Route.MangaList)
         }
 
         override fun navigateToLibraryEntryEditor(

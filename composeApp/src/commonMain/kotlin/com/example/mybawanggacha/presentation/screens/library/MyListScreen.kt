@@ -54,6 +54,8 @@ import org.koin.compose.viewmodel.koinViewModel
 fun MyListScreen(
     onNavigateBack: () -> Unit,
     onNavigateHome: () -> Unit,
+    onNavigateToAnimeList: () -> Unit,
+    onNavigateToMangaList: () -> Unit,
     onNavigateToDetail: (Int, MediaType) -> Unit,
     onEditEntry: (LibraryEntry) -> Unit,
     viewModel: LibraryViewModel = koinViewModel()
@@ -64,7 +66,7 @@ fun MyListScreen(
 
     deleteTarget?.let { entry ->
         ConfirmationDialog(
-            title = "Hapus dari My List?",
+            title = "Hapus dari My Library?",
             message = "${entry.title} akan dihapus dari daftar lokal.",
             confirmText = "Hapus",
             onConfirm = {
@@ -77,11 +79,13 @@ fun MyListScreen(
     }
 
     MBGSideRailScaffold(
-        selectedRailKey = MBGMainRailKey.AnimeList,
+        selectedRailKey = MBGMainRailKey.MyLibrary,
         onRailItemClick = { key ->
             when (key) {
                 MBGMainRailKey.Home -> onNavigateHome()
-                MBGMainRailKey.AnimeList -> Unit
+                MBGMainRailKey.MyLibrary -> Unit
+                MBGMainRailKey.AnimeList -> onNavigateToAnimeList()
+                MBGMainRailKey.MangaList -> onNavigateToMangaList()
             }
         },
         topAction = {
@@ -94,7 +98,7 @@ fun MyListScreen(
                 .padding(start = 4.dp, top = 32.dp, end = 18.dp)
         ) {
             Text(
-                text = "My List",
+                text = "My Library",
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold
@@ -103,7 +107,7 @@ fun MyListScreen(
             Spacer(modifier = Modifier.height(6.dp))
 
             Text(
-                text = "Daftar anime dan manga yang kamu simpan secara lokal.",
+                text = "Daftar pribadi anime yang kamu simpan secara lokal.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.SemiBold
@@ -176,8 +180,8 @@ private fun LibraryEntryList(
 ) {
     if (entries.isEmpty()) {
         EmptyState(
-            title = if (selectedStatus == null) "My List masih kosong" else "Belum ada item ${selectedStatus.defaultLabel}",
-            message = "Tambahkan anime dari halaman detail, lalu atur status dan progress di sini."
+            title = if (selectedStatus == null) "My Library masih kosong" else "Belum ada item ${selectedStatus.defaultLabel}",
+            message = "Tambahkan anime dari halaman detail, lalu atur status, progress, score, dan catatan di sini."
         )
         return
     }
