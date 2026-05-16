@@ -59,7 +59,7 @@ fun animeMainRailItems(): List<MBGSideRailItem> = listOf(
     ),
     MBGSideRailItem(
         key = MBGMainRailKey.AnimeList,
-        label = "Anime List",
+        label = "My List",
         icon = Icons.Default.Menu
     )
 )

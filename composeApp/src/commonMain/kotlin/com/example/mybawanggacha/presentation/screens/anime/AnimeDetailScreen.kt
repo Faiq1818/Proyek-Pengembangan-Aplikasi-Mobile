@@ -3,9 +3,11 @@ package com.example.mybawanggacha.presentation.screens.anime
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -17,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.mybawanggacha.domain.model.AnimeDetail
 import com.example.mybawanggacha.presentation.components.ErrorState
 import com.example.mybawanggacha.presentation.components.LoadingIndicator
 import com.example.mybawanggacha.presentation.components.MBGRailBackButton
@@ -32,6 +35,7 @@ fun AnimeDetailScreen(
     malId: Int,
     onNavigateBack: () -> Unit,
     onNavigateToAnimeDetail: (Int) -> Unit = {},
+    onNavigateToLibraryEditor: (AnimeDetail) -> Unit = {},
     viewModel: AnimeDetailViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -61,24 +65,34 @@ fun AnimeDetailScreen(
                     message = state.message,
                     onRetry = { viewModel.fetchAnimeDetail(malId) }
                 )
-                is AnimeDetailUiState.Success -> AnimeDetailContent(
-                    anime = state.anime,
-                    episodes = state.episodes,
-                    selectedSection = selectedSection,
-                    onEpisodeWatchedChange = viewModel::setEpisodeWatched,
-                    onRelationEntryClick = { entry ->
-                        if (entry.type.equals("anime", ignoreCase = true)) {
-                            onNavigateToAnimeDetail(entry.malId)
-                        } else {
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(
-                                    message = "Detail ${entry.type?.takeIf { it.isNotBlank() } ?: "Unknown"} belum diimplementasikan.",
-                                    duration = SnackbarDuration.Short
-                                )
+                is AnimeDetailUiState.Success -> {
+                    AnimeDetailContent(
+                        anime = state.anime,
+                        episodes = state.episodes,
+                        selectedSection = selectedSection,
+                        onEpisodeWatchedChange = viewModel::setEpisodeWatched,
+                        onRelationEntryClick = { entry ->
+                            if (entry.type.equals("anime", ignoreCase = true)) {
+                                onNavigateToAnimeDetail(entry.malId)
+                            } else {
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = "Detail ${entry.type?.takeIf { it.isNotBlank() } ?: "Unknown"} belum diimplementasikan.",
+                                        duration = SnackbarDuration.Short
+                                    )
+                                }
                             }
                         }
-                    }
-                )
+                    )
+
+                    ExtendedFloatingActionButton(
+                        text = { Text("Tambah ke My List") },
+                        onClick = { onNavigateToLibraryEditor(state.anime) },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(end = 16.dp, bottom = 80.dp)
+                    )
+                }
             }
 
             SnackbarHost(

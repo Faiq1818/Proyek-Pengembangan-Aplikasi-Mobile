@@ -10,10 +10,12 @@ import androidx.navigation.toRoute
 import com.example.mybawanggacha.presentation.screens.addnote.AddNoteScreen
 import com.example.mybawanggacha.presentation.screens.ai.AIAssistantScreen
 import com.example.mybawanggacha.presentation.screens.anime.AnimeDetailScreen
-import com.example.mybawanggacha.presentation.screens.anime.AnimeListScreen
 import com.example.mybawanggacha.presentation.screens.detail.NoteDetailScreen
 import com.example.mybawanggacha.presentation.screens.home.HomeScreen
+import com.example.mybawanggacha.presentation.screens.library.LibraryEntryEditorScreen
+import com.example.mybawanggacha.presentation.screens.library.MyListScreen
 import com.example.mybawanggacha.presentation.screens.settings.SettingsScreen
+import com.example.mybawanggacha.domain.model.MediaType
 
 @Composable
 fun AppNavHost(
@@ -36,10 +38,38 @@ fun AppNavHost(
         }
 
         composable<Route.AnimeList> {
-            AnimeListScreen(
+            MyListScreen(
                 onNavigateBack = { navigationActions.navigateBack() },
                 onNavigateHome = { navigationActions.navigateToHome() },
-                onNavigateToAnimeDetail = { malId -> navigationActions.navigateToAnimeDetail(malId) }
+                onNavigateToDetail = { mediaId, mediaType ->
+                    when (mediaType) {
+                        MediaType.Anime -> navigationActions.navigateToAnimeDetail(mediaId)
+                        MediaType.Manga -> Unit
+                    }
+                },
+                onEditEntry = { entry ->
+                    navigationActions.navigateToLibraryEntryEditor(
+                        mediaId = entry.mediaId,
+                        mediaType = entry.mediaType.storageKey,
+                        title = entry.title,
+                        imageUrl = entry.imageUrl,
+                        totalCount = entry.progress.total,
+                        entryId = entry.id
+                    )
+                }
+            )
+        }
+
+        composable<Route.LibraryEntryEditor> { backStackEntry ->
+            val route: Route.LibraryEntryEditor = backStackEntry.toRoute()
+            LibraryEntryEditorScreen(
+                mediaId = route.mediaId,
+                mediaType = MediaType.fromStorageKey(route.mediaType),
+                title = route.title,
+                imageUrl = route.imageUrl,
+                totalCount = route.totalCount,
+                entryId = route.entryId,
+                onNavigateBack = { navigationActions.navigateBack() }
             )
         }
 
@@ -90,7 +120,16 @@ fun AppNavHost(
             AnimeDetailScreen(
                 malId = route.malId,
                 onNavigateBack = { navigationActions.navigateBack() },
-                onNavigateToAnimeDetail = { malId -> navigationActions.navigateToAnimeDetail(malId) }
+                onNavigateToAnimeDetail = { malId -> navigationActions.navigateToAnimeDetail(malId) },
+                onNavigateToLibraryEditor = { anime ->
+                    navigationActions.navigateToLibraryEntryEditor(
+                        mediaId = anime.malId,
+                        mediaType = MediaType.Anime.storageKey,
+                        title = anime.title,
+                        imageUrl = anime.imageUrl,
+                        totalCount = anime.episodes
+                    )
+                }
             )
         }
     }
@@ -106,6 +145,26 @@ private fun createNavigationActions(navController: NavHostController): Navigatio
 
         override fun navigateToAnimeList() {
             navController.navigate(Route.AnimeList)
+        }
+
+        override fun navigateToLibraryEntryEditor(
+            mediaId: Int,
+            mediaType: String,
+            title: String,
+            imageUrl: String?,
+            totalCount: Int?,
+            entryId: Long?
+        ) {
+            navController.navigate(
+                Route.LibraryEntryEditor(
+                    mediaId = mediaId,
+                    mediaType = mediaType,
+                    title = title,
+                    imageUrl = imageUrl,
+                    totalCount = totalCount,
+                    entryId = entryId
+                )
+            )
         }
 
         override fun navigateToSettings() {

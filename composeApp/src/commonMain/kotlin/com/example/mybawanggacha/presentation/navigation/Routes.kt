@@ -11,6 +11,16 @@ sealed interface Route {
     data object AnimeList : Route
 
     @Serializable
+    data class LibraryEntryEditor(
+        val mediaId: Int,
+        val mediaType: String,
+        val title: String,
+        val imageUrl: String? = null,
+        val totalCount: Int? = null,
+        val entryId: Long? = null
+    ) : Route
+
+    @Serializable
     data object Settings : Route
     
     @Serializable
@@ -32,6 +42,14 @@ sealed interface Route {
 interface NavigationActions {
     fun navigateToHome()
     fun navigateToAnimeList()
+    fun navigateToLibraryEntryEditor(
+        mediaId: Int,
+        mediaType: String,
+        title: String,
+        imageUrl: String? = null,
+        totalCount: Int? = null,
+        entryId: Long? = null
+    )
     fun navigateToSettings()
     fun navigateToAddNote(noteId: Long? = null)
     fun navigateToNoteDetail(noteId: Long)
