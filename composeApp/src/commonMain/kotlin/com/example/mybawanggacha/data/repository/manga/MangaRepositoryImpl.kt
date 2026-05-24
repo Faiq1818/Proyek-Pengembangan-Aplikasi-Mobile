@@ -2,9 +2,13 @@ package com.example.mybawanggacha.data.repository.manga
 
 import com.example.mybawanggacha.core.coroutines.AppDispatchers
 import com.example.mybawanggacha.data.local.source.MangaDetailCacheLocalDataSource
+import com.example.mybawanggacha.data.local.source.MediaPageCacheLocalDataSource
+import com.example.mybawanggacha.data.remote.jikan.dto.JikanAnimeListResponse
+import com.example.mybawanggacha.data.remote.jikan.dto.JikanRecommendationsResponse
 import com.example.mybawanggacha.data.remote.jikan.mapper.toDomain
 import com.example.mybawanggacha.data.remote.jikan.mapper.toMangaDomainPage
 import com.example.mybawanggacha.data.remote.jikan.source.JikanMangaRemoteDataSource
+import com.example.mybawanggacha.data.repository.jikan.JikanResponseCacheCodec
 import com.example.mybawanggacha.domain.manga.model.MangaDetail
 import com.example.mybawanggacha.domain.manga.model.MangaPage
 import com.example.mybawanggacha.domain.manga.model.MangaSummary
@@ -14,22 +18,29 @@ import kotlinx.coroutines.withContext
 class MangaRepositoryImpl(
     private val remoteDataSource: JikanMangaRemoteDataSource,
     private val detailCacheLocalDataSource: MangaDetailCacheLocalDataSource,
+    private val pageCacheLocalDataSource: MediaPageCacheLocalDataSource,
     private val dispatchers: AppDispatchers
 ) : MangaRepository {
 
     override suspend fun getTopMangaPage(page: Int): MangaPage = withContext(dispatchers.default) {
-        remoteDataSource.fetchTopManga(page = page, type = "manga")
-            .toMangaDomainPage(requestedPage = page)
+        getCachedMangaList(
+            cacheKey = "manga:top:$page",
+            fetchRemote = { remoteDataSource.fetchTopManga(page = page, type = "manga") }
+        ).toMangaDomainPage(requestedPage = page)
     }
 
     override suspend fun getPopularMangaPage(page: Int): MangaPage = withContext(dispatchers.default) {
-        remoteDataSource.fetchTopManga(page = page, filter = "bypopularity")
-            .toMangaDomainPage(requestedPage = page)
+        getCachedMangaList(
+            cacheKey = "manga:popular:$page",
+            fetchRemote = { remoteDataSource.fetchTopManga(page = page, filter = "bypopularity") }
+        ).toMangaDomainPage(requestedPage = page)
     }
 
     override suspend fun getRecommendations(): List<MangaSummary> = withContext(dispatchers.default) {
-        remoteDataSource.fetchMangaRecommendations()
-            .data
+        getCachedRecommendations(
+            cacheKey = "manga:recommendations",
+            fetchRemote = { remoteDataSource.fetchMangaRecommendations() }
+        ).data
             .flatMap { it.entry }
             .distinctBy { it.mal_id }
             .map { entry ->
@@ -40,6 +51,62 @@ class MangaRepositoryImpl(
                         ?: entry.images.jpg.image_url
                 )
             }
+    }
+
+    private suspend fun getCachedMangaList(
+        cacheKey: String,
+        fetchRemote: suspend () -> JikanAnimeListResponse
+    ): JikanAnimeListResponse {
+        val cached = runCatching { pageCacheLocalDataSource.getPage(cacheKey) }.getOrNull()
+
+        if (cached?.isFresh() == true) {
+            return JikanResponseCacheCodec.decodeAnimeList(cached.payloadJson)
+        }
+
+        return runCatching {
+            fetchRemote().also { response ->
+                runCatching {
+                    pageCacheLocalDataSource.savePage(
+                        cacheKey = cacheKey,
+                        payloadJson = JikanResponseCacheCodec.encodeAnimeList(response)
+                    )
+                }
+            }
+        }.getOrElse { error ->
+            if (cached != null) {
+                JikanResponseCacheCodec.decodeAnimeList(cached.payloadJson)
+            } else {
+                throw error
+            }
+        }
+    }
+
+    private suspend fun getCachedRecommendations(
+        cacheKey: String,
+        fetchRemote: suspend () -> JikanRecommendationsResponse
+    ): JikanRecommendationsResponse {
+        val cached = runCatching { pageCacheLocalDataSource.getPage(cacheKey) }.getOrNull()
+
+        if (cached?.isFresh() == true) {
+            return JikanResponseCacheCodec.decodeRecommendations(cached.payloadJson)
+        }
+
+        return runCatching {
+            fetchRemote().also { response ->
+                runCatching {
+                    pageCacheLocalDataSource.savePage(
+                        cacheKey = cacheKey,
+                        payloadJson = JikanResponseCacheCodec.encodeRecommendations(response)
+                    )
+                }
+            }
+        }.getOrElse { error ->
+            if (cached != null) {
+                JikanResponseCacheCodec.decodeRecommendations(cached.payloadJson)
+            } else {
+                throw error
+            }
+        }
     }
 
     override suspend fun getMangaDetail(malId: Int): MangaDetail = withContext(dispatchers.default) {

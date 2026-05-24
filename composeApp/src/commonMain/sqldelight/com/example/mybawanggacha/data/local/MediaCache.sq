@@ -1,0 +1,21 @@
+CREATE TABLE MediaPageCache (
+    cache_key TEXT NOT NULL PRIMARY KEY,
+    payload_json TEXT NOT NULL,
+    cached_at INTEGER NOT NULL
+);
+
+getMediaPageCache:
+SELECT *
+FROM MediaPageCache
+WHERE cache_key = ?;
+
+upsertMediaPageCache:
+INSERT OR REPLACE INTO MediaPageCache(
+    cache_key,
+    payload_json,
+    cached_at
+)
+VALUES (?, ?, ?);
+
+clearMediaPageCache:
+DELETE FROM MediaPageCache;
