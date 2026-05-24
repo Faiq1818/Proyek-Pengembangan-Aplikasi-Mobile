@@ -5,6 +5,7 @@ import com.example.mybawanggacha.data.remote.jikan.dto.AnimeEpisodesResponse
 import com.example.mybawanggacha.data.remote.jikan.dto.JikanAnimeListResponse
 import com.example.mybawanggacha.data.remote.jikan.dto.JikanRecommendationsResponse
 import com.example.mybawanggacha.data.remote.jikan.dto.JikanSeasonArchiveResponse
+import com.example.mybawanggacha.data.remote.jikan.dto.MangaDetailResponse
 import com.example.mybawanggacha.data.remote.jikan.dto.RelationEntryPreviewResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -18,6 +19,10 @@ class JikanService(private val client: HttpClient) {
 
     suspend fun fetchAnimeRecommendations(): JikanRecommendationsResponse {
         return client.get("${BASE_URL}recommendations/anime").body()
+    }
+
+    suspend fun fetchMangaRecommendations(): JikanRecommendationsResponse {
+        return client.get("${BASE_URL}recommendations/manga").body()
     }
 
     suspend fun fetchCurrentSeasonAnime(page: Int = 1): JikanAnimeListResponse {
@@ -46,6 +51,22 @@ class JikanService(private val client: HttpClient) {
         return client.get("${BASE_URL}top/anime") {
             parameter("page", page)
         }.body()
+    }
+
+    suspend fun fetchTopManga(
+        page: Int = 1,
+        type: String? = null,
+        filter: String? = null
+    ): JikanAnimeListResponse {
+        return client.get("${BASE_URL}top/manga") {
+            parameter("page", page)
+            type?.let { parameter("type", it) }
+            filter?.let { parameter("filter", it) }
+        }.body()
+    }
+
+    suspend fun fetchMangaFullDetail(id: Int): MangaDetailResponse {
+        return client.get("${BASE_URL}manga/$id/full").body()
     }
 
     suspend fun fetchSeasonArchive(): JikanSeasonArchiveResponse {

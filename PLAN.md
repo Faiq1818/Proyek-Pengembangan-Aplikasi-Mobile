@@ -134,7 +134,7 @@ Fokus Sprint 3: fitur pencarian, integrasi API yang lebih lengkap, gacha, cache/
 - [x] Fetch relation preview
 - [ ] Search anime via Jikan
 - [ ] Search manga via Jikan
-- [ ] Fetch manga detail
+- [x] Fetch manga detail
 - [ ] DTO mapping lengkap:
     - Anime DTO → domain model
     - Manga DTO → domain model
@@ -170,7 +170,7 @@ Fokus Sprint 3: fitur pencarian, integrasi API yang lebih lengkap, gacha, cache/
 
 ### Offline & Cache
 
-- [ ] Cache anime/manga detail ke SQLDelight
+- [x] Cache anime/manga detail ke SQLDelight
 - [ ] Pull-to-refresh di Home/Discover atau MyList
 - [ ] Refresh state:
     - idle

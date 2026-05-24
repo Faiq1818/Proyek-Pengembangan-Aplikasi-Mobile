@@ -9,6 +9,8 @@ import com.example.mybawanggacha.presentation.screens.notes.detail.NoteDetailVie
 import com.example.mybawanggacha.presentation.screens.discover.HomeViewModel
 import com.example.mybawanggacha.presentation.screens.library.editor.LibraryEntryEditorViewModel
 import com.example.mybawanggacha.presentation.screens.library.list.LibraryViewModel
+import com.example.mybawanggacha.presentation.screens.manga.MangaDetailViewModel
+import com.example.mybawanggacha.presentation.screens.manga.MangaListViewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
@@ -20,6 +22,8 @@ val viewModelModule = module {
     viewModelOf(::AnimeDetailViewModel)
     viewModelOf(::AnimeHomeViewModel)
     viewModelOf(::AnimeListViewModel)
+    viewModelOf(::MangaDetailViewModel)
+    viewModelOf(::MangaListViewModel)
     viewModelOf(::LibraryViewModel)
     viewModelOf(::LibraryEntryEditorViewModel)
 }
