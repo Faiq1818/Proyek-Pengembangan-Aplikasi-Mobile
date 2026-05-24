@@ -3,7 +3,7 @@ package com.example.mybawanggacha.data.repository.manga
 import com.example.mybawanggacha.core.coroutines.AppDispatchers
 import com.example.mybawanggacha.data.remote.jikan.mapper.toDomain
 import com.example.mybawanggacha.data.remote.jikan.mapper.toMangaDomainPage
-import com.example.mybawanggacha.data.remote.jikan.source.JikanAnimeRemoteDataSource
+import com.example.mybawanggacha.data.remote.jikan.source.JikanMangaRemoteDataSource
 import com.example.mybawanggacha.domain.manga.model.MangaDetail
 import com.example.mybawanggacha.domain.manga.model.MangaPage
 import com.example.mybawanggacha.domain.manga.model.MangaSummary
@@ -11,7 +11,7 @@ import com.example.mybawanggacha.domain.manga.repository.MangaRepository
 import kotlinx.coroutines.withContext
 
 class MangaRepositoryImpl(
-    private val remoteDataSource: JikanAnimeRemoteDataSource,
+    private val remoteDataSource: JikanMangaRemoteDataSource,
     private val dispatchers: AppDispatchers
 ) : MangaRepository {
 

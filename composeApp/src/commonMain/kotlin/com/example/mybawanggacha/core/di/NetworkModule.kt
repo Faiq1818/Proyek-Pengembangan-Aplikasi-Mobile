@@ -4,6 +4,7 @@ import com.example.mybawanggacha.core.network.HttpClientFactory
 import com.example.mybawanggacha.data.remote.gemini.api.GeminiService
 import com.example.mybawanggacha.data.remote.jikan.api.JikanService
 import com.example.mybawanggacha.data.remote.jikan.source.JikanAnimeRemoteDataSource
+import com.example.mybawanggacha.data.remote.jikan.source.JikanMangaRemoteDataSource
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
@@ -12,4 +13,5 @@ val networkModule = module {
     singleOf(::GeminiService)
     singleOf(::JikanService)
     singleOf(::JikanAnimeRemoteDataSource)
+    singleOf(::JikanMangaRemoteDataSource)
 }
