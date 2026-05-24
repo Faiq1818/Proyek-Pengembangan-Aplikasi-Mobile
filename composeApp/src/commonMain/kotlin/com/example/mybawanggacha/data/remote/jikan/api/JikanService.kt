@@ -7,6 +7,7 @@ import com.example.mybawanggacha.data.remote.jikan.dto.JikanRecommendationsRespo
 import com.example.mybawanggacha.data.remote.jikan.dto.JikanSeasonArchiveResponse
 import com.example.mybawanggacha.data.remote.jikan.dto.MangaDetailResponse
 import com.example.mybawanggacha.data.remote.jikan.dto.RelationEntryPreviewResponse
+import com.example.mybawanggacha.data.remote.jikan.dto.WatchEpisodesResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -23,6 +24,20 @@ class JikanService(private val client: HttpClient) {
 
     suspend fun fetchMangaRecommendations(): JikanRecommendationsResponse {
         return client.get("${BASE_URL}recommendations/manga").body()
+    }
+
+    suspend fun fetchRandomAnime(): AnimeDetailResponse {
+        return client.get("${BASE_URL}random/anime").body()
+    }
+
+    suspend fun fetchRandomManga(): MangaDetailResponse {
+        return client.get("${BASE_URL}random/manga").body()
+    }
+
+    suspend fun fetchRecentWatchEpisodes(page: Int = 1): WatchEpisodesResponse {
+        return client.get("${BASE_URL}watch/episodes") {
+            parameter("page", page)
+        }.body()
     }
 
     suspend fun fetchCurrentSeasonAnime(page: Int = 1): JikanAnimeListResponse {

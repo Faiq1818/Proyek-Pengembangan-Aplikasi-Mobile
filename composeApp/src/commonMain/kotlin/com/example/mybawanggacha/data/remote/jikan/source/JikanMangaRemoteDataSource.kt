@@ -17,6 +17,10 @@ class JikanMangaRemoteDataSource(
             service.fetchMangaRecommendations()
         }
 
+    suspend fun fetchRandomManga(): MangaDetailResponse = withContext(dispatchers.io) {
+        service.fetchRandomManga()
+    }
+
     suspend fun fetchTopManga(
         page: Int,
         type: String? = null,

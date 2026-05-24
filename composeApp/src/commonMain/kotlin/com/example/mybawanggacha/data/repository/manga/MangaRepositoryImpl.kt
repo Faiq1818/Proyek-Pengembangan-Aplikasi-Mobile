@@ -12,6 +12,7 @@ import com.example.mybawanggacha.data.remote.jikan.mapper.toDomain
 import com.example.mybawanggacha.data.remote.jikan.mapper.previewKey
 import com.example.mybawanggacha.data.remote.jikan.mapper.toMangaDomain
 import com.example.mybawanggacha.data.remote.jikan.mapper.toMangaDomainPage
+import com.example.mybawanggacha.data.remote.jikan.mapper.toSummary
 import com.example.mybawanggacha.data.remote.jikan.source.JikanMangaRemoteDataSource
 import com.example.mybawanggacha.data.repository.jikan.JikanResponseCacheCodec
 import com.example.mybawanggacha.domain.manga.model.MangaDetail
@@ -59,6 +60,10 @@ class MangaRepositoryImpl(
                         ?: entry.images.jpg.image_url
                 )
             }
+    }
+
+    override suspend fun getRandomManga(): MangaSummary = withContext(dispatchers.default) {
+        remoteDataSource.fetchRandomManga().data.toSummary()
     }
 
     private suspend fun getCachedMangaList(

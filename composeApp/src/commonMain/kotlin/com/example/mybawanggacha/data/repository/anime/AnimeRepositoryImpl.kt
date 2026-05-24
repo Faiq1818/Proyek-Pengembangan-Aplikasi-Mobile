@@ -10,6 +10,8 @@ import com.example.mybawanggacha.data.remote.jikan.dto.AnimeEpisodeDto
 import com.example.mybawanggacha.data.remote.jikan.mapper.previewKey
 import com.example.mybawanggacha.data.remote.jikan.mapper.toDomain
 import com.example.mybawanggacha.data.remote.jikan.mapper.toDomainPage
+import com.example.mybawanggacha.data.remote.jikan.mapper.toDomainRecentEpisode
+import com.example.mybawanggacha.data.remote.jikan.mapper.toSummary
 import com.example.mybawanggacha.data.remote.jikan.source.JikanAnimeRemoteDataSource
 import com.example.mybawanggacha.data.remote.jikan.dto.AnimeRelationEntryDto
 import com.example.mybawanggacha.data.remote.jikan.dto.JikanAnimeListResponse
@@ -22,6 +24,7 @@ import com.example.mybawanggacha.domain.anime.model.AnimeRelationPreview
 import com.example.mybawanggacha.domain.anime.model.AnimeSeason
 import com.example.mybawanggacha.domain.anime.model.AnimeSeasonPeriod
 import com.example.mybawanggacha.domain.anime.model.AnimeSummary
+import com.example.mybawanggacha.domain.anime.model.RecentAnimeEpisode
 import com.example.mybawanggacha.domain.anime.repository.AnimeRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -56,6 +59,16 @@ class AnimeRepositoryImpl(
             }
     }
 
+    override suspend fun getRandomAnime(): AnimeSummary = withContext(dispatchers.default) {
+        remoteDataSource.fetchRandomAnime().data.toSummary()
+    }
+
+    override suspend fun getRecentEpisodes(): List<RecentAnimeEpisode> = withContext(dispatchers.default) {
+        remoteDataSource.fetchRecentWatchEpisodes(page = 1)
+            .data
+            .mapNotNull { item -> item.toDomainRecentEpisode() }
+            .distinctBy { episode -> "${episode.animeMalId}:${episode.episodeMalId}:${episode.episodeTitle}" }
+    }
 
     override suspend fun getCurrentSeasonAnimePage(page: Int): AnimePage = withContext(dispatchers.default) {
         getCachedAnimeList(

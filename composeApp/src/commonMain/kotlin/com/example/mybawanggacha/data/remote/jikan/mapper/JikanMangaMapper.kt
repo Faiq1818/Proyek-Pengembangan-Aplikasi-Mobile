@@ -35,6 +35,17 @@ internal fun List<AnimeCatalogItemDto>.toMangaSummaryList(): List<MangaSummary> 
         }
 }
 
+internal fun MangaDetailData.toSummary(): MangaSummary {
+    return MangaSummary(
+        malId = mal_id,
+        title = title_english?.takeIf { it.isNotBlank() } ?: title,
+        imageUrl = images?.jpg?.large_image_url ?: images?.jpg?.image_url,
+        rank = rank,
+        score = score,
+        type = type
+    )
+}
+
 internal fun MangaDetailData.toDomain(
     relationPreviews: Map<String, MangaRelationPreview> = emptyMap()
 ): MangaDetail {
