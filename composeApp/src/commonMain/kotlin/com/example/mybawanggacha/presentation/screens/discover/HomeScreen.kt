@@ -44,6 +44,7 @@ import com.example.mybawanggacha.presentation.components.LoadingIndicator
 import com.example.mybawanggacha.presentation.components.MBGMainRailKey
 import com.example.mybawanggacha.presentation.components.MBGRailSettingsButton
 import com.example.mybawanggacha.presentation.components.MBGSideRailScaffold
+import com.example.mybawanggacha.presentation.components.PullRefreshContainer
 import com.example.mybawanggacha.presentation.components.SectionHeader
 import com.example.mybawanggacha.presentation.screens.anime.home.AnimeHomeUiState
 import com.example.mybawanggacha.presentation.screens.anime.home.AnimeHomeViewModel
@@ -61,6 +62,7 @@ fun HomeScreen(
     viewModel: AnimeHomeViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 
     MBGSideRailScaffold(
         selectedRailKey = MBGMainRailKey.Home,
@@ -79,23 +81,29 @@ fun HomeScreen(
             )
         }
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            when (val state = uiState) {
-                AnimeHomeUiState.Loading -> LoadingIndicator()
-                is AnimeHomeUiState.Error -> ErrorState(
-                    message = state.message,
-                    onRetry = viewModel::refresh
-                )
+        PullRefreshContainer(
+            isRefreshing = isRefreshing,
+            onRefresh = viewModel::refresh,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                when (val state = uiState) {
+                    AnimeHomeUiState.Loading -> LoadingIndicator()
+                    is AnimeHomeUiState.Error -> ErrorState(
+                        message = state.message,
+                        onRetry = viewModel::refresh
+                    )
 
-                is AnimeHomeUiState.Success -> HomeDiscoveryContent(
-                    recommendations = state.recommendations,
-                    randomAnime = state.randomAnime,
-                    randomManga = state.randomManga,
-                    recentEpisodes = state.recentEpisodes,
-                    onAnimeClick = onNavigateToAnimeDetail,
-                    onMangaClick = onNavigateToMangaDetail,
-                    onOpenAnimeList = onNavigateToAnimeList
-                )
+                    is AnimeHomeUiState.Success -> HomeDiscoveryContent(
+                        recommendations = state.recommendations,
+                        randomAnime = state.randomAnime,
+                        randomManga = state.randomManga,
+                        recentEpisodes = state.recentEpisodes,
+                        onAnimeClick = onNavigateToAnimeDetail,
+                        onMangaClick = onNavigateToMangaDetail,
+                        onOpenAnimeList = onNavigateToAnimeList
+                    )
+                }
             }
         }
     }

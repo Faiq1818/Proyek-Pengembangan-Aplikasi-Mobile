@@ -53,6 +53,7 @@ import com.example.mybawanggacha.presentation.components.LoadingIndicator
 import com.example.mybawanggacha.presentation.components.MBGMainRailKey
 import com.example.mybawanggacha.presentation.components.MBGRailBackButton
 import com.example.mybawanggacha.presentation.components.MBGSideRailScaffold
+import com.example.mybawanggacha.presentation.components.PullRefreshContainer
 import com.example.mybawanggacha.presentation.screens.library.LibraryUiState
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -68,6 +69,7 @@ fun MyListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val selectedStatus by viewModel.selectedStatus.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     var deleteTarget by remember { mutableStateOf<LibraryEntry?>(null) }
 
     deleteTarget?.let { entry ->
@@ -98,47 +100,53 @@ fun MyListScreen(
             MBGRailBackButton(onClick = onNavigateBack)
         }
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(start = 4.dp, top = 32.dp, end = 18.dp)
+        PullRefreshContainer(
+            isRefreshing = isRefreshing,
+            onRefresh = viewModel::refresh,
+            modifier = Modifier.fillMaxSize()
         ) {
-            Text(
-                text = "My Library",
-                style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.Bold
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(start = 4.dp, top = 32.dp, end = 18.dp)
+            ) {
+                Text(
+                    text = "My Library",
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.Bold
+                )
 
-            Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
-            Text(
-                text = "Daftar yang kamu simpan",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontWeight = FontWeight.SemiBold
-            )
+                Text(
+                    text = "Daftar yang kamu simpan",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.SemiBold
+                )
 
-            Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
-            LibraryStatusFilterRow(
-                selectedStatus = selectedStatus,
-                onStatusSelected = viewModel::selectStatus
-            )
+                LibraryStatusFilterRow(
+                    selectedStatus = selectedStatus,
+                    onStatusSelected = viewModel::selectStatus
+                )
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Box(modifier = Modifier.fillMaxSize()) {
-                when (val state = uiState) {
-                    LibraryUiState.Loading -> LoadingIndicator()
-                    is LibraryUiState.Empty -> LibraryEmptyState(selectedStatus = state.selectedStatus)
-                    is LibraryUiState.Error -> ErrorState(message = state.message)
-                    is LibraryUiState.Success -> LibraryEntryList(
-                        entries = state.entries,
-                        onOpenEntry = onNavigateToDetail,
-                        onEditEntry = onEditEntry,
-                        onDeleteEntry = { deleteTarget = it }
-                    )
+                Box(modifier = Modifier.fillMaxSize()) {
+                    when (val state = uiState) {
+                        LibraryUiState.Loading -> LoadingIndicator()
+                        is LibraryUiState.Empty -> LibraryEmptyState(selectedStatus = state.selectedStatus)
+                        is LibraryUiState.Error -> ErrorState(message = state.message)
+                        is LibraryUiState.Success -> LibraryEntryList(
+                            entries = state.entries,
+                            onOpenEntry = onNavigateToDetail,
+                            onEditEntry = onEditEntry,
+                            onDeleteEntry = { deleteTarget = it }
+                        )
+                    }
                 }
             }
         }

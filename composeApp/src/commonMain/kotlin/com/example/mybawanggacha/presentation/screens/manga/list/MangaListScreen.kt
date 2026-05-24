@@ -13,6 +13,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mybawanggacha.presentation.components.MBGMainRailKey
 import com.example.mybawanggacha.presentation.components.MBGRailBackButton
 import com.example.mybawanggacha.presentation.components.MBGSideRailScaffold
+import com.example.mybawanggacha.presentation.components.PullRefreshContainer
 import com.example.mybawanggacha.presentation.screens.manga.list.components.MangaListContent
 import com.example.mybawanggacha.presentation.screens.manga.list.components.MangaListHeader
 import com.example.mybawanggacha.presentation.screens.manga.list.components.MangaListTabRow
@@ -44,29 +45,35 @@ fun MangaListScreen(
             MBGRailBackButton(onClick = onNavigateBack)
         }
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(start = 4.dp, top = 32.dp, end = 18.dp)
+        PullRefreshContainer(
+            isRefreshing = uiState is MangaListUiState.Loading,
+            onRefresh = viewModel::refresh,
+            modifier = Modifier.fillMaxSize()
         ) {
-            MangaListHeader()
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(start = 4.dp, top = 32.dp, end = 18.dp)
+            ) {
+                MangaListHeader()
 
-            Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
-            MangaListTabRow(
-                selectedTab = selectedTab,
-                onTabSelected = viewModel::selectTab
-            )
+                MangaListTabRow(
+                    selectedTab = selectedTab,
+                    onTabSelected = viewModel::selectTab
+                )
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            MangaListContent(
-                uiState = uiState,
-                selectedTab = selectedTab,
-                onRetry = viewModel::refresh,
-                onLoadMore = viewModel::loadNextPage,
-                onMangaClick = onNavigateToMangaDetail
-            )
+                MangaListContent(
+                    uiState = uiState,
+                    selectedTab = selectedTab,
+                    onRetry = viewModel::refresh,
+                    onLoadMore = viewModel::loadNextPage,
+                    onMangaClick = onNavigateToMangaDetail
+                )
+            }
         }
     }
 }

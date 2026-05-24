@@ -13,6 +13,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mybawanggacha.presentation.components.MBGMainRailKey
 import com.example.mybawanggacha.presentation.components.MBGRailBackButton
 import com.example.mybawanggacha.presentation.components.MBGSideRailScaffold
+import com.example.mybawanggacha.presentation.components.PullRefreshContainer
 import com.example.mybawanggacha.presentation.screens.anime.list.components.AnimeListContent
 import com.example.mybawanggacha.presentation.screens.anime.list.components.AnimeListHeader
 import com.example.mybawanggacha.presentation.screens.anime.list.components.AnimeListTabRow
@@ -47,39 +48,45 @@ fun AnimeListScreen(
             MBGRailBackButton(onClick = onNavigateBack)
         }
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(start = 4.dp, top = 32.dp, end = 18.dp)
+        PullRefreshContainer(
+            isRefreshing = uiState is AnimeListUiState.Loading,
+            onRefresh = viewModel::refresh,
+            modifier = Modifier.fillMaxSize()
         ) {
-            AnimeListHeader()
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(start = 4.dp, top = 32.dp, end = 18.dp)
+            ) {
+                AnimeListHeader()
 
-            Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
-            AnimeListTabRow(
-                selectedTab = selectedTab,
-                onTabSelected = viewModel::selectTab
-            )
+                AnimeListTabRow(
+                    selectedTab = selectedTab,
+                    onTabSelected = viewModel::selectTab
+                )
 
-            if (selectedTab == AnimeListTab.SeasonArchive) {
-                Spacer(modifier = Modifier.height(8.dp))
+                if (selectedTab == AnimeListTab.SeasonArchive) {
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                AnimeSeasonArchiveRow(
-                    seasonPeriods = seasonPeriods,
-                    selectedSeasonPeriod = selectedSeasonPeriod,
-                    onSeasonSelected = viewModel::selectSeasonPeriod
+                    AnimeSeasonArchiveRow(
+                        seasonPeriods = seasonPeriods,
+                        selectedSeasonPeriod = selectedSeasonPeriod,
+                        onSeasonSelected = viewModel::selectSeasonPeriod
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                AnimeListContent(
+                    uiState = uiState,
+                    selectedTab = selectedTab,
+                    onRetry = viewModel::refresh,
+                    onLoadMore = viewModel::loadNextPage,
+                    onAnimeClick = onNavigateToAnimeDetail
                 )
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            AnimeListContent(
-                uiState = uiState,
-                selectedTab = selectedTab,
-                onRetry = viewModel::refresh,
-                onLoadMore = viewModel::loadNextPage,
-                onAnimeClick = onNavigateToAnimeDetail
-            )
         }
     }
 }

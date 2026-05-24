@@ -22,13 +22,23 @@ class AnimeHomeViewModel(
     private val _uiState = MutableStateFlow<AnimeHomeUiState>(AnimeHomeUiState.Loading)
     val uiState: StateFlow<AnimeHomeUiState> = _uiState.asStateFlow()
 
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
     init {
         refresh()
     }
 
     fun refresh() {
+        if (_isRefreshing.value) return
+
         viewModelScope.launch {
-            _uiState.value = AnimeHomeUiState.Loading
+            val hasContent = _uiState.value is AnimeHomeUiState.Success
+            if (hasContent) {
+                _isRefreshing.value = true
+            } else {
+                _uiState.value = AnimeHomeUiState.Loading
+            }
 
             val homeState = supervisorScope {
                 val recommendations = async {
@@ -58,10 +68,14 @@ class AnimeHomeViewModel(
                 homeState.randomManga.isEmpty() &&
                 homeState.recentEpisodes.isEmpty()
             ) {
-                _uiState.value = AnimeHomeUiState.Error("Gagal memuat data discovery dari Jikan")
+                if (!hasContent) {
+                    _uiState.value = AnimeHomeUiState.Error("Gagal memuat data discovery dari Jikan")
+                }
             } else {
                 _uiState.value = homeState
             }
+
+            _isRefreshing.value = false
         }
     }
 

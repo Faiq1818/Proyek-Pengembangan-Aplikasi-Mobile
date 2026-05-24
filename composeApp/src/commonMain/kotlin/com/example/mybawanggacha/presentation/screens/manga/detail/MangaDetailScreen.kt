@@ -71,26 +71,26 @@ fun MangaDetailScreen(
                 )
                 is MangaDetailUiState.Success -> {
                     MangaDetailContent(
-                    manga = state.manga,
-                    selectedSection = selectedSection,
-                    onRelationEntryClick = { entry ->
-                        when {
-                            entry.type.equals("anime", ignoreCase = true) -> {
-                                onNavigateToAnimeDetail(entry.malId)
-                            }
-                            entry.type.equals("manga", ignoreCase = true) -> {
-                                onNavigateToMangaDetail(entry.malId)
-                            }
-                            else -> {
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = "Detail ${entry.type?.takeIf { it.isNotBlank() } ?: "Unknown"} belum didukung.",
-                                        duration = SnackbarDuration.Short
-                                    )
+                        manga = state.manga,
+                        selectedSection = selectedSection,
+                        onRelationEntryClick = { entry ->
+                            when {
+                                entry.type.equals("anime", ignoreCase = true) -> {
+                                    onNavigateToAnimeDetail(entry.malId)
+                                }
+                                entry.type.equals("manga", ignoreCase = true) -> {
+                                    onNavigateToMangaDetail(entry.malId)
+                                }
+                                else -> {
+                                    coroutineScope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = "Detail ${entry.type?.takeIf { it.isNotBlank() } ?: "Unknown"} belum didukung.",
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    }
                                 }
                             }
                         }
-                    }
                     )
 
                     val isInLibrary = state.libraryEntryId != null
