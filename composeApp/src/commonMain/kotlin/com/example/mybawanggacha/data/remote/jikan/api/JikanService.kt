@@ -10,40 +10,50 @@ import com.example.mybawanggacha.data.remote.jikan.dto.RelationEntryPreviewRespo
 import com.example.mybawanggacha.data.remote.jikan.dto.WatchEpisodesResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 class JikanService(private val client: HttpClient) {
     companion object {
         private const val BASE_URL = "https://api.jikan.moe/v4/"
     }
 
+    private val json = Json { ignoreUnknownKeys = true }
+
     suspend fun fetchAnimeRecommendations(): JikanRecommendationsResponse {
-        return client.get("${BASE_URL}recommendations/anime").body()
+        return getBody("recommendations/anime")
     }
 
     suspend fun fetchMangaRecommendations(): JikanRecommendationsResponse {
-        return client.get("${BASE_URL}recommendations/manga").body()
+        return getBody("recommendations/manga")
     }
 
     suspend fun fetchRandomAnime(): AnimeDetailResponse {
-        return client.get("${BASE_URL}random/anime").body()
+        return getBody("random/anime")
     }
 
     suspend fun fetchRandomManga(): MangaDetailResponse {
-        return client.get("${BASE_URL}random/manga").body()
+        return getBody("random/manga")
     }
 
     suspend fun fetchRecentWatchEpisodes(page: Int = 1): WatchEpisodesResponse {
-        return client.get("${BASE_URL}watch/episodes") {
+        return getBody("watch/episodes") {
             parameter("page", page)
-        }.body()
+        }
     }
 
     suspend fun fetchCurrentSeasonAnime(page: Int = 1): JikanAnimeListResponse {
-        return client.get("${BASE_URL}seasons/now") {
+        return getBody("seasons/now") {
             parameter("page", page)
-        }.body()
+        }
     }
 
     suspend fun fetchSeasonAnime(
@@ -51,21 +61,21 @@ class JikanService(private val client: HttpClient) {
         season: String,
         page: Int = 1
     ): JikanAnimeListResponse {
-        return client.get("${BASE_URL}seasons/$year/$season") {
+        return getBody("seasons/$year/$season") {
             parameter("page", page)
-        }.body()
+        }
     }
 
     suspend fun fetchUpcomingSeasonAnime(page: Int = 1): JikanAnimeListResponse {
-        return client.get("${BASE_URL}seasons/upcoming") {
+        return getBody("seasons/upcoming") {
             parameter("page", page)
-        }.body()
+        }
     }
 
     suspend fun fetchTopAnime(page: Int = 1): JikanAnimeListResponse {
-        return client.get("${BASE_URL}top/anime") {
+        return getBody("top/anime") {
             parameter("page", page)
-        }.body()
+        }
     }
 
     suspend fun fetchTopManga(
@@ -73,31 +83,31 @@ class JikanService(private val client: HttpClient) {
         type: String? = null,
         filter: String? = null
     ): JikanAnimeListResponse {
-        return client.get("${BASE_URL}top/manga") {
+        return getBody("top/manga") {
             parameter("page", page)
             type?.let { parameter("type", it) }
             filter?.let { parameter("filter", it) }
-        }.body()
+        }
     }
 
     suspend fun fetchMangaFullDetail(id: Int): MangaDetailResponse {
-        return client.get("${BASE_URL}manga/$id/full").body()
+        return getBody("manga/$id/full")
     }
 
     suspend fun fetchSeasonArchive(): JikanSeasonArchiveResponse {
-        return client.get("${BASE_URL}seasons").body()
+        return getBody("seasons")
     }
 
     suspend fun fetchAnimeDetail(id: Int): AnimeDetailResponse {
-        return client.get("${BASE_URL}anime/$id").body()
+        return getBody("anime/$id")
     }
 
     suspend fun fetchAnimeFullDetail(id: Int): AnimeDetailResponse {
-        return client.get("${BASE_URL}anime/$id/full").body()
+        return getBody("anime/$id/full")
     }
 
     suspend fun fetchAnimeEpisodes(id: Int): AnimeEpisodesResponse {
-        return client.get("${BASE_URL}anime/$id/episodes").body()
+        return getBody("anime/$id/episodes")
     }
 
     suspend fun fetchRelationEntryPreview(
@@ -109,6 +119,65 @@ class JikanService(private val client: HttpClient) {
             else -> "anime"
         }
 
-        return client.get("${BASE_URL}$resource/$id").body()
+        return getBody("$resource/$id")
+    }
+
+    private suspend inline fun <reified T> getBody(
+        path: String,
+        crossinline builder: HttpRequestBuilder.() -> Unit = {}
+    ): T {
+        JikanRateLimiter.awaitTurn()
+
+        val response = client.get("$BASE_URL$path") {
+            builder()
+        }
+
+        response.throwIfError()
+        return response.body()
+    }
+
+    private suspend fun HttpResponse.throwIfError() {
+        if (status == HttpStatusCode.NotModified) {
+            throw JikanNotModifiedException()
+        }
+
+        if (status.value in 200..299) return
+
+        val responseText = runCatching { bodyAsText() }.getOrDefault("")
+        throw parseErrorResponse(
+            statusCode = status.value,
+            responseText = responseText
+        )
+    }
+
+    private fun parseErrorResponse(
+        statusCode: Int,
+        responseText: String
+    ): JikanApiException {
+        val errorObject = runCatching {
+            json.parseToJsonElement(responseText).jsonObject
+        }.getOrNull()
+
+        val type = errorObject
+            ?.get("type")
+            ?.jsonPrimitive
+            ?.contentOrNull
+            ?: "Http$statusCode"
+        val message = errorObject
+            ?.get("message")
+            ?.jsonPrimitive
+            ?.contentOrNull
+            ?: responseText.take(300).ifBlank { "Jikan request failed with HTTP $statusCode" }
+        val error = errorObject
+            ?.get("error")
+            ?.jsonPrimitive
+            ?.contentOrNull
+
+        return JikanApiException(
+            statusCode = statusCode,
+            type = type,
+            message = message,
+            error = error
+        )
     }
 }

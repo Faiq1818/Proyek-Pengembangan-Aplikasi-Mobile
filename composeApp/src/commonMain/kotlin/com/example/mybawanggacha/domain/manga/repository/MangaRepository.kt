@@ -9,5 +9,6 @@ interface MangaRepository {
     suspend fun getPopularMangaPage(page: Int): MangaPage
     suspend fun getRecommendations(): List<MangaSummary>
     suspend fun getRandomManga(): MangaSummary
+    suspend fun getRandomMangaPicks(count: Int): List<MangaSummary>
     suspend fun getMangaDetail(malId: Int): MangaDetail
 }

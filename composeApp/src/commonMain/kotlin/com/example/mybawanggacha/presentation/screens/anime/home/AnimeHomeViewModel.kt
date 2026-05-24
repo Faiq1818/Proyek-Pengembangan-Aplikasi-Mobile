@@ -7,7 +7,6 @@ import com.example.mybawanggacha.domain.anime.repository.AnimeRepository
 import com.example.mybawanggacha.domain.manga.model.MangaSummary
 import com.example.mybawanggacha.domain.manga.repository.MangaRepository
 import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,16 +41,20 @@ class AnimeHomeViewModel(
 
             val homeState = supervisorScope {
                 val recommendations = async {
-                    runCatching { animeRepository.getRecommendations() }.getOrDefault(emptyList())
+                    runCatching { animeRepository.getRecommendations() }
+                        .getOrDefault(emptyList<AnimeSummary>())
                 }
                 val randomAnime = async {
-                    loadRandomAnimePicks(count = RANDOM_ANIME_PICK_COUNT)
+                    runCatching { animeRepository.getRandomAnimePicks(count = RANDOM_ANIME_PICK_COUNT) }
+                        .getOrDefault(emptyList<AnimeSummary>())
                 }
                 val randomManga = async {
-                    loadRandomMangaPicks(count = RANDOM_MANGA_PICK_COUNT)
+                    runCatching { mangaRepository.getRandomMangaPicks(count = RANDOM_MANGA_PICK_COUNT) }
+                        .getOrDefault(emptyList<MangaSummary>())
                 }
                 val recentEpisodes = async {
-                    runCatching { animeRepository.getRecentEpisodes() }.getOrDefault(emptyList())
+                    runCatching { animeRepository.getRecentEpisodes() }
+                        .getOrDefault(emptyList())
                 }
 
                 AnimeHomeUiState.Success(
@@ -79,37 +82,8 @@ class AnimeHomeViewModel(
         }
     }
 
-    private suspend fun loadRandomAnimePicks(count: Int): List<AnimeSummary> {
-        return buildList {
-            repeat(count) { index ->
-                runCatching { animeRepository.getRandomAnime() }
-                    .getOrNull()
-                    ?.let { anime -> add(anime) }
-
-                if (index != count - 1) {
-                    delay(JIKAN_RANDOM_PICK_SPACING_MS)
-                }
-            }
-        }.distinctBy { anime -> anime.malId }
-    }
-
-    private suspend fun loadRandomMangaPicks(count: Int): List<MangaSummary> {
-        return buildList {
-            repeat(count) { index ->
-                runCatching { mangaRepository.getRandomManga() }
-                    .getOrNull()
-                    ?.let { manga -> add(manga) }
-
-                if (index != count - 1) {
-                    delay(JIKAN_RANDOM_PICK_SPACING_MS)
-                }
-            }
-        }.distinctBy { manga -> manga.malId }
-    }
-
     private companion object {
         const val RANDOM_ANIME_PICK_COUNT = 4
         const val RANDOM_MANGA_PICK_COUNT = 4
-        const val JIKAN_RANDOM_PICK_SPACING_MS = 360L
     }
 }

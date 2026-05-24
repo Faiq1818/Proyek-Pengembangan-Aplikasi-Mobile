@@ -16,6 +16,7 @@ import com.example.mybawanggacha.data.remote.jikan.source.JikanAnimeRemoteDataSo
 import com.example.mybawanggacha.data.remote.jikan.dto.AnimeRelationEntryDto
 import com.example.mybawanggacha.data.remote.jikan.dto.JikanAnimeListResponse
 import com.example.mybawanggacha.data.remote.jikan.dto.JikanRecommendationsResponse
+import com.example.mybawanggacha.data.remote.jikan.dto.WatchEpisodesResponse
 import com.example.mybawanggacha.data.repository.jikan.JikanResponseCacheCodec
 import com.example.mybawanggacha.domain.anime.model.AnimeDetailBundle
 import com.example.mybawanggacha.domain.anime.model.AnimeEpisode
@@ -60,12 +61,22 @@ class AnimeRepositoryImpl(
     }
 
     override suspend fun getRandomAnime(): AnimeSummary = withContext(dispatchers.default) {
-        remoteDataSource.fetchRandomAnime().data.toSummary()
+        getRandomAnimePicks(count = 1).firstOrNull()
+            ?: remoteDataSource.fetchRandomAnime().data.toSummary()
+    }
+
+    override suspend fun getRandomAnimePicks(count: Int): List<AnimeSummary> = withContext(dispatchers.default) {
+        getCachedRandomAnimePicks(
+            cacheKey = "anime:random:picks:$count",
+            count = count
+        ).map { detail -> detail.toSummary() }
     }
 
     override suspend fun getRecentEpisodes(): List<RecentAnimeEpisode> = withContext(dispatchers.default) {
-        remoteDataSource.fetchRecentWatchEpisodes(page = 1)
-            .data
+        getCachedWatchEpisodes(
+            cacheKey = "anime:watch:episodes:1",
+            fetchRemote = { remoteDataSource.fetchRecentWatchEpisodes(page = 1) }
+        ).data
             .mapNotNull { item -> item.toDomainRecentEpisode() }
             .distinctBy { episode -> "${episode.animeMalId}:${episode.episodeMalId}:${episode.episodeTitle}" }
     }
@@ -172,6 +183,78 @@ class AnimeRepositoryImpl(
         }.getOrElse { error ->
             if (cached != null) {
                 JikanResponseCacheCodec.decodeRecommendations(cached.payloadJson)
+            } else {
+                throw error
+            }
+        }
+    }
+
+    private suspend fun getCachedRandomAnimePicks(
+        cacheKey: String,
+        count: Int
+    ): List<AnimeDetailData> {
+        val cached = runCatching { pageCacheLocalDataSource.getPage(cacheKey) }.getOrNull()
+
+        if (cached?.isFresh() == true) {
+            return JikanResponseCacheCodec.decodeAnimeDetails(cached.payloadJson)
+        }
+
+        return runCatching {
+            buildList {
+                repeat(count.coerceAtLeast(1)) { index ->
+                    runCatching { remoteDataSource.fetchRandomAnime().data }
+                        .getOrNull()
+                        ?.let { detail -> add(detail) }
+
+                    if (index != count - 1) {
+                        delay(JIKAN_REQUEST_SPACING_MS)
+                    }
+                }
+            }
+                .distinctBy { detail -> detail.mal_id }
+                .also { details ->
+                    if (details.isNotEmpty()) {
+                        runCatching {
+                            pageCacheLocalDataSource.savePage(
+                                cacheKey = cacheKey,
+                                payloadJson = JikanResponseCacheCodec.encodeAnimeDetails(details)
+                            )
+                        }
+                    }
+                }
+                .takeIf { details -> details.isNotEmpty() }
+                ?: error("Gagal memuat random anime")
+        }.getOrElse { error ->
+            if (cached != null) {
+                JikanResponseCacheCodec.decodeAnimeDetails(cached.payloadJson)
+            } else {
+                throw error
+            }
+        }
+    }
+
+    private suspend fun getCachedWatchEpisodes(
+        cacheKey: String,
+        fetchRemote: suspend () -> WatchEpisodesResponse
+    ): WatchEpisodesResponse {
+        val cached = runCatching { pageCacheLocalDataSource.getPage(cacheKey) }.getOrNull()
+
+        if (cached?.isFresh() == true) {
+            return JikanResponseCacheCodec.decodeWatchEpisodes(cached.payloadJson)
+        }
+
+        return runCatching {
+            fetchRemote().also { response ->
+                runCatching {
+                    pageCacheLocalDataSource.savePage(
+                        cacheKey = cacheKey,
+                        payloadJson = JikanResponseCacheCodec.encodeWatchEpisodes(response)
+                    )
+                }
+            }
+        }.getOrElse { error ->
+            if (cached != null) {
+                JikanResponseCacheCodec.decodeWatchEpisodes(cached.payloadJson)
             } else {
                 throw error
             }

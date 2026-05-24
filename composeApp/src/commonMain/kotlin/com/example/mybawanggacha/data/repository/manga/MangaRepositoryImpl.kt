@@ -63,7 +63,15 @@ class MangaRepositoryImpl(
     }
 
     override suspend fun getRandomManga(): MangaSummary = withContext(dispatchers.default) {
-        remoteDataSource.fetchRandomManga().data.toSummary()
+        getRandomMangaPicks(count = 1).firstOrNull()
+            ?: remoteDataSource.fetchRandomManga().data.toSummary()
+    }
+
+    override suspend fun getRandomMangaPicks(count: Int): List<MangaSummary> = withContext(dispatchers.default) {
+        getCachedRandomMangaPicks(
+            cacheKey = "manga:random:picks:$count",
+            count = count
+        ).map { detail -> detail.toSummary() }
     }
 
     private suspend fun getCachedMangaList(
@@ -116,6 +124,50 @@ class MangaRepositoryImpl(
         }.getOrElse { error ->
             if (cached != null) {
                 JikanResponseCacheCodec.decodeRecommendations(cached.payloadJson)
+            } else {
+                throw error
+            }
+        }
+    }
+
+    private suspend fun getCachedRandomMangaPicks(
+        cacheKey: String,
+        count: Int
+    ): List<MangaDetailData> {
+        val cached = runCatching { pageCacheLocalDataSource.getPage(cacheKey) }.getOrNull()
+
+        if (cached?.isFresh() == true) {
+            return JikanResponseCacheCodec.decodeMangaDetails(cached.payloadJson)
+        }
+
+        return runCatching {
+            buildList {
+                repeat(count.coerceAtLeast(1)) { index ->
+                    runCatching { remoteDataSource.fetchRandomManga().data }
+                        .getOrNull()
+                        ?.let { detail -> add(detail) }
+
+                    if (index != count - 1) {
+                        delay(JIKAN_MANGA_RELATION_REQUEST_SPACING_MS)
+                    }
+                }
+            }
+                .distinctBy { detail -> detail.mal_id }
+                .also { details ->
+                    if (details.isNotEmpty()) {
+                        runCatching {
+                            pageCacheLocalDataSource.savePage(
+                                cacheKey = cacheKey,
+                                payloadJson = JikanResponseCacheCodec.encodeMangaDetails(details)
+                            )
+                        }
+                    }
+                }
+                .takeIf { details -> details.isNotEmpty() }
+                ?: error("Gagal memuat random manga")
+        }.getOrElse { error ->
+            if (cached != null) {
+                JikanResponseCacheCodec.decodeMangaDetails(cached.payloadJson)
             } else {
                 throw error
             }

@@ -5,7 +5,7 @@ import com.example.mybawanggacha.data.local.NoteDatabase
 import kotlinx.coroutines.withContext
 import kotlin.time.Clock
 
-const val MEDIA_PAGE_CACHE_MAX_AGE_MS: Long = 12L * 60L * 60L * 1_000L
+const val MEDIA_PAGE_CACHE_MAX_AGE_MS: Long = 24L * 60L * 60L * 1_000L
 
 data class CachedMediaPagePayload(
     val payloadJson: String,

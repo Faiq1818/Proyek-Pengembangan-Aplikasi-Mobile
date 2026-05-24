@@ -170,8 +170,8 @@ private fun MangaGrid(
         derivedStateOf {
             val lastVisibleIndex = gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1
             canLoadMore &&
-                !isLoadingMore &&
-                lastVisibleIndex >= manga.lastIndex - LOAD_MORE_THRESHOLD
+                    !isLoadingMore &&
+                    lastVisibleIndex >= manga.lastIndex - LOAD_MORE_THRESHOLD
         }
     }
 
