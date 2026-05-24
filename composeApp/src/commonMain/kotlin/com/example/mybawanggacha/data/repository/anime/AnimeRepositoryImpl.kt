@@ -1,7 +1,10 @@
 package com.example.mybawanggacha.data.repository.anime
 
 import com.example.mybawanggacha.core.coroutines.AppDispatchers
+import com.example.mybawanggacha.data.local.source.AnimeDetailCacheLocalDataSource
 import com.example.mybawanggacha.data.local.source.AnimeProgressLocalDataSource
+import com.example.mybawanggacha.data.remote.jikan.dto.AnimeDetailData
+import com.example.mybawanggacha.data.remote.jikan.dto.AnimeEpisodeDto
 import com.example.mybawanggacha.data.remote.jikan.mapper.previewKey
 import com.example.mybawanggacha.data.remote.jikan.mapper.toDomain
 import com.example.mybawanggacha.data.remote.jikan.mapper.toDomainPage
@@ -23,6 +26,7 @@ private const val JIKAN_REQUEST_SPACING_MS = 360L
 class AnimeRepositoryImpl(
     private val remoteDataSource: JikanAnimeRemoteDataSource,
     private val progressLocalDataSource: AnimeProgressLocalDataSource,
+    private val detailCacheLocalDataSource: AnimeDetailCacheLocalDataSource,
     private val dispatchers: AppDispatchers
 ) : AnimeRepository {
 
@@ -82,11 +86,51 @@ class AnimeRepositoryImpl(
     }
 
     override suspend fun getAnimeDetail(malId: Int): AnimeDetailBundle = withContext(dispatchers.default) {
-        val animeDto = remoteDataSource.fetchAnimeFullDetail(malId).data
         val watchedNumbers = progressLocalDataSource.getWatchedEpisodeNumbers(malId)
-        val episodeDtos = runCatching {
-            remoteDataSource.fetchAnimeEpisodes(malId).data
-        }.getOrDefault(emptyList())
+
+        runCatching {
+            val animeDto = remoteDataSource.fetchAnimeFullDetail(malId).data
+            val episodeDtos = runCatching {
+                remoteDataSource.fetchAnimeEpisodes(malId).data
+            }.getOrDefault(emptyList())
+
+            runCatching {
+                detailCacheLocalDataSource.saveAnimeDetail(
+                    detail = animeDto,
+                    episodes = episodeDtos
+                )
+            }
+
+            buildAnimeDetailBundle(
+                animeDto = animeDto,
+                episodeDtos = episodeDtos,
+                watchedNumbers = watchedNumbers,
+                loadRelationPreviews = true
+            )
+        }.getOrElse { error ->
+            val cachedDetail = runCatching {
+                detailCacheLocalDataSource.getAnimeDetail(malId)
+            }.getOrNull()
+
+            if (cachedDetail != null) {
+                buildAnimeDetailBundle(
+                    animeDto = cachedDetail.detail,
+                    episodeDtos = cachedDetail.episodes,
+                    watchedNumbers = watchedNumbers,
+                    loadRelationPreviews = false
+                )
+            } else {
+                throw error
+            }
+        }
+    }
+
+    private suspend fun buildAnimeDetailBundle(
+        animeDto: AnimeDetailData,
+        episodeDtos: List<AnimeEpisodeDto>,
+        watchedNumbers: Set<Int>,
+        loadRelationPreviews: Boolean
+    ): AnimeDetailBundle {
         val episodes = if (episodeDtos.isNotEmpty()) {
             episodeDtos.map { episode ->
                 episode.toDomain(watched = episode.mal_id in watchedNumbers)
@@ -106,11 +150,13 @@ class AnimeRepositoryImpl(
             }
         }
 
-        val relationPreviews = fetchRelationPreviews(
-            entries = animeDto.relations.flatMap { it.entry }
-        )
+        val relationPreviews = if (loadRelationPreviews) {
+            fetchRelationPreviews(entries = animeDto.relations.flatMap { it.entry })
+        } else {
+            emptyMap()
+        }
 
-        AnimeDetailBundle(
+        return AnimeDetailBundle(
             anime = animeDto.toDomain(relationPreviews),
             episodes = episodes
         )

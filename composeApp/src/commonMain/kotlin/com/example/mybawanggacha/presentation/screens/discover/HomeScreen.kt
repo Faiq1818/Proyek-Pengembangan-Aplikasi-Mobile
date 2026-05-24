@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -54,7 +55,10 @@ fun HomeScreen(
             }
         },
         topAction = {
-            MBGRailSettingsButton(onClick = onNavigateToSettings)
+            MBGRailSettingsButton(
+                onClick = onNavigateToSettings,
+                modifier = Modifier.padding(top = 12.dp)
+            )
         }
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -64,6 +68,7 @@ fun HomeScreen(
                     message = state.message,
                     onRetry = viewModel::refresh
                 )
+
                 is AnimeHomeUiState.Success -> HomeAnimeOverview(
                     recommendations = state.recommendations,
                     onAnimeClick = onNavigateToAnimeDetail,
@@ -122,7 +127,7 @@ private fun HomeAnimeOverview(
         }
 
         items(
-            items = recommendations.take(8).chunked(2),
+            items = recommendations.take(100).chunked(2),
             key = { row -> row.joinToString { it.malId.toString() } }
         ) { rowItems ->
             Row(

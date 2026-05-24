@@ -15,6 +15,7 @@ import com.example.mybawanggacha.presentation.screens.notes.detail.NoteDetailScr
 import com.example.mybawanggacha.presentation.screens.discover.HomeScreen
 import com.example.mybawanggacha.presentation.screens.library.editor.LibraryEntryEditorScreen
 import com.example.mybawanggacha.presentation.screens.library.list.MyListScreen
+import com.example.mybawanggacha.presentation.screens.manga.MangaDetailScreen
 import com.example.mybawanggacha.presentation.screens.manga.MangaListScreen
 import com.example.mybawanggacha.presentation.screens.settings.SettingsScreen
 import com.example.mybawanggacha.domain.library.model.MediaType
@@ -50,7 +51,7 @@ fun AppNavHost(
                 onNavigateToDetail = { mediaId, mediaType ->
                     when (mediaType) {
                         MediaType.Anime -> navigationActions.navigateToAnimeDetail(mediaId)
-                        MediaType.Manga -> Unit
+                        MediaType.Manga -> navigationActions.navigateToMangaDetail(mediaId)
                     }
                 },
                 onEditEntry = { entry ->
@@ -78,6 +79,18 @@ fun AppNavHost(
 
         composable<Route.MangaList> {
             MangaListScreen(
+                onNavigateBack = { navigationActions.navigateBack() },
+                onNavigateHome = { navigationActions.navigateToHome() },
+                onNavigateToMyLibrary = { navigationActions.navigateToMyLibrary() },
+                onNavigateToAnimeList = { navigationActions.navigateToAnimeList() },
+                onNavigateToMangaDetail = { malId -> navigationActions.navigateToMangaDetail(malId) }
+            )
+        }
+
+        composable<Route.MangaDetail> { backStackEntry ->
+            val route: Route.MangaDetail = backStackEntry.toRoute()
+            MangaDetailScreen(
+                malId = route.malId,
                 onNavigateBack = { navigationActions.navigateBack() },
                 onNavigateHome = { navigationActions.navigateToHome() },
                 onNavigateToMyLibrary = { navigationActions.navigateToMyLibrary() },
@@ -221,6 +234,10 @@ private fun createNavigationActions(navController: NavHostController): Navigatio
 
         override fun navigateToAnimeDetail(malId: Int) {
             navController.navigate(Route.AnimeDetail(malId))
+        }
+
+        override fun navigateToMangaDetail(malId: Int) {
+            navController.navigate(Route.MangaDetail(malId))
         }
 
         override fun navigateBack() {

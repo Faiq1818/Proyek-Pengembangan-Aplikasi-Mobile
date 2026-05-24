@@ -7,6 +7,7 @@ import com.example.mybawanggacha.data.remote.jikan.dto.AnimeEpisodesResponse
 import com.example.mybawanggacha.data.remote.jikan.dto.JikanAnimeListResponse
 import com.example.mybawanggacha.data.remote.jikan.dto.JikanRecommendationsResponse
 import com.example.mybawanggacha.data.remote.jikan.dto.JikanSeasonArchiveResponse
+import com.example.mybawanggacha.data.remote.jikan.dto.MangaDetailResponse
 import com.example.mybawanggacha.data.remote.jikan.dto.RelationEntryPreviewResponse
 import kotlinx.coroutines.withContext
 
@@ -17,6 +18,11 @@ class JikanAnimeRemoteDataSource(
     suspend fun fetchAnimeRecommendations(): JikanRecommendationsResponse =
         withContext(dispatchers.io) {
             service.fetchAnimeRecommendations()
+        }
+
+    suspend fun fetchMangaRecommendations(): JikanRecommendationsResponse =
+        withContext(dispatchers.io) {
+            service.fetchMangaRecommendations()
         }
 
     suspend fun fetchCurrentSeasonAnime(page: Int): JikanAnimeListResponse =
@@ -45,12 +51,24 @@ class JikanAnimeRemoteDataSource(
         service.fetchTopAnime(page = page)
     }
 
+    suspend fun fetchTopManga(
+        page: Int,
+        type: String? = null,
+        filter: String? = null
+    ): JikanAnimeListResponse = withContext(dispatchers.io) {
+        service.fetchTopManga(page = page, type = type, filter = filter)
+    }
+
     suspend fun fetchSeasonArchive(): JikanSeasonArchiveResponse = withContext(dispatchers.io) {
         service.fetchSeasonArchive()
     }
 
     suspend fun fetchAnimeFullDetail(id: Int): AnimeDetailResponse = withContext(dispatchers.io) {
         service.fetchAnimeFullDetail(id)
+    }
+
+    suspend fun fetchMangaFullDetail(id: Int): MangaDetailResponse = withContext(dispatchers.io) {
+        service.fetchMangaFullDetail(id)
     }
 
     suspend fun fetchAnimeEpisodes(id: Int): AnimeEpisodesResponse = withContext(dispatchers.io) {
