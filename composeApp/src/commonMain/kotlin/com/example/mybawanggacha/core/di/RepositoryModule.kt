@@ -4,6 +4,7 @@ import com.example.mybawanggacha.data.local.source.AnimeProgressLocalDataSource
 import com.example.mybawanggacha.data.local.source.MangaDetailCacheLocalDataSource
 import com.example.mybawanggacha.data.local.source.AnimeDetailCacheLocalDataSource
 import com.example.mybawanggacha.data.local.source.MediaPageCacheLocalDataSource
+import com.example.mybawanggacha.data.local.source.RelationPreviewCacheLocalDataSource
 import com.example.mybawanggacha.data.repository.ai.AIRepositoryImpl
 import com.example.mybawanggacha.data.repository.anime.AnimeRepositoryImpl
 import com.example.mybawanggacha.data.repository.library.LibraryRepositoryImpl
@@ -25,6 +26,7 @@ val repositoryModule = module {
     singleOf(::AnimeProgressLocalDataSource)
     singleOf(::MangaDetailCacheLocalDataSource)
     singleOf(::MediaPageCacheLocalDataSource)
+    singleOf(::RelationPreviewCacheLocalDataSource)
     singleOf(::NoteRepositoryImpl) bind NoteRepository::class
     singleOf(::AIRepositoryImpl) bind AIRepository::class
     singleOf(::AnimeRepositoryImpl) bind AnimeRepository::class

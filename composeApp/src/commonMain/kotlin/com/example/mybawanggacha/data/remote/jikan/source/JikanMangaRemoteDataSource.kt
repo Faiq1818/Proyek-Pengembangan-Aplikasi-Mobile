@@ -5,6 +5,7 @@ import com.example.mybawanggacha.data.remote.jikan.api.JikanService
 import com.example.mybawanggacha.data.remote.jikan.dto.JikanAnimeListResponse
 import com.example.mybawanggacha.data.remote.jikan.dto.JikanRecommendationsResponse
 import com.example.mybawanggacha.data.remote.jikan.dto.MangaDetailResponse
+import com.example.mybawanggacha.data.remote.jikan.dto.RelationEntryPreviewResponse
 import kotlinx.coroutines.withContext
 
 class JikanMangaRemoteDataSource(
@@ -26,5 +27,12 @@ class JikanMangaRemoteDataSource(
 
     suspend fun fetchMangaFullDetail(id: Int): MangaDetailResponse = withContext(dispatchers.io) {
         service.fetchMangaFullDetail(id)
+    }
+
+    suspend fun fetchRelationEntryPreview(
+        id: Int,
+        type: String?
+    ): RelationEntryPreviewResponse = withContext(dispatchers.io) {
+        service.fetchRelationEntryPreview(id = id, type = type)
     }
 }

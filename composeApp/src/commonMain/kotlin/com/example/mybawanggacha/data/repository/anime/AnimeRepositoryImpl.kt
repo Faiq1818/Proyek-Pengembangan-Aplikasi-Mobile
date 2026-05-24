@@ -4,6 +4,7 @@ import com.example.mybawanggacha.core.coroutines.AppDispatchers
 import com.example.mybawanggacha.data.local.source.AnimeDetailCacheLocalDataSource
 import com.example.mybawanggacha.data.local.source.AnimeProgressLocalDataSource
 import com.example.mybawanggacha.data.local.source.MediaPageCacheLocalDataSource
+import com.example.mybawanggacha.data.local.source.RelationPreviewCacheLocalDataSource
 import com.example.mybawanggacha.data.remote.jikan.dto.AnimeDetailData
 import com.example.mybawanggacha.data.remote.jikan.dto.AnimeEpisodeDto
 import com.example.mybawanggacha.data.remote.jikan.mapper.previewKey
@@ -32,10 +33,11 @@ class AnimeRepositoryImpl(
     private val progressLocalDataSource: AnimeProgressLocalDataSource,
     private val detailCacheLocalDataSource: AnimeDetailCacheLocalDataSource,
     private val pageCacheLocalDataSource: MediaPageCacheLocalDataSource,
+    private val relationPreviewCacheLocalDataSource: RelationPreviewCacheLocalDataSource,
     private val dispatchers: AppDispatchers
 ) : AnimeRepository {
 
-    private val relationPreviewCache = mutableMapOf<String, AnimeRelationPreview>()
+    private val memoryRelationPreviewCache = mutableMapOf<String, AnimeRelationPreview>()
 
     override suspend fun getRecommendations(): List<AnimeSummary> = withContext(dispatchers.default) {
         getCachedRecommendations(
@@ -174,7 +176,7 @@ class AnimeRepositoryImpl(
                 animeDto = cachedDetail.detail,
                 episodeDtos = cachedDetail.episodes,
                 watchedNumbers = watchedNumbers,
-                loadRelationPreviews = false
+                loadRelationPreviews = true
             )
         }
 
@@ -189,7 +191,7 @@ class AnimeRepositoryImpl(
                     animeDto = cachedDetail.detail,
                     episodeDtos = cachedDetail.episodes,
                     watchedNumbers = watchedNumbers,
-                    loadRelationPreviews = false
+                    loadRelationPreviews = true
                 )
             } else {
                 throw error
@@ -281,20 +283,49 @@ class AnimeRepositoryImpl(
             .distinctBy { it.previewKey() }
             .forEachIndexed { index, entry ->
                 val key = entry.previewKey()
-                relationPreviewCache[key]?.let { cachedPreview ->
+                memoryRelationPreviewCache[key]?.let { cachedPreview ->
                     previews[key] = cachedPreview
+                    return@forEachIndexed
+                }
+
+                val cachedPreview = runCatching {
+                    relationPreviewCacheLocalDataSource.getPreview(key)
+                }.getOrNull()
+
+                if (cachedPreview?.isFresh() == true) {
+                    val preview = JikanResponseCacheCodec.decodeRelationPreview(cachedPreview.previewJson)
+                        .toDomain()
+                    memoryRelationPreviewCache[key] = preview
+                    previews[key] = preview
                     return@forEachIndexed
                 }
 
                 if (index > 0) delay(JIKAN_REQUEST_SPACING_MS)
 
-                runCatching {
+                val remotePreview = runCatching {
                     remoteDataSource.fetchRelationEntryPreview(
                         id = entry.mal_id,
                         type = entry.type
-                    ).data.toDomain()
-                }.getOrNull()?.let { preview ->
-                    relationPreviewCache[key] = preview
+                    ).data
+                }.getOrNull()
+
+                if (remotePreview != null) {
+                    val preview = remotePreview.toDomain()
+                    runCatching {
+                        relationPreviewCacheLocalDataSource.savePreview(
+                            cacheKey = key,
+                            previewJson = JikanResponseCacheCodec.encodeRelationPreview(remotePreview)
+                        )
+                    }
+                    memoryRelationPreviewCache[key] = preview
+                    previews[key] = preview
+                    return@forEachIndexed
+                }
+
+                if (cachedPreview != null) {
+                    val preview = JikanResponseCacheCodec.decodeRelationPreview(cachedPreview.previewJson)
+                        .toDomain()
+                    memoryRelationPreviewCache[key] = preview
                     previews[key] = preview
                 }
             }

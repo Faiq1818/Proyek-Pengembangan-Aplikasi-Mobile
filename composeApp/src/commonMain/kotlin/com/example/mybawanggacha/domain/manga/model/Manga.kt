@@ -55,5 +55,14 @@ data class MangaRelationEntry(
     val malId: Int,
     val type: String?,
     val name: String,
+    val url: String?,
+    val preview: MangaRelationPreview? = null
+)
+
+data class MangaRelationPreview(
+    val malId: Int,
+    val type: String?,
+    val title: String?,
+    val imageUrl: String?,
     val url: String?
 )

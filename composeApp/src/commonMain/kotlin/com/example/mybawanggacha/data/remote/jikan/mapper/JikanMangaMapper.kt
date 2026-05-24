@@ -7,6 +7,7 @@ import com.example.mybawanggacha.data.remote.jikan.dto.MangaDetailData
 import com.example.mybawanggacha.domain.manga.model.MangaDetail
 import com.example.mybawanggacha.domain.manga.model.MangaRelation
 import com.example.mybawanggacha.domain.manga.model.MangaRelationEntry
+import com.example.mybawanggacha.domain.manga.model.MangaRelationPreview
 import com.example.mybawanggacha.domain.manga.model.MangaPage
 import com.example.mybawanggacha.domain.manga.model.MangaSummary
 
@@ -34,7 +35,9 @@ internal fun List<AnimeCatalogItemDto>.toMangaSummaryList(): List<MangaSummary> 
         }
 }
 
-internal fun MangaDetailData.toDomain(): MangaDetail {
+internal fun MangaDetailData.toDomain(
+    relationPreviews: Map<String, MangaRelationPreview> = emptyMap()
+): MangaDetail {
     return MangaDetail(
         malId = mal_id,
         url = url,
@@ -66,17 +69,32 @@ internal fun MangaDetailData.toDomain(): MangaDetail {
         relations = relations.map { relation ->
             MangaRelation(
                 relation = relation.relation,
-                entries = relation.entry.map { entry -> entry.toMangaRelationEntry() }
+                entries = relation.entry.map { entry ->
+                    entry.toMangaRelationEntry(preview = relationPreviews[entry.previewKey()])
+                }
             )
         }
     )
 }
 
-private fun AnimeRelationEntryDto.toMangaRelationEntry(): MangaRelationEntry {
+private fun AnimeRelationEntryDto.toMangaRelationEntry(
+    preview: MangaRelationPreview?
+): MangaRelationEntry {
     return MangaRelationEntry(
         malId = mal_id,
         type = type,
         name = name,
+        url = url,
+        preview = preview
+    )
+}
+
+internal fun com.example.mybawanggacha.data.remote.jikan.dto.RelationEntryPreviewDto.toMangaDomain(): MangaRelationPreview {
+    return MangaRelationPreview(
+        malId = mal_id,
+        type = type,
+        title = title,
+        imageUrl = images?.jpg?.large_image_url ?: images?.jpg?.image_url,
         url = url
     )
 }

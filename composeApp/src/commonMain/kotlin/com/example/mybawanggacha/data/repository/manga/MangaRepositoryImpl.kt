@@ -3,37 +3,45 @@ package com.example.mybawanggacha.data.repository.manga
 import com.example.mybawanggacha.core.coroutines.AppDispatchers
 import com.example.mybawanggacha.data.local.source.MangaDetailCacheLocalDataSource
 import com.example.mybawanggacha.data.local.source.MediaPageCacheLocalDataSource
+import com.example.mybawanggacha.data.local.source.RelationPreviewCacheLocalDataSource
 import com.example.mybawanggacha.data.remote.jikan.dto.JikanAnimeListResponse
 import com.example.mybawanggacha.data.remote.jikan.dto.JikanRecommendationsResponse
+import com.example.mybawanggacha.data.remote.jikan.dto.AnimeRelationEntryDto
+import com.example.mybawanggacha.data.remote.jikan.dto.MangaDetailData
 import com.example.mybawanggacha.data.remote.jikan.mapper.toDomain
+import com.example.mybawanggacha.data.remote.jikan.mapper.previewKey
+import com.example.mybawanggacha.data.remote.jikan.mapper.toMangaDomain
 import com.example.mybawanggacha.data.remote.jikan.mapper.toMangaDomainPage
 import com.example.mybawanggacha.data.remote.jikan.source.JikanMangaRemoteDataSource
 import com.example.mybawanggacha.data.repository.jikan.JikanResponseCacheCodec
 import com.example.mybawanggacha.domain.manga.model.MangaDetail
 import com.example.mybawanggacha.domain.manga.model.MangaPage
+import com.example.mybawanggacha.domain.manga.model.MangaRelationPreview
 import com.example.mybawanggacha.domain.manga.model.MangaSummary
 import com.example.mybawanggacha.domain.manga.repository.MangaRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+
+private const val JIKAN_MANGA_RELATION_REQUEST_SPACING_MS = 360L
 
 class MangaRepositoryImpl(
     private val remoteDataSource: JikanMangaRemoteDataSource,
     private val detailCacheLocalDataSource: MangaDetailCacheLocalDataSource,
     private val pageCacheLocalDataSource: MediaPageCacheLocalDataSource,
+    private val relationPreviewCacheLocalDataSource: RelationPreviewCacheLocalDataSource,
     private val dispatchers: AppDispatchers
 ) : MangaRepository {
 
+    private val memoryRelationPreviewCache = mutableMapOf<String, MangaRelationPreview>()
+
     override suspend fun getTopMangaPage(page: Int): MangaPage = withContext(dispatchers.default) {
-        getCachedMangaList(
-            cacheKey = "manga:top:$page",
-            fetchRemote = { remoteDataSource.fetchTopManga(page = page, type = "manga") }
-        ).toMangaDomainPage(requestedPage = page)
+        remoteDataSource.fetchTopManga(page = page, type = "manga")
+            .toMangaDomainPage(requestedPage = page)
     }
 
     override suspend fun getPopularMangaPage(page: Int): MangaPage = withContext(dispatchers.default) {
-        getCachedMangaList(
-            cacheKey = "manga:popular:$page",
-            fetchRemote = { remoteDataSource.fetchTopManga(page = page, filter = "bypopularity") }
-        ).toMangaDomainPage(requestedPage = page)
+        remoteDataSource.fetchTopManga(page = page, filter = "bypopularity")
+            .toMangaDomainPage(requestedPage = page)
     }
 
     override suspend fun getRecommendations(): List<MangaSummary> = withContext(dispatchers.default) {
@@ -115,14 +123,20 @@ class MangaRepositoryImpl(
         }.getOrNull()
 
         if (cachedDetail?.isFresh() == true) {
-            return@withContext MangaDetailCacheCodec.decodeDetail(cachedDetail.detailJson).toDomain()
+            return@withContext buildMangaDetail(
+                mangaDto = MangaDetailCacheCodec.decodeDetail(cachedDetail.detailJson),
+                loadRelationPreviews = true
+            )
         }
 
         runCatching {
             fetchRemoteMangaDetail(malId)
         }.getOrElse { error ->
             if (cachedDetail != null) {
-                MangaDetailCacheCodec.decodeDetail(cachedDetail.detailJson).toDomain()
+                buildMangaDetail(
+                    mangaDto = MangaDetailCacheCodec.decodeDetail(cachedDetail.detailJson),
+                    loadRelationPreviews = true
+                )
             } else {
                 throw error
             }
@@ -139,6 +153,70 @@ class MangaRepositoryImpl(
             )
         }
 
-        return mangaDto.toDomain()
+        return buildMangaDetail(
+            mangaDto = mangaDto,
+            loadRelationPreviews = true
+        )
+    }
+
+    private suspend fun buildMangaDetail(
+        mangaDto: MangaDetailData,
+        loadRelationPreviews: Boolean
+    ): MangaDetail {
+        val relationPreviews = if (loadRelationPreviews) {
+            fetchRelationPreviews(entries = mangaDto.relations.flatMap { it.entry })
+        } else {
+            emptyMap()
+        }
+
+        return mangaDto.toDomain(relationPreviews = relationPreviews)
+    }
+
+    private suspend fun fetchRelationPreviews(
+        entries: List<AnimeRelationEntryDto>
+    ): Map<String, MangaRelationPreview> {
+        val previews = mutableMapOf<String, MangaRelationPreview>()
+
+        entries.distinctBy { it.previewKey() }.forEachIndexed { index, entry ->
+            val key = entry.previewKey()
+            memoryRelationPreviewCache[key]?.let { preview ->
+                previews[key] = preview
+                return@forEachIndexed
+            }
+
+            val cachedPreview = runCatching { relationPreviewCacheLocalDataSource.getPreview(key) }.getOrNull()
+            if (cachedPreview?.isFresh() == true) {
+                val preview = JikanResponseCacheCodec.decodeRelationPreview(cachedPreview.previewJson)
+                    .toMangaDomain()
+                memoryRelationPreviewCache[key] = preview
+                previews[key] = preview
+                return@forEachIndexed
+            }
+
+            if (index > 0) delay(JIKAN_MANGA_RELATION_REQUEST_SPACING_MS)
+
+            val remotePreview = runCatching {
+                remoteDataSource.fetchRelationEntryPreview(id = entry.mal_id, type = entry.type).data
+            }.getOrNull()
+
+            if (remotePreview != null) {
+                val preview = remotePreview.toMangaDomain()
+                runCatching {
+                    relationPreviewCacheLocalDataSource.savePreview(
+                        cacheKey = key,
+                        previewJson = JikanResponseCacheCodec.encodeRelationPreview(remotePreview)
+                    )
+                }
+                memoryRelationPreviewCache[key] = preview
+                previews[key] = preview
+            } else if (cachedPreview != null) {
+                val preview = JikanResponseCacheCodec.decodeRelationPreview(cachedPreview.previewJson)
+                    .toMangaDomain()
+                memoryRelationPreviewCache[key] = preview
+                previews[key] = preview
+            }
+        }
+
+        return previews
     }
 }
