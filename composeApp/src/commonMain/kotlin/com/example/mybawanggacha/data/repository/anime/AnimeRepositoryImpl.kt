@@ -87,31 +87,25 @@ class AnimeRepositoryImpl(
 
     override suspend fun getAnimeDetail(malId: Int): AnimeDetailBundle = withContext(dispatchers.default) {
         val watchedNumbers = progressLocalDataSource.getWatchedEpisodeNumbers(malId)
+        val cachedDetail = runCatching {
+            detailCacheLocalDataSource.getAnimeDetail(malId)
+        }.getOrNull()
+
+        if (cachedDetail?.isFresh() == true) {
+            return@withContext buildAnimeDetailBundle(
+                animeDto = cachedDetail.detail,
+                episodeDtos = cachedDetail.episodes,
+                watchedNumbers = watchedNumbers,
+                loadRelationPreviews = false
+            )
+        }
 
         runCatching {
-            val animeDto = remoteDataSource.fetchAnimeFullDetail(malId).data
-            val episodeDtos = runCatching {
-                remoteDataSource.fetchAnimeEpisodes(malId).data
-            }.getOrDefault(emptyList())
-
-            runCatching {
-                detailCacheLocalDataSource.saveAnimeDetail(
-                    detail = animeDto,
-                    episodes = episodeDtos
-                )
-            }
-
-            buildAnimeDetailBundle(
-                animeDto = animeDto,
-                episodeDtos = episodeDtos,
-                watchedNumbers = watchedNumbers,
-                loadRelationPreviews = true
+            fetchRemoteAnimeDetailBundle(
+                malId = malId,
+                watchedNumbers = watchedNumbers
             )
         }.getOrElse { error ->
-            val cachedDetail = runCatching {
-                detailCacheLocalDataSource.getAnimeDetail(malId)
-            }.getOrNull()
-
             if (cachedDetail != null) {
                 buildAnimeDetailBundle(
                     animeDto = cachedDetail.detail,
@@ -123,6 +117,30 @@ class AnimeRepositoryImpl(
                 throw error
             }
         }
+    }
+
+    private suspend fun fetchRemoteAnimeDetailBundle(
+        malId: Int,
+        watchedNumbers: Set<Int>
+    ): AnimeDetailBundle {
+        val animeDto = remoteDataSource.fetchAnimeFullDetail(malId).data
+        val episodeDtos = runCatching {
+            remoteDataSource.fetchAnimeEpisodes(malId).data
+        }.getOrDefault(emptyList())
+
+        runCatching {
+            detailCacheLocalDataSource.saveAnimeDetail(
+                detail = animeDto,
+                episodes = episodeDtos
+            )
+        }
+
+        return buildAnimeDetailBundle(
+            animeDto = animeDto,
+            episodeDtos = episodeDtos,
+            watchedNumbers = watchedNumbers,
+            loadRelationPreviews = true
+        )
     }
 
     private suspend fun buildAnimeDetailBundle(

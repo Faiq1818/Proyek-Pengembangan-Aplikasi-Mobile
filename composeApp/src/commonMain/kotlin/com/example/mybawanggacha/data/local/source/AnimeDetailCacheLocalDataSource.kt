@@ -9,11 +9,20 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlin.time.Clock
 
+const val ANIME_DETAIL_CACHE_MAX_AGE_MS: Long = 12L * 60L * 60L * 1_000L
+
 data class CachedAnimeDetail(
     val detail: AnimeDetailData,
     val episodes: List<AnimeEpisodeDto>,
     val cachedAt: Long
-)
+) {
+    fun isFresh(
+        nowMillis: Long = Clock.System.now().toEpochMilliseconds(),
+        maxAgeMillis: Long = ANIME_DETAIL_CACHE_MAX_AGE_MS
+    ): Boolean {
+        return nowMillis - cachedAt <= maxAgeMillis
+    }
+}
 
 internal object AnimeDetailCacheCodec {
     private val json = Json {
