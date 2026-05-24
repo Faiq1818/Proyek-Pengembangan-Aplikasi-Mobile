@@ -34,7 +34,7 @@ fun AnimeRecommendationCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    AnimePosterCard(
+    MediaPosterCard(
         title = anime.title,
         imageUrl = anime.imageUrl.orEmpty(),
         onClick = onClick,
@@ -43,7 +43,7 @@ fun AnimeRecommendationCard(
 }
 
 @Composable
-fun AnimePosterCard(
+fun MediaPosterCard(
     title: String,
     imageUrl: String,
     onClick: () -> Unit,
@@ -87,9 +87,9 @@ fun AnimePosterCard(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        leadingBadge?.let { AnimePosterBadge(text = it) }
+                        leadingBadge?.let { MediaPosterBadge(text = it) }
                         Spacer(modifier = Modifier.weight(1f))
-                        trailingBadge?.let { AnimePosterBadge(text = it) }
+                        trailingBadge?.let { MediaPosterBadge(text = it) }
                     }
                 }
             }
@@ -110,7 +110,7 @@ fun AnimePosterCard(
 
 
 @Composable
-private fun AnimePosterBadge(text: String) {
+private fun MediaPosterBadge(text: String) {
     Text(
         text = text,
         style = MaterialTheme.typography.labelSmall,

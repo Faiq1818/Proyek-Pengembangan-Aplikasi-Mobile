@@ -38,7 +38,7 @@ import com.example.mybawanggacha.presentation.screens.manga.list.MangaListUiStat
 import com.example.mybawanggacha.presentation.components.EmptyState
 import com.example.mybawanggacha.presentation.components.ErrorState
 import com.example.mybawanggacha.presentation.components.LoadingIndicator
-import com.example.mybawanggacha.presentation.components.media.AnimePosterCard
+import com.example.mybawanggacha.presentation.components.media.MediaPosterCard
 
 @Composable
 fun MangaListHeader() {
@@ -182,7 +182,7 @@ private fun MangaGrid(
             items = manga,
             key = { it.malId }
         ) { item ->
-            AnimePosterCard(
+            MediaPosterCard(
                 title = item.title,
                 imageUrl = item.imageUrl.orEmpty(),
                 leadingBadge = item.takeIf { showBadges }?.rankLabel(),

@@ -38,6 +38,7 @@ fun AnimeDetailScreen(
     malId: Int,
     onNavigateBack: () -> Unit,
     onNavigateToAnimeDetail: (Int) -> Unit = {},
+    onNavigateToMangaDetail: (Int) -> Unit = {},
     onNavigateToLibraryEditor: (AnimeDetail, Long?) -> Unit = { _, _ -> },
     viewModel: AnimeDetailViewModel = koinViewModel()
 ) {
@@ -75,14 +76,20 @@ fun AnimeDetailScreen(
                         selectedSection = selectedSection,
                         onEpisodeWatchedChange = viewModel::setEpisodeWatched,
                         onRelationEntryClick = { entry ->
-                            if (entry.type.equals("anime", ignoreCase = true)) {
-                                onNavigateToAnimeDetail(entry.malId)
-                            } else {
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = "Detail ${entry.type?.takeIf { it.isNotBlank() } ?: "Unknown"} belum diimplementasikan.",
-                                        duration = SnackbarDuration.Short
-                                    )
+                            when {
+                                entry.type.equals("anime", ignoreCase = true) -> {
+                                    onNavigateToAnimeDetail(entry.malId)
+                                }
+                                entry.type.equals("manga", ignoreCase = true) -> {
+                                    onNavigateToMangaDetail(entry.malId)
+                                }
+                                else -> {
+                                    coroutineScope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = "Detail ${entry.type?.takeIf { it.isNotBlank() } ?: "Unknown"} belum didukung.",
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    }
                                 }
                             }
                         }

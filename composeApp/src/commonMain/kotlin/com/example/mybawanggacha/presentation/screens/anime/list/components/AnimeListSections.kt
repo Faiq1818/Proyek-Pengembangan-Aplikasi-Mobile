@@ -34,7 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.mybawanggacha.domain.anime.model.AnimeSeasonPeriod
 import com.example.mybawanggacha.domain.anime.model.AnimeSummary
-import com.example.mybawanggacha.presentation.components.media.AnimePosterCard
+import com.example.mybawanggacha.presentation.components.media.MediaPosterCard
 import com.example.mybawanggacha.presentation.components.EmptyState
 import com.example.mybawanggacha.presentation.components.ErrorState
 import com.example.mybawanggacha.presentation.components.LoadingIndicator
@@ -213,7 +213,7 @@ fun AnimeGrid(
             items = anime,
             key = { it.malId }
         ) { item ->
-            AnimePosterCard(
+            MediaPosterCard(
                 title = item.title,
                 imageUrl = item.imageUrl.orEmpty(),
                 leadingBadge = item.takeIf { showTopAnimeBadges }?.rankLabel(),

@@ -161,6 +161,7 @@ fun AppNavHost(
                 malId = route.malId,
                 onNavigateBack = { navigationActions.navigateBack() },
                 onNavigateToAnimeDetail = { malId -> navigationActions.navigateToAnimeDetail(malId) },
+                onNavigateToMangaDetail = { malId -> navigationActions.navigateToMangaDetail(malId) },
                 onNavigateToLibraryEditor = { anime, entryId ->
                     navigationActions.navigateToLibraryEntryEditor(
                         mediaId = anime.malId,
