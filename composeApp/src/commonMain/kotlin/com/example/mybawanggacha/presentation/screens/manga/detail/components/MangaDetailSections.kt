@@ -1,14 +1,17 @@
 package com.example.mybawanggacha.presentation.screens.manga.detail.components
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Article
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.mybawanggacha.domain.manga.model.MangaDetail
 import com.example.mybawanggacha.domain.manga.model.MangaRelationEntry
+import com.example.mybawanggacha.presentation.components.AnimatedSectionContent
 import com.example.mybawanggacha.presentation.components.MBGSideRailItem
 
 internal enum class MangaDetailSection(
@@ -36,13 +39,20 @@ internal fun MangaDetailContent(
     selectedSection: MangaDetailSection,
     onRelationEntryClick: (MangaRelationEntry) -> Unit
 ) {
-    when (selectedSection) {
-        MangaDetailSection.Overview -> MangaOverviewSection(manga)
-        MangaDetailSection.Synopsis -> MangaSynopsisSection(manga)
-        MangaDetailSection.Info -> MangaInfoSection(manga)
-        MangaDetailSection.Relations -> MangaRelationsSection(
-            manga = manga,
-            onEntryClick = onRelationEntryClick
-        )
+    AnimatedSectionContent(
+        targetState = selectedSection,
+        indexOf = { it.ordinal },
+        modifier = Modifier.fillMaxSize(),
+        label = "MangaDetailSectionTransition"
+    ) { section ->
+        when (section) {
+            MangaDetailSection.Overview -> MangaOverviewSection(manga)
+            MangaDetailSection.Synopsis -> MangaSynopsisSection(manga)
+            MangaDetailSection.Info -> MangaInfoSection(manga)
+            MangaDetailSection.Relations -> MangaRelationsSection(
+                manga = manga,
+                onEntryClick = onRelationEntryClick
+            )
+        }
     }
 }
