@@ -36,8 +36,8 @@ class UserPreferences(
     /**
      * Observe dark mode setting
      */
-    val isDarkMode: Flow<Boolean> = dataStore.data.map { prefs ->
-        prefs[Keys.DARK_MODE] ?: false
+    val isDarkMode: Flow<Boolean?> = dataStore.data.map { prefs ->
+        prefs[Keys.DARK_MODE]
     }
     
     /**
