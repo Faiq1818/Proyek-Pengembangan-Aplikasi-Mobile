@@ -1,4 +1,4 @@
-package com.example.mybawanggacha.presentation.screens.manga
+package com.example.mybawanggacha.presentation.screens.manga.detail
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

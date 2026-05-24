@@ -1,4 +1,4 @@
-package com.example.mybawanggacha.presentation.screens.manga
+package com.example.mybawanggacha.presentation.screens.manga.list
 
 import com.example.mybawanggacha.domain.manga.model.MangaPage
 import com.example.mybawanggacha.domain.manga.model.MangaSummary

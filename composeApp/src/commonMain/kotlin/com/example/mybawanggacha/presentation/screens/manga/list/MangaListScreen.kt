@@ -1,4 +1,4 @@
-package com.example.mybawanggacha.presentation.screens.manga
+package com.example.mybawanggacha.presentation.screens.manga.list
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +13,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mybawanggacha.presentation.components.MBGMainRailKey
 import com.example.mybawanggacha.presentation.components.MBGRailBackButton
 import com.example.mybawanggacha.presentation.components.MBGSideRailScaffold
+import com.example.mybawanggacha.presentation.screens.manga.list.components.MangaListContent
+import com.example.mybawanggacha.presentation.screens.manga.list.components.MangaListHeader
+import com.example.mybawanggacha.presentation.screens.manga.list.components.MangaListTabRow
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable

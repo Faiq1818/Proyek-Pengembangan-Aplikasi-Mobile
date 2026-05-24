@@ -1,4 +1,4 @@
-package com.example.mybawanggacha.presentation.screens.manga
+package com.example.mybawanggacha.presentation.screens.manga.list.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,6 +33,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.mybawanggacha.domain.manga.model.MangaSummary
+import com.example.mybawanggacha.presentation.screens.manga.list.MangaListTab
+import com.example.mybawanggacha.presentation.screens.manga.list.MangaListUiState
 import com.example.mybawanggacha.presentation.components.EmptyState
 import com.example.mybawanggacha.presentation.components.ErrorState
 import com.example.mybawanggacha.presentation.components.LoadingIndicator

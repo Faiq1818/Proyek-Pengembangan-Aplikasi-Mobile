@@ -1,4 +1,4 @@
-package com.example.mybawanggacha.presentation.screens.manga
+package com.example.mybawanggacha.presentation.screens.manga.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

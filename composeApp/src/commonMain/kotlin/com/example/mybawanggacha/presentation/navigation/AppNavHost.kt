@@ -15,8 +15,8 @@ import com.example.mybawanggacha.presentation.screens.notes.detail.NoteDetailScr
 import com.example.mybawanggacha.presentation.screens.discover.HomeScreen
 import com.example.mybawanggacha.presentation.screens.library.editor.LibraryEntryEditorScreen
 import com.example.mybawanggacha.presentation.screens.library.list.MyListScreen
-import com.example.mybawanggacha.presentation.screens.manga.MangaDetailScreen
-import com.example.mybawanggacha.presentation.screens.manga.MangaListScreen
+import com.example.mybawanggacha.presentation.screens.manga.detail.MangaDetailScreen
+import com.example.mybawanggacha.presentation.screens.manga.list.MangaListScreen
 import com.example.mybawanggacha.presentation.screens.settings.SettingsScreen
 import com.example.mybawanggacha.domain.library.model.MediaType
 

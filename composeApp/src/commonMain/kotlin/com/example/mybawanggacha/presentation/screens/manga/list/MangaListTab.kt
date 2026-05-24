@@ -1,4 +1,4 @@
-package com.example.mybawanggacha.presentation.screens.manga
+package com.example.mybawanggacha.presentation.screens.manga.list
 
 enum class MangaListTab(val label: String) {
     TopManga("Top Manga"),
