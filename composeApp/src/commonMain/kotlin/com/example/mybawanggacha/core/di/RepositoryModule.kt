@@ -1,6 +1,7 @@
 package com.example.mybawanggacha.core.di
 
 import com.example.mybawanggacha.data.local.source.AnimeProgressLocalDataSource
+import com.example.mybawanggacha.data.local.source.MangaDetailCacheLocalDataSource
 import com.example.mybawanggacha.data.local.source.AnimeDetailCacheLocalDataSource
 import com.example.mybawanggacha.data.repository.ai.AIRepositoryImpl
 import com.example.mybawanggacha.data.repository.anime.AnimeRepositoryImpl
@@ -21,6 +22,7 @@ import org.koin.dsl.module
 val repositoryModule = module {
     singleOf(::AnimeDetailCacheLocalDataSource)
     singleOf(::AnimeProgressLocalDataSource)
+    singleOf(::MangaDetailCacheLocalDataSource)
     singleOf(::NoteRepositoryImpl) bind NoteRepository::class
     singleOf(::AIRepositoryImpl) bind AIRepository::class
     singleOf(::AnimeRepositoryImpl) bind AnimeRepository::class

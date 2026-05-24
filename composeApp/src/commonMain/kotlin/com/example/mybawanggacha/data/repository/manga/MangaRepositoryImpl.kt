@@ -1,6 +1,7 @@
 package com.example.mybawanggacha.data.repository.manga
 
 import com.example.mybawanggacha.core.coroutines.AppDispatchers
+import com.example.mybawanggacha.data.local.source.MangaDetailCacheLocalDataSource
 import com.example.mybawanggacha.data.remote.jikan.mapper.toDomain
 import com.example.mybawanggacha.data.remote.jikan.mapper.toMangaDomainPage
 import com.example.mybawanggacha.data.remote.jikan.source.JikanMangaRemoteDataSource
@@ -12,6 +13,7 @@ import kotlinx.coroutines.withContext
 
 class MangaRepositoryImpl(
     private val remoteDataSource: JikanMangaRemoteDataSource,
+    private val detailCacheLocalDataSource: MangaDetailCacheLocalDataSource,
     private val dispatchers: AppDispatchers
 ) : MangaRepository {
 
@@ -41,6 +43,35 @@ class MangaRepositoryImpl(
     }
 
     override suspend fun getMangaDetail(malId: Int): MangaDetail = withContext(dispatchers.default) {
-        remoteDataSource.fetchMangaFullDetail(malId).data.toDomain()
+        val cachedDetail = runCatching {
+            detailCacheLocalDataSource.getMangaDetail(malId)
+        }.getOrNull()
+
+        if (cachedDetail?.isFresh() == true) {
+            return@withContext MangaDetailCacheCodec.decodeDetail(cachedDetail.detailJson).toDomain()
+        }
+
+        runCatching {
+            fetchRemoteMangaDetail(malId)
+        }.getOrElse { error ->
+            if (cachedDetail != null) {
+                MangaDetailCacheCodec.decodeDetail(cachedDetail.detailJson).toDomain()
+            } else {
+                throw error
+            }
+        }
+    }
+
+    private suspend fun fetchRemoteMangaDetail(malId: Int): MangaDetail {
+        val mangaDto = remoteDataSource.fetchMangaFullDetail(malId).data
+
+        runCatching {
+            detailCacheLocalDataSource.saveMangaDetail(
+                malId = mangaDto.mal_id,
+                detailJson = MangaDetailCacheCodec.encodeDetail(mangaDto)
+            )
+        }
+
+        return mangaDto.toDomain()
     }
 }
