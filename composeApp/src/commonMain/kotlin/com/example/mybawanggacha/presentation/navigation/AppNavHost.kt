@@ -17,6 +17,7 @@ import com.example.mybawanggacha.presentation.screens.library.editor.LibraryEntr
 import com.example.mybawanggacha.presentation.screens.library.list.MyListScreen
 import com.example.mybawanggacha.presentation.screens.manga.detail.MangaDetailScreen
 import com.example.mybawanggacha.presentation.screens.manga.list.MangaListScreen
+import com.example.mybawanggacha.presentation.screens.search.SearchScreen
 import com.example.mybawanggacha.presentation.screens.settings.SettingsScreen
 import com.example.mybawanggacha.domain.library.model.MediaType
 
@@ -39,7 +40,20 @@ fun AppNavHost(
                 onNavigateToMyLibrary = { navigationActions.navigateToMyLibrary() },
                 onNavigateToAnimeList = { navigationActions.navigateToAnimeList() },
                 onNavigateToMangaList = { navigationActions.navigateToMangaList() },
+                onNavigateToSearch = { navigationActions.navigateToSearch() },
                 onNavigateToSettings = { navigationActions.navigateToSettings() }
+            )
+        }
+
+        composable<Route.Search> {
+            SearchScreen(
+                onNavigateHome = { navigationActions.navigateToHome() },
+                onNavigateToMyLibrary = { navigationActions.navigateToMyLibrary() },
+                onNavigateToAnimeList = { navigationActions.navigateToAnimeList() },
+                onNavigateToMangaList = { navigationActions.navigateToMangaList() },
+                onNavigateToSettings = { navigationActions.navigateToSettings() },
+                onNavigateToAnimeDetail = { malId -> navigationActions.navigateToAnimeDetail(malId) },
+                onNavigateToMangaDetail = { malId -> navigationActions.navigateToMangaDetail(malId) }
             )
         }
 
@@ -49,6 +63,7 @@ fun AppNavHost(
                 onNavigateHome = { navigationActions.navigateToHome() },
                 onNavigateToAnimeList = { navigationActions.navigateToAnimeList() },
                 onNavigateToMangaList = { navigationActions.navigateToMangaList() },
+                onNavigateToSearch = { navigationActions.navigateToSearch() },
                 onNavigateToDetail = { mediaId, mediaType ->
                     when (mediaType) {
                         MediaType.Anime -> navigationActions.navigateToAnimeDetail(mediaId)
@@ -74,6 +89,7 @@ fun AppNavHost(
                 onNavigateHome = { navigationActions.navigateToHome() },
                 onNavigateToMyLibrary = { navigationActions.navigateToMyLibrary() },
                 onNavigateToMangaList = { navigationActions.navigateToMangaList() },
+                onNavigateToSearch = { navigationActions.navigateToSearch() },
                 onNavigateToAnimeDetail = { malId -> navigationActions.navigateToAnimeDetail(malId) }
             )
         }
@@ -84,6 +100,7 @@ fun AppNavHost(
                 onNavigateHome = { navigationActions.navigateToHome() },
                 onNavigateToMyLibrary = { navigationActions.navigateToMyLibrary() },
                 onNavigateToAnimeList = { navigationActions.navigateToAnimeList() },
+                onNavigateToSearch = { navigationActions.navigateToSearch() },
                 onNavigateToMangaDetail = { malId -> navigationActions.navigateToMangaDetail(malId) }
             )
         }
@@ -127,7 +144,8 @@ fun AppNavHost(
                 onNavigateHome = { navigationActions.navigateToHome() },
                 onNavigateToMyLibrary = { navigationActions.navigateToMyLibrary() },
                 onNavigateToAnimeList = { navigationActions.navigateToAnimeList() },
-                onNavigateToMangaList = { navigationActions.navigateToMangaList() }
+                onNavigateToMangaList = { navigationActions.navigateToMangaList() },
+                onNavigateToSearch = { navigationActions.navigateToSearch() }
             )
         }
         
@@ -193,6 +211,10 @@ private fun createNavigationActions(navController: NavHostController): Navigatio
             navController.navigate(Route.Home) {
                 popUpTo(Route.Home) { inclusive = true }
             }
+        }
+
+        override fun navigateToSearch() {
+            navController.navigate(Route.Search)
         }
 
         override fun navigateToMyLibrary() {

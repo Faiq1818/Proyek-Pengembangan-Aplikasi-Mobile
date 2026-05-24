@@ -8,6 +8,9 @@ sealed interface Route {
     data object Home : Route
 
     @Serializable
+    data object Search : Route
+
+    @Serializable
     data object MyLibrary : Route
 
     @Serializable
@@ -50,6 +53,7 @@ sealed interface Route {
 
 interface NavigationActions {
     fun navigateToHome()
+    fun navigateToSearch()
     fun navigateToMyLibrary()
     fun navigateToAnimeList()
     fun navigateToMangaList()

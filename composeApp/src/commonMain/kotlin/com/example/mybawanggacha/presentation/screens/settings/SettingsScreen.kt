@@ -43,6 +43,7 @@ fun SettingsScreen(
     onNavigateToMyLibrary: () -> Unit,
     onNavigateToAnimeList: () -> Unit,
     onNavigateToMangaList: () -> Unit,
+    onNavigateToSearch: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -54,6 +55,7 @@ fun SettingsScreen(
         onRailItemClick = { key ->
             when (key) {
                 MBGMainRailKey.Home -> onNavigateHome()
+                MBGMainRailKey.Search -> onNavigateToSearch()
                 MBGMainRailKey.MyLibrary -> onNavigateToMyLibrary()
                 MBGMainRailKey.AnimeList -> onNavigateToAnimeList()
                 MBGMainRailKey.MangaList -> onNavigateToMangaList()

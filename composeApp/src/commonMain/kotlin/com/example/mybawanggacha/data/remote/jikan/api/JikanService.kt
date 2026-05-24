@@ -10,6 +10,7 @@ import com.example.mybawanggacha.data.remote.jikan.dto.RelationEntryPreviewRespo
 import com.example.mybawanggacha.data.remote.jikan.dto.WatchEpisodesResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import com.example.mybawanggacha.domain.search.model.MediaSearchFilters
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
@@ -47,6 +48,31 @@ class JikanService(private val client: HttpClient) {
     suspend fun fetchRecentWatchEpisodes(page: Int = 1): WatchEpisodesResponse {
         return getBody("watch/episodes") {
             parameter("page", page)
+        }
+    }
+
+    suspend fun fetchAnimeSearch(
+        filters: MediaSearchFilters,
+        page: Int = 1
+    ): JikanAnimeListResponse {
+        return getBody("anime") {
+            applyCommonSearchParameters(filters = filters, page = page)
+            parameterIfNotBlank("type", filters.type)
+            parameterIfNotBlank("status", filters.status)
+            parameterIfNotBlank("rating", filters.rating)
+            parameterIfNotBlank("producers", filters.producers)
+        }
+    }
+
+    suspend fun fetchMangaSearch(
+        filters: MediaSearchFilters,
+        page: Int = 1
+    ): JikanAnimeListResponse {
+        return getBody("manga") {
+            applyCommonSearchParameters(filters = filters, page = page)
+            parameterIfNotBlank("type", filters.type)
+            parameterIfNotBlank("status", filters.status)
+            parameterIfNotBlank("magazines", filters.magazines)
         }
     }
 
@@ -120,6 +146,40 @@ class JikanService(private val client: HttpClient) {
         }
 
         return getBody("$resource/$id")
+    }
+
+    private fun HttpRequestBuilder.applyCommonSearchParameters(
+        filters: MediaSearchFilters,
+        page: Int
+    ) {
+        parameter("page", page.coerceAtLeast(1))
+        parameter("limit", filters.limit.toIntOrNull()?.coerceIn(1, 25) ?: 12)
+        parameterIfNotBlank("q", filters.query)
+        parameterIfNotBlank("score", filters.score)
+        parameterIfNotBlank("min_score", filters.minScore)
+        parameterIfNotBlank("max_score", filters.maxScore)
+        parameter("sfw", filters.sfw)
+        parameterIfNotBlank("genres", filters.genres)
+        parameterIfNotBlank("genres_exclude", filters.genresExclude)
+        parameterIfNotBlank("order_by", filters.orderBy)
+        parameterIfNotBlank("sort", filters.sort)
+        parameterIfNotBlank("letter", filters.letter)
+        parameterIfNotBlank("start_date", filters.startDate)
+        parameterIfNotBlank("end_date", filters.endDate)
+
+        if (filters.unapproved) {
+            parameter("unapproved", "")
+        }
+    }
+
+    private fun HttpRequestBuilder.parameterIfNotBlank(
+        name: String,
+        value: String?
+    ) {
+        value
+            ?.trim()
+            ?.takeIf { it.isNotBlank() }
+            ?.let { parameter(name, it) }
     }
 
     private suspend inline fun <reified T> getBody(

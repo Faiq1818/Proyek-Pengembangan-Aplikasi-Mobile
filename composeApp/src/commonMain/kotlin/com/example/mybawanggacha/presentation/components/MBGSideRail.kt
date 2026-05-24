@@ -30,6 +30,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CollectionsBookmark
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SmartDisplay
@@ -57,6 +58,7 @@ import androidx.compose.ui.unit.dp
 
 object MBGMainRailKey {
     const val Home = "home"
+    const val Search = "search"
     const val MyLibrary = "my_library"
     const val AnimeList = "anime_list"
     const val MangaList = "manga_list"
@@ -89,7 +91,12 @@ fun animeMainRailItems(): List<MBGSideRailItem> = listOf(
         key = MBGMainRailKey.MangaList,
         label = "Manga List",
         icon = Icons.Default.MenuBook
-    )
+    ),
+    MBGSideRailItem(
+        key = MBGMainRailKey.Search,
+        label = "Search",
+        icon = Icons.Default.Search
+    ),
 )
 
 @Composable
