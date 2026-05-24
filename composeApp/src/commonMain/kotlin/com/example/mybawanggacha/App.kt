@@ -5,7 +5,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import com.example.mybawanggacha.data.local.datastore.UserPreferences
+import com.example.mybawanggacha.domain.settings.model.ThemeMode
+import com.example.mybawanggacha.domain.settings.repository.SettingsRepository
 import com.example.mybawanggacha.presentation.navigation.AppNavHost
 import com.example.mybawanggacha.presentation.theme.MBGTheme
 import org.koin.compose.KoinContext
@@ -16,10 +17,10 @@ fun App(
     onDarkThemeChange: (Boolean) -> Unit = {}
 ) {
     KoinContext {
-        val userPreferences = koinInject<UserPreferences>()
+        val settingsRepository = koinInject<SettingsRepository>()
         val systemDarkTheme = isSystemInDarkTheme()
-        val darkModePreference by userPreferences.isDarkMode.collectAsState(initial = null)
-        val isDarkMode = darkModePreference ?: systemDarkTheme
+        val themeMode by settingsRepository.themeMode.collectAsState(initial = ThemeMode.System)
+        val isDarkMode = themeMode.resolve(systemDarkTheme)
 
         LaunchedEffect(isDarkMode) {
             onDarkThemeChange(isDarkMode)

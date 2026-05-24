@@ -7,11 +7,13 @@ import com.example.mybawanggacha.data.repository.anime.AnimeRepositoryImpl
 import com.example.mybawanggacha.data.repository.library.LibraryRepositoryImpl
 import com.example.mybawanggacha.data.repository.manga.MangaRepositoryImpl
 import com.example.mybawanggacha.data.repository.note.NoteRepositoryImpl
+import com.example.mybawanggacha.data.repository.settings.SettingsRepositoryImpl
 import com.example.mybawanggacha.domain.ai.repository.AIRepository
 import com.example.mybawanggacha.domain.anime.repository.AnimeRepository
 import com.example.mybawanggacha.domain.library.repository.LibraryRepository
 import com.example.mybawanggacha.domain.manga.repository.MangaRepository
 import com.example.mybawanggacha.domain.note.repository.NoteRepository
+import com.example.mybawanggacha.domain.settings.repository.SettingsRepository
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -24,4 +26,5 @@ val repositoryModule = module {
     singleOf(::AnimeRepositoryImpl) bind AnimeRepository::class
     singleOf(::LibraryRepositoryImpl) bind LibraryRepository::class
     singleOf(::MangaRepositoryImpl) bind MangaRepository::class
+    singleOf(::SettingsRepositoryImpl) bind SettingsRepository::class
 }

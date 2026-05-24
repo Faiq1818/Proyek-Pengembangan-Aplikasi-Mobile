@@ -11,6 +11,7 @@ import com.example.mybawanggacha.presentation.screens.library.editor.LibraryEntr
 import com.example.mybawanggacha.presentation.screens.library.list.LibraryViewModel
 import com.example.mybawanggacha.presentation.screens.manga.MangaDetailViewModel
 import com.example.mybawanggacha.presentation.screens.manga.MangaListViewModel
+import com.example.mybawanggacha.presentation.screens.settings.SettingsViewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
@@ -26,4 +27,5 @@ val viewModelModule = module {
     viewModelOf(::MangaListViewModel)
     viewModelOf(::LibraryViewModel)
     viewModelOf(::LibraryEntryEditorViewModel)
+    viewModelOf(::SettingsViewModel)
 }
