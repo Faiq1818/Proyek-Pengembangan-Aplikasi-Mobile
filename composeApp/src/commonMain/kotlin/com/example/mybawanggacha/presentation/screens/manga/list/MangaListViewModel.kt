@@ -72,21 +72,39 @@ class MangaListViewModel(
         loadJob?.cancel()
         loadMoreJob?.cancel()
         loadJob = viewModelScope.launch {
-            _uiState.value = MangaListUiState.Loading
+            val cachedEntry = if (!forceRefresh) cache.get(tab.name) else null
+            if (cachedEntry != null) {
+                showSuccess(tab = tab, entry = cachedEntry)
+                return@launch
+            }
+
+            val previousState = _uiState.value as? MangaListUiState.Success
+            val canKeepPreviousContent = forceRefresh && previousState != null
+            if (canKeepPreviousContent) {
+                _uiState.value = previousState.copy(
+                    isRefreshing = true,
+                    isLoadingMore = false
+                )
+            } else {
+                _uiState.value = MangaListUiState.Loading
+            }
 
             runCatching {
-                if (!forceRefresh && cache.contains(tab.name)) {
-                    cache.get(tab.name) ?: fetchMangaPage(tab = tab, page = FIRST_PAGE).toCacheEntry()
-                } else {
-                    fetchMangaPage(tab = tab, page = FIRST_PAGE).toCacheEntry()
-                        .also { entry -> cache.put(tab.name, entry) }
-                }
+                fetchMangaPage(tab = tab, page = FIRST_PAGE).toCacheEntry()
+                    .also { entry -> cache.put(tab.name, entry) }
             }.onSuccess { entry ->
                 showSuccess(tab = tab, entry = entry)
             }.onFailure { error ->
-                _uiState.value = MangaListUiState.Error(
-                    error.message ?: "Gagal memuat katalog manga"
-                )
+                _uiState.value = if (canKeepPreviousContent) {
+                    previousState.copy(
+                        isRefreshing = false,
+                        isLoadingMore = false
+                    )
+                } else {
+                    MangaListUiState.Error(
+                        error.message ?: "Gagal memuat katalog manga"
+                    )
+                }
             }
         }
     }
@@ -109,7 +127,8 @@ class MangaListViewModel(
             subtitle = tab.contentSubtitle(),
             manga = entry.manga,
             canLoadMore = entry.canLoadMore,
-            isLoadingMore = false
+            isLoadingMore = false,
+            isRefreshing = false
         )
     }
 

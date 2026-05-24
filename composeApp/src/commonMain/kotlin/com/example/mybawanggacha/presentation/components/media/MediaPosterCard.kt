@@ -109,6 +109,46 @@ fun MediaPosterCard(
 }
 
 
+
+@Composable
+fun MediaPosterSkeletonCard(
+    modifier: Modifier = Modifier,
+    posterWidth: Dp = 132.dp,
+    posterHeight: Dp = 188.dp
+) {
+    Column(
+        modifier = modifier.width(posterWidth)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(posterHeight)
+                .clip(RoundedCornerShape(18.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.58f))
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.86f)
+                .height(12.dp)
+                .clip(RoundedCornerShape(999.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.68f))
+        )
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.62f)
+                .height(12.dp)
+                .clip(RoundedCornerShape(999.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.46f))
+        )
+    }
+}
+
 @Composable
 private fun MediaPosterBadge(text: String) {
     Text(

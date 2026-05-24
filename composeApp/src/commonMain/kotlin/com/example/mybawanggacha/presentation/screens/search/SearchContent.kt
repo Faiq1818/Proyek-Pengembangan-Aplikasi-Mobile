@@ -94,9 +94,9 @@ internal fun SearchContent(
         contentPadding = PaddingValues(start = 4.dp, top = 32.dp, end = 18.dp, bottom = 32.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        item { SearchHeader() }
+        item(contentType = "search_header") { SearchHeader() }
 
-        item {
+        item(contentType = "search_panel") {
             SearchCompactPanel(
                 filters = filters,
                 activeFilterCount = activeLabels.size,
@@ -107,7 +107,7 @@ internal fun SearchContent(
         }
 
         if (activeLabels.isNotEmpty()) {
-            item {
+            item(contentType = "active_filters") {
                 ActiveFilterRow(
                     labels = activeLabels,
                     onReset = onReset
@@ -124,11 +124,11 @@ internal fun SearchContent(
                 )
             }
 
-            SearchUiState.Loading -> item {
+            SearchUiState.Loading -> item(contentType = "search_loading") {
                 LoadingIndicator(modifier = Modifier.height(360.dp))
             }
 
-            is SearchUiState.Error -> item {
+            is SearchUiState.Error -> item(contentType = "search_error") {
                 ErrorState(
                     message = uiState.message,
                     onRetry = onRetry,
@@ -138,7 +138,7 @@ internal fun SearchContent(
 
             is SearchUiState.Success -> {
                 if (uiState.items.isEmpty()) {
-                    item {
+                    item(contentType = "search_empty") {
                         EmptyState(
                             title = SearchText.emptyResultTitle,
                             message = SearchText.emptyResultMessage,
@@ -148,7 +148,8 @@ internal fun SearchContent(
                 } else {
                     items(
                         items = uiState.items,
-                        key = { item -> "${item.mediaType}:${item.malId}" }
+                        key = { item -> "${item.mediaType}:${item.malId}" },
+                        contentType = { "search_result" }
                     ) { item ->
                         SearchResultCard(
                             item = item,
@@ -157,7 +158,7 @@ internal fun SearchContent(
                     }
 
                     if (uiState.isLoadingMore) {
-                        item { SearchLoadingMoreRow() }
+                        item(contentType = "search_loading_more") { SearchLoadingMoreRow() }
                     }
                 }
             }

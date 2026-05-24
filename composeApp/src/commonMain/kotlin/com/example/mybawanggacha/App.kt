@@ -1,6 +1,10 @@
 package com.example.mybawanggacha
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.ui.Modifier
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -27,7 +31,12 @@ fun App(
         }
 
         MBGTheme(darkTheme = isDarkMode) {
-            AppNavHost()
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.background
+            ) {
+                AppNavHost(modifier = Modifier.fillMaxSize())
+            }
         }
     }
 }

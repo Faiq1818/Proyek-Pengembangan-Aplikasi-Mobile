@@ -139,7 +139,7 @@ fun MyListScreen(
 
                 Box(modifier = Modifier.fillMaxSize()) {
                     when (val state = uiState) {
-                        LibraryUiState.Loading -> LoadingIndicator()
+                        LibraryUiState.Loading -> LibraryListSkeleton()
                         is LibraryUiState.Empty -> LibraryEmptyState(selectedStatus = state.selectedStatus)
                         is LibraryUiState.Error -> ErrorState(message = state.message)
                         is LibraryUiState.Success -> LibraryEntryList(
@@ -204,6 +204,75 @@ private fun LibraryEmptyState(selectedStatus: LibraryStatus?) {
     )
 }
 
+
+@Composable
+private fun LibraryListSkeleton() {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        items(
+            count = 6,
+            key = { index -> "library_skeleton_$index" },
+            contentType = { "library_entry_skeleton" }
+        ) {
+            LibraryEntrySkeletonCard()
+        }
+    }
+}
+
+@Composable
+private fun LibraryEntrySkeletonCard() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.42f),
+            contentColor = MaterialTheme.colorScheme.onSurface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(64.dp)
+                    .height(92.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.72f))
+            )
+
+            Column(modifier = Modifier.weight(1f)) {
+                LibrarySkeletonLine(widthFraction = 0.82f, height = 16.dp)
+                Spacer(modifier = Modifier.height(8.dp))
+                LibrarySkeletonLine(widthFraction = 0.48f, height = 12.dp)
+                Spacer(modifier = Modifier.height(10.dp))
+                LibrarySkeletonLine(widthFraction = 0.68f, height = 12.dp)
+            }
+        }
+    }
+}
+
+@Composable
+private fun LibrarySkeletonLine(
+    widthFraction: Float,
+    height: androidx.compose.ui.unit.Dp
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth(widthFraction)
+            .height(height)
+            .clip(RoundedCornerShape(999.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.78f))
+    )
+}
+
 @Composable
 private fun LibraryEntryList(
     entries: List<LibraryEntry>,
@@ -218,7 +287,8 @@ private fun LibraryEntryList(
     ) {
         items(
             items = entries,
-            key = { it.id }
+            key = { it.id },
+            contentType = { "library_entry" }
         ) { entry ->
             LibraryEntryCard(
                 entry = entry,

@@ -1,5 +1,6 @@
 package com.example.mybawanggacha.presentation.screens.anime.list.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -22,6 +24,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,6 +32,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -36,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import com.example.mybawanggacha.domain.anime.model.AnimeSeasonPeriod
 import com.example.mybawanggacha.domain.anime.model.AnimeSummary
 import com.example.mybawanggacha.presentation.components.media.MediaPosterCard
+import com.example.mybawanggacha.presentation.components.media.MediaPosterSkeletonCard
 import com.example.mybawanggacha.presentation.components.EmptyState
 import com.example.mybawanggacha.presentation.components.ErrorState
 import com.example.mybawanggacha.presentation.components.LoadingIndicator
@@ -148,7 +153,7 @@ fun AnimeListContent(
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         when (uiState) {
-            AnimeListUiState.Loading -> LoadingIndicator()
+            AnimeListUiState.Loading -> AnimeListSkeleton()
             is AnimeListUiState.Error -> ErrorState(
                 message = uiState.message,
                 onRetry = onRetry
@@ -185,6 +190,47 @@ fun AnimeListContent(
             }
         }
     }
+}
+
+
+@Composable
+private fun AnimeListSkeleton() {
+    Column(modifier = Modifier.fillMaxSize()) {
+        SkeletonLine(width = 174.dp, height = 24.dp)
+        Spacer(modifier = Modifier.height(8.dp))
+        SkeletonLine(width = 242.dp, height = 14.dp)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(minSize = 132.dp),
+            contentPadding = PaddingValues(bottom = 32.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            items(
+                count = 8,
+                key = { index -> "anime_skeleton_$index" },
+                contentType = { "anime_poster_skeleton" }
+            ) {
+                MediaPosterSkeletonCard()
+            }
+        }
+    }
+}
+
+@Composable
+private fun SkeletonLine(
+    width: androidx.compose.ui.unit.Dp,
+    height: androidx.compose.ui.unit.Dp
+) {
+    Box(
+        modifier = Modifier
+            .width(width)
+            .height(height)
+            .clip(RoundedCornerShape(999.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.62f))
+    )
 }
 
 @Composable
@@ -230,7 +276,8 @@ fun AnimeGrid(
     ) {
         items(
             items = anime,
-            key = { it.malId }
+            key = { it.malId },
+            contentType = { "anime_poster" }
         ) { item ->
             MediaPosterCard(
                 title = item.title,
@@ -242,7 +289,10 @@ fun AnimeGrid(
         }
 
         if (isLoadingMore) {
-            item(span = { GridItemSpan(maxLineSpan) }) {
+            item(
+                span = { GridItemSpan(maxLineSpan) },
+                contentType = "anime_loading_more"
+            ) {
                 AnimeListLoadingMoreRow()
             }
         }

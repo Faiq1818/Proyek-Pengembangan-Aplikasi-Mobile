@@ -34,6 +34,7 @@ fun AnimeListScreen(
     val selectedTab by viewModel.selectedTab.collectAsStateWithLifecycle()
     val seasonPeriods by viewModel.seasonPeriods.collectAsStateWithLifecycle()
     val selectedSeasonPeriod by viewModel.selectedSeasonPeriod.collectAsStateWithLifecycle()
+    val isRefreshing = (uiState as? AnimeListUiState.Success)?.isRefreshing == true
 
     MBGSideRailScaffold(
         selectedRailKey = MBGMainRailKey.AnimeList,
@@ -51,7 +52,7 @@ fun AnimeListScreen(
         }
     ) {
         PullRefreshContainer(
-            isRefreshing = uiState is AnimeListUiState.Loading,
+            isRefreshing = isRefreshing,
             onRefresh = viewModel::refresh,
             modifier = Modifier.fillMaxSize()
         ) {

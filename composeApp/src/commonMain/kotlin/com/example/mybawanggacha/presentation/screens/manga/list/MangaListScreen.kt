@@ -31,6 +31,7 @@ fun MangaListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val selectedTab by viewModel.selectedTab.collectAsStateWithLifecycle()
+    val isRefreshing = (uiState as? MangaListUiState.Success)?.isRefreshing == true
 
     MBGSideRailScaffold(
         selectedRailKey = MBGMainRailKey.MangaList,
@@ -48,7 +49,7 @@ fun MangaListScreen(
         }
     ) {
         PullRefreshContainer(
-            isRefreshing = uiState is MangaListUiState.Loading,
+            isRefreshing = isRefreshing,
             onRefresh = viewModel::refresh,
             modifier = Modifier.fillMaxSize()
         ) {

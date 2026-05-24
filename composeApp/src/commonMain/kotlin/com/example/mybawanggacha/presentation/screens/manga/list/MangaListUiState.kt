@@ -10,7 +10,8 @@ sealed interface MangaListUiState {
         val subtitle: String,
         val manga: List<MangaSummary>,
         val canLoadMore: Boolean = false,
-        val isLoadingMore: Boolean = false
+        val isLoadingMore: Boolean = false,
+        val isRefreshing: Boolean = false
     ) : MangaListUiState
 
     data class Error(val message: String) : MangaListUiState

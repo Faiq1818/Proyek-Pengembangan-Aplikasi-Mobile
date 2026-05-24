@@ -1,5 +1,8 @@
 package com.example.mybawanggacha.presentation.navigation
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -32,6 +35,8 @@ fun AppNavHost(
         navController = navController,
         startDestination = Route.Home,
         modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
     ) {
         composable<Route.Home> {
             HomeScreen(
