@@ -47,11 +47,11 @@ fun AppNavHost(
 
         composable<Route.Search> {
             SearchScreen(
+                onNavigateBack = { navigationActions.navigateBack() },
                 onNavigateHome = { navigationActions.navigateToHome() },
                 onNavigateToMyLibrary = { navigationActions.navigateToMyLibrary() },
                 onNavigateToAnimeList = { navigationActions.navigateToAnimeList() },
                 onNavigateToMangaList = { navigationActions.navigateToMangaList() },
-                onNavigateToSettings = { navigationActions.navigateToSettings() },
                 onNavigateToAnimeDetail = { malId -> navigationActions.navigateToAnimeDetail(malId) },
                 onNavigateToMangaDetail = { malId -> navigationActions.navigateToMangaDetail(malId) }
             )

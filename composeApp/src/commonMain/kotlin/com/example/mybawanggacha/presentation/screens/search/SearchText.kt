@@ -20,7 +20,7 @@ internal object SearchText {
     const val missingMetadata = "Tidak ada metadata tambahan"
 
     const val advancedFiltersTitle = "Advanced Filters"
-    const val advancedFiltersSubtitle = "Filter lengkap tetap ada, tapi disimpan di overlay agar screen utama tetap bersih."
+    const val advancedFiltersSubtitle = "Dafter filter lengkap yang dapat digunakan"
 
     const val generalSectionTitle = "General"
     const val generalSectionSubtitle = "limit, letter, SFW, unapproved"
