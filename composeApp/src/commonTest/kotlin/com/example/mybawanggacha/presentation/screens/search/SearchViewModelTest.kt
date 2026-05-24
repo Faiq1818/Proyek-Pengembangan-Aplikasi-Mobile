@@ -7,7 +7,7 @@ import com.example.mybawanggacha.domain.search.model.SearchMediaType
 import com.example.mybawanggacha.domain.search.repository.SearchRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -22,7 +22,7 @@ import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SearchViewModelTest {
-    private val dispatcher = UnconfinedTestDispatcher()
+    private val dispatcher = StandardTestDispatcher()
 
     @BeforeTest
     fun setUp() {
@@ -32,6 +32,58 @@ class SearchViewModelTest {
     @AfterTest
     fun tearDown() {
         Dispatchers.resetMain()
+    }
+
+    @Test
+    fun submitSearch_whenRepositorySucceeds_shouldExposeSuccessState() = runTest {
+        val repository = FakeSearchRepository()
+        repository.pages[1] = MediaSearchPage(
+            items = listOf(createItem(id = 1, title = "Result")),
+            nextPage = null,
+            hasNextPage = false
+        )
+        val viewModel = SearchViewModel(repository)
+
+        viewModel.submitSearch()
+        advanceUntilIdle()
+
+        val state = assertIs<SearchUiState.Success>(viewModel.uiState.value)
+        assertEquals(listOf("Result"), state.items.map { it.title })
+        assertFalse(state.canLoadMore)
+    }
+
+    @Test
+    fun submitSearch_whenRepositoryFails_shouldExposeErrorState() = runTest {
+        val repository = FakeSearchRepository()
+        repository.failures[1] = IllegalStateException("network down")
+        val viewModel = SearchViewModel(repository)
+
+        viewModel.submitSearch()
+        advanceUntilIdle()
+
+        val state = assertIs<SearchUiState.Error>(viewModel.uiState.value)
+        assertEquals("network down", state.message)
+    }
+
+    @Test
+    fun resetFilters_shouldCancelContentAndKeepCurrentMediaType() = runTest {
+        val repository = FakeSearchRepository()
+        repository.pages[1] = MediaSearchPage(
+            items = listOf(createItem(id = 1, title = "Result")),
+            nextPage = null,
+            hasNextPage = false
+        )
+        val viewModel = SearchViewModel(repository)
+
+        viewModel.updateFilters(MediaSearchFilters(mediaType = SearchMediaType.Manga, query = "one piece"))
+        viewModel.submitSearch()
+        advanceUntilIdle()
+        viewModel.resetFilters()
+
+        assertEquals(SearchMediaType.Manga, viewModel.filters.value.mediaType)
+        assertEquals("", viewModel.filters.value.query)
+        assertEquals(SearchUiState.Idle, viewModel.uiState.value)
+        assertFalse(viewModel.isRefreshing.value)
     }
 
     @Test
@@ -70,6 +122,30 @@ class SearchViewModelTest {
     }
 
     @Test
+    fun refresh_whenRefreshFails_shouldKeepPreviousSuccessContent() = runTest {
+        val repository = FakeSearchRepository()
+        repository.pages[1] = MediaSearchPage(
+            items = listOf(createItem(id = 1, title = "Cached Result")),
+            nextPage = 2,
+            hasNextPage = true
+        )
+        val viewModel = SearchViewModel(repository)
+
+        viewModel.submitSearch()
+        advanceUntilIdle()
+        repository.pages.remove(1)
+        repository.failures[1] = IllegalStateException("refresh failed")
+
+        viewModel.refresh()
+        advanceUntilIdle()
+
+        assertFalse(viewModel.isRefreshing.value)
+        val state = assertIs<SearchUiState.Success>(viewModel.uiState.value)
+        assertEquals("Cached Result", state.items.first().title)
+        assertFalse(state.isLoadingMore)
+    }
+
+    @Test
     fun loadNextPage_whenCalledTwiceBeforeCompletion_shouldRequestNextPageOnlyOnce() = runTest {
         val repository = FakeSearchRepository()
         repository.pages[1] = MediaSearchPage(
@@ -97,8 +173,30 @@ class SearchViewModelTest {
         assertFalse(state.isLoadingMore)
     }
 
+    @Test
+    fun loadNextPage_whenNextPageFails_shouldKeepExistingItems() = runTest {
+        val repository = FakeSearchRepository()
+        repository.pages[1] = MediaSearchPage(
+            items = listOf(createItem(id = 1, title = "Page 1")),
+            nextPage = 2,
+            hasNextPage = true
+        )
+        repository.failures[2] = IllegalStateException("page failed")
+        val viewModel = SearchViewModel(repository)
+
+        viewModel.submitSearch()
+        advanceUntilIdle()
+        viewModel.loadNextPage()
+        advanceUntilIdle()
+
+        val state = assertIs<SearchUiState.Success>(viewModel.uiState.value)
+        assertEquals(listOf(1), state.items.map { it.malId })
+        assertFalse(state.isLoadingMore)
+    }
+
     private class FakeSearchRepository : SearchRepository {
         val pages = mutableMapOf<Int, MediaSearchPage>()
+        val failures = mutableMapOf<Int, Throwable>()
         val requestedPages = mutableListOf<Int>()
 
         override suspend fun search(
@@ -106,6 +204,7 @@ class SearchViewModelTest {
             page: Int
         ): MediaSearchPage {
             requestedPages += page
+            failures[page]?.let { throw it }
             return pages[page] ?: MediaSearchPage(
                 items = emptyList(),
                 nextPage = null,
