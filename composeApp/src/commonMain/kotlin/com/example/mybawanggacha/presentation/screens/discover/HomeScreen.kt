@@ -68,6 +68,7 @@ fun HomeScreen(
                     message = state.message,
                     onRetry = viewModel::refresh
                 )
+
                 is AnimeHomeUiState.Success -> HomeAnimeOverview(
                     recommendations = state.recommendations,
                     onAnimeClick = onNavigateToAnimeDetail,
@@ -126,7 +127,7 @@ private fun HomeAnimeOverview(
         }
 
         items(
-            items = recommendations.take(8).chunked(2),
+            items = recommendations.take(100).chunked(2),
             key = { row -> row.joinToString { it.malId.toString() } }
         ) { rowItems ->
             Row(

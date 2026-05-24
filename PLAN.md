@@ -171,10 +171,6 @@ Fokus Sprint 3: fitur pencarian, integrasi API yang lebih lengkap, gacha, cache/
 ### Offline & Cache
 
 - [ ] Cache anime/manga detail ke SQLDelight
-- [ ] Cache search result/recommendation seperlunya
-- [ ] Offline fallback:
-    - tampilkan data cache saat tidak ada internet
-    - tampilkan pesan error yang jelas saat data belum pernah dicache
 - [ ] Pull-to-refresh di Home/Discover atau MyList
 - [ ] Refresh state:
     - idle
