@@ -2,9 +2,12 @@ package com.example.mybawanggacha.presentation.screens.anime.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mybawanggacha.domain.anime.model.AnimeSummary
 import com.example.mybawanggacha.domain.anime.repository.AnimeRepository
+import com.example.mybawanggacha.domain.manga.model.MangaSummary
 import com.example.mybawanggacha.domain.manga.repository.MangaRepository
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,10 +35,10 @@ class AnimeHomeViewModel(
                     runCatching { animeRepository.getRecommendations() }.getOrDefault(emptyList())
                 }
                 val randomAnime = async {
-                    runCatching { animeRepository.getRandomAnime() }.getOrNull()
+                    loadRandomAnimePicks(count = RANDOM_ANIME_PICK_COUNT)
                 }
                 val randomManga = async {
-                    runCatching { mangaRepository.getRandomManga() }.getOrNull()
+                    loadRandomMangaPicks(count = RANDOM_MANGA_PICK_COUNT)
                 }
                 val recentEpisodes = async {
                     runCatching { animeRepository.getRecentEpisodes() }.getOrDefault(emptyList())
@@ -51,8 +54,8 @@ class AnimeHomeViewModel(
 
             if (
                 homeState.recommendations.isEmpty() &&
-                homeState.randomAnime == null &&
-                homeState.randomManga == null &&
+                homeState.randomAnime.isEmpty() &&
+                homeState.randomManga.isEmpty() &&
                 homeState.recentEpisodes.isEmpty()
             ) {
                 _uiState.value = AnimeHomeUiState.Error("Gagal memuat data discovery dari Jikan")
@@ -60,5 +63,39 @@ class AnimeHomeViewModel(
                 _uiState.value = homeState
             }
         }
+    }
+
+    private suspend fun loadRandomAnimePicks(count: Int): List<AnimeSummary> {
+        return buildList {
+            repeat(count) { index ->
+                runCatching { animeRepository.getRandomAnime() }
+                    .getOrNull()
+                    ?.let { anime -> add(anime) }
+
+                if (index != count - 1) {
+                    delay(JIKAN_RANDOM_PICK_SPACING_MS)
+                }
+            }
+        }.distinctBy { anime -> anime.malId }
+    }
+
+    private suspend fun loadRandomMangaPicks(count: Int): List<MangaSummary> {
+        return buildList {
+            repeat(count) { index ->
+                runCatching { mangaRepository.getRandomManga() }
+                    .getOrNull()
+                    ?.let { manga -> add(manga) }
+
+                if (index != count - 1) {
+                    delay(JIKAN_RANDOM_PICK_SPACING_MS)
+                }
+            }
+        }.distinctBy { manga -> manga.malId }
+    }
+
+    private companion object {
+        const val RANDOM_ANIME_PICK_COUNT = 4
+        const val RANDOM_MANGA_PICK_COUNT = 4
+        const val JIKAN_RANDOM_PICK_SPACING_MS = 360L
     }
 }

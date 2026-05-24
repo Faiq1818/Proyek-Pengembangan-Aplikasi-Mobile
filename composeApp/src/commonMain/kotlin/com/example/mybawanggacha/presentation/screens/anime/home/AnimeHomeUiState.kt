@@ -9,8 +9,8 @@ sealed interface AnimeHomeUiState {
 
     data class Success(
         val recommendations: List<AnimeSummary>,
-        val randomAnime: AnimeSummary?,
-        val randomManga: MangaSummary?,
+        val randomAnime: List<AnimeSummary>,
+        val randomManga: List<MangaSummary>,
         val recentEpisodes: List<RecentAnimeEpisode>
     ) : AnimeHomeUiState
 

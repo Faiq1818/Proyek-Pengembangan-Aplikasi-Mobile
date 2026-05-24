@@ -104,14 +104,14 @@ fun HomeScreen(
 @Composable
 private fun HomeDiscoveryContent(
     recommendations: List<AnimeSummary>,
-    randomAnime: AnimeSummary?,
-    randomManga: MangaSummary?,
+    randomAnime: List<AnimeSummary>,
+    randomManga: List<MangaSummary>,
     recentEpisodes: List<RecentAnimeEpisode>,
     onAnimeClick: (Int) -> Unit,
     onMangaClick: (Int) -> Unit,
     onOpenAnimeList: () -> Unit
 ) {
-    if (recommendations.isEmpty() && randomAnime == null && randomManga == null && recentEpisodes.isEmpty()) {
+    if (recommendations.isEmpty() && randomAnime.isEmpty() && randomManga.isEmpty() && recentEpisodes.isEmpty()) {
         EmptyState(
             title = "Discovery kosong",
             message = "Jikan belum memberikan data discovery. Coba refresh nanti."
@@ -153,7 +153,7 @@ private fun HomeDiscoveryContent(
             }
         }
 
-        if (randomAnime != null || randomManga != null) {
+        if (randomAnime.isNotEmpty() || randomManga.isNotEmpty()) {
             item {
                 RandomPickSection(
                     randomAnime = randomAnime,
@@ -223,8 +223,8 @@ private fun AnimeOverviewPagedCarousel(
 
 @Composable
 private fun RandomPickSection(
-    randomAnime: AnimeSummary?,
-    randomManga: MangaSummary?,
+    randomAnime: List<AnimeSummary>,
+    randomManga: List<MangaSummary>,
     onAnimeClick: (Int) -> Unit,
     onMangaClick: (Int) -> Unit
 ) {
@@ -233,10 +233,10 @@ private fun RandomPickSection(
         subtitle = "Pilihan random untukmu"
     )
 
-    val items = listOfNotNull(
-        randomAnime?.let { HomeRandomPick.Anime(it) },
-        randomManga?.let { HomeRandomPick.Manga(it) }
-    )
+    val items = buildList<HomeRandomPick> {
+        randomAnime.forEach { anime -> add(HomeRandomPick.Anime(anime)) }
+        randomManga.forEach { manga -> add(HomeRandomPick.Manga(manga)) }
+    }
 
     AutoSlidingRow(
         items = items,
