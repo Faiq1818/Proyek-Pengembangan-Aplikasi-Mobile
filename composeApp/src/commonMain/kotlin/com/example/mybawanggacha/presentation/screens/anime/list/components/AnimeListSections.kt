@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -65,7 +66,15 @@ fun AnimeListTabRow(
     selectedTab: AnimeListTab,
     onTabSelected: (AnimeListTab) -> Unit
 ) {
+    val listState = rememberLazyListState()
+    val selectedIndex = AnimeListTab.entries.indexOf(selectedTab).coerceAtLeast(0)
+
+    LaunchedEffect(selectedIndex) {
+        listState.animateScrollToItem(selectedIndex)
+    }
+
     LazyRow(
+        state = listState,
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = PaddingValues(end = 20.dp)
@@ -95,7 +104,17 @@ fun AnimeSeasonArchiveRow(
     selectedSeasonPeriod: AnimeSeasonPeriod,
     onSeasonSelected: (AnimeSeasonPeriod) -> Unit
 ) {
+    val listState = rememberLazyListState()
+    val selectedIndex = seasonPeriods.indexOf(selectedSeasonPeriod)
+
+    LaunchedEffect(selectedIndex, seasonPeriods.size) {
+        if (selectedIndex >= 0) {
+            listState.animateScrollToItem(selectedIndex)
+        }
+    }
+
     LazyRow(
+        state = listState,
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = PaddingValues(end = 20.dp)
