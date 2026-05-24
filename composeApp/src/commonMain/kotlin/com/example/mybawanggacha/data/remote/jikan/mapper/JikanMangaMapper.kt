@@ -2,8 +2,11 @@ package com.example.mybawanggacha.data.remote.jikan.mapper
 
 import com.example.mybawanggacha.data.remote.jikan.dto.AnimeCatalogItemDto
 import com.example.mybawanggacha.data.remote.jikan.dto.JikanAnimeListResponse
+import com.example.mybawanggacha.data.remote.jikan.dto.AnimeRelationEntryDto
 import com.example.mybawanggacha.data.remote.jikan.dto.MangaDetailData
 import com.example.mybawanggacha.domain.manga.model.MangaDetail
+import com.example.mybawanggacha.domain.manga.model.MangaRelation
+import com.example.mybawanggacha.domain.manga.model.MangaRelationEntry
 import com.example.mybawanggacha.domain.manga.model.MangaPage
 import com.example.mybawanggacha.domain.manga.model.MangaSummary
 
@@ -59,6 +62,21 @@ internal fun MangaDetailData.toDomain(): MangaDetail {
         genres = genres.map { it.name },
         explicitGenres = explicit_genres.map { it.name },
         themes = themes.map { it.name },
-        demographics = demographics.map { it.name }
+        demographics = demographics.map { it.name },
+        relations = relations.map { relation ->
+            MangaRelation(
+                relation = relation.relation,
+                entries = relation.entry.map { entry -> entry.toMangaRelationEntry() }
+            )
+        }
+    )
+}
+
+private fun AnimeRelationEntryDto.toMangaRelationEntry(): MangaRelationEntry {
+    return MangaRelationEntry(
+        malId = mal_id,
+        type = type,
+        name = name,
+        url = url
     )
 }

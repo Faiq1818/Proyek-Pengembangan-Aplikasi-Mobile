@@ -35,5 +35,6 @@ data class MangaDetailData(
     val genres: List<GenreDto> = emptyList(),
     val explicit_genres: List<AnimeNamedResourceDto> = emptyList(),
     val themes: List<AnimeNamedResourceDto> = emptyList(),
-    val demographics: List<AnimeNamedResourceDto> = emptyList()
+    val demographics: List<AnimeNamedResourceDto> = emptyList(),
+    val relations: List<AnimeRelationDto> = emptyList()
 )

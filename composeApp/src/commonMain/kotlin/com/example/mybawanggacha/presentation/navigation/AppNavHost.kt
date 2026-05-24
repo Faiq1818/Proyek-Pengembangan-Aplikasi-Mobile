@@ -92,9 +92,8 @@ fun AppNavHost(
             MangaDetailScreen(
                 malId = route.malId,
                 onNavigateBack = { navigationActions.navigateBack() },
-                onNavigateHome = { navigationActions.navigateToHome() },
-                onNavigateToMyLibrary = { navigationActions.navigateToMyLibrary() },
-                onNavigateToAnimeList = { navigationActions.navigateToAnimeList() }
+                onNavigateToAnimeDetail = { malId -> navigationActions.navigateToAnimeDetail(malId) },
+                onNavigateToMangaDetail = { malId -> navigationActions.navigateToMangaDetail(malId) }
             )
         }
 

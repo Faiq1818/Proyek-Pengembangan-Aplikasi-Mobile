@@ -42,5 +42,18 @@ data class MangaDetail(
     val genres: List<String>,
     val explicitGenres: List<String>,
     val themes: List<String>,
-    val demographics: List<String>
+    val demographics: List<String>,
+    val relations: List<MangaRelation>
+)
+
+data class MangaRelation(
+    val relation: String,
+    val entries: List<MangaRelationEntry>
+)
+
+data class MangaRelationEntry(
+    val malId: Int,
+    val type: String?,
+    val name: String,
+    val url: String?
 )
