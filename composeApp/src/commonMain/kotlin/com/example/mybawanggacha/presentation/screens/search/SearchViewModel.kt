@@ -23,43 +23,70 @@ class SearchViewModel(
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
     private var searchJob: Job? = null
+    private var lastRequestedLoadMorePage: Int? = null
 
     fun updateFilters(filters: MediaSearchFilters) {
         _filters.value = filters
     }
 
     fun resetFilters() {
+        searchJob?.cancel()
+        lastRequestedLoadMorePage = null
         _filters.value = MediaSearchFilters(mediaType = _filters.value.mediaType)
+        _isRefreshing.value = false
         _uiState.value = SearchUiState.Idle
     }
 
     fun submitSearch() {
-        search(page = 1, append = false)
+        lastRequestedLoadMorePage = null
+        search(page = 1, append = false, keepCurrentContent = false)
     }
 
     fun refresh() {
-        if (_uiState.value is SearchUiState.Success) {
+        if (_isRefreshing.value) return
+
+        val hasContent = _uiState.value is SearchUiState.Success
+        if (hasContent) {
             _isRefreshing.value = true
         }
-        search(page = 1, append = false)
+
+        lastRequestedLoadMorePage = null
+        search(
+            page = 1,
+            append = false,
+            keepCurrentContent = hasContent
+        )
     }
 
     fun loadNextPage() {
         val current = _uiState.value as? SearchUiState.Success ?: return
         val nextPage = current.nextPage ?: return
-        if (current.isLoadingMore) return
 
+        if (current.isLoadingMore) return
+        if (_isRefreshing.value) return
+        if (searchJob?.isActive == true) return
+        if (lastRequestedLoadMorePage == nextPage) return
+
+        lastRequestedLoadMorePage = nextPage
         _uiState.value = current.copy(isLoadingMore = true)
-        search(page = nextPage, append = true)
+        search(page = nextPage, append = true, keepCurrentContent = false)
     }
 
-    private fun search(page: Int, append: Boolean) {
-        searchJob?.cancel()
+    private fun search(
+        page: Int,
+        append: Boolean,
+        keepCurrentContent: Boolean
+    ) {
+        if (!append) {
+            searchJob?.cancel()
+        }
+
         searchJob = viewModelScope.launch {
             val currentFilters = _filters.value
-            val previousItems = (_uiState.value as? SearchUiState.Success)?.items.orEmpty()
+            val previousSuccess = _uiState.value as? SearchUiState.Success
+            val previousItems = previousSuccess?.items.orEmpty()
 
-            if (!append) {
+            if (!append && !keepCurrentContent) {
                 _uiState.value = SearchUiState.Loading
             }
 
@@ -74,18 +101,21 @@ class SearchViewModel(
                     result.items
                 }
 
+                if (page == 1) {
+                    lastRequestedLoadMorePage = null
+                }
+
                 _uiState.value = SearchUiState.Success(
                     items = mergedItems,
                     nextPage = result.nextPage,
                     isLoadingMore = false
                 )
             }.onFailure { error ->
-                if (append && previousItems.isNotEmpty()) {
-                    _uiState.value = SearchUiState.Success(
-                        items = previousItems,
-                        nextPage = null,
-                        isLoadingMore = false
-                    )
+                if (append && previousSuccess != null) {
+                    lastRequestedLoadMorePage = null
+                    _uiState.value = previousSuccess.copy(isLoadingMore = false)
+                } else if (keepCurrentContent && previousSuccess != null) {
+                    _uiState.value = previousSuccess.copy(isLoadingMore = false)
                 } else {
                     _uiState.value = SearchUiState.Error(
                         message = error.message ?: "Gagal mencari data dari Jikan"

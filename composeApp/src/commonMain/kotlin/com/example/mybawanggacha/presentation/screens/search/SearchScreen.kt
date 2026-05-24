@@ -53,6 +53,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -74,7 +75,6 @@ import com.example.mybawanggacha.presentation.components.MBGMainRailKey
 import com.example.mybawanggacha.presentation.components.MBGSideRailScaffold
 import com.example.mybawanggacha.presentation.components.PullRefreshContainer
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -153,7 +153,11 @@ private fun SearchContent(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val listState = rememberLazyListState()
 
-    LaunchedEffect(listState, uiState) {
+    val latestUiState by rememberUpdatedState(uiState)
+    val latestOnLoadMore by rememberUpdatedState(onLoadMore)
+    var loadMoreArmed by remember { mutableStateOf(true) }
+
+    LaunchedEffect(listState) {
         snapshotFlow {
             val layoutInfo = listState.layoutInfo
             val totalItems = layoutInfo.totalItemsCount
@@ -162,15 +166,21 @@ private fun SearchContent(
             totalItems > 0 && lastVisibleIndex >= totalItems - 4
         }
             .distinctUntilChanged()
-            .filter { shouldLoadMore -> shouldLoadMore }
-            .collect {
-                val state = uiState
+            .collect { isNearEnd ->
+                if (!isNearEnd) {
+                    loadMoreArmed = true
+                    return@collect
+                }
+
+                val state = latestUiState
                 if (
+                    loadMoreArmed &&
                     state is SearchUiState.Success &&
                     state.canLoadMore &&
                     !state.isLoadingMore
                 ) {
-                    onLoadMore()
+                    loadMoreArmed = false
+                    latestOnLoadMore()
                 }
             }
     }
@@ -346,7 +356,8 @@ private fun SearchCompactPanel(
                             type = null,
                             status = null,
                             rating = null,
-                            orderBy = "popularity"
+                            orderBy = null,
+                            sort = null
                         )
                     )
                 }
@@ -1056,8 +1067,8 @@ private fun buildActiveFilterLabels(filters: MediaSearchFilters): List<String> {
         filters.maxScore.takeIf { it.isNotBlank() }?.let { add("Max: $it") }
         filters.genres.takeIf { it.isNotBlank() }?.let { add("Genres: $it") }
         filters.genresExclude.takeIf { it.isNotBlank() }?.let { add("Exclude: $it") }
-        filters.orderBy?.takeIf { it.isNotBlank() && it != "popularity" }?.let { add("Order: $it") }
-        filters.sort?.takeIf { it.isNotBlank() && it != "asc" }?.let { add("Sort: $it") }
+        filters.orderBy?.takeIf { it.isNotBlank() }?.let { add("Order: $it") }
+        filters.sort?.takeIf { it.isNotBlank() }?.let { add("Sort: $it") }
         filters.letter.takeIf { it.isNotBlank() }?.let { add("Letter: $it") }
         filters.startDate.takeIf { it.isNotBlank() }?.let { add("Start: $it") }
         filters.endDate.takeIf { it.isNotBlank() }?.let { add("End: $it") }

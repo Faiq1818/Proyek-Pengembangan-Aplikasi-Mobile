@@ -12,11 +12,23 @@ import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class JikanServiceTest {
+
+    @BeforeTest
+    fun setUp() {
+        JikanRateLimiter.resetForTest(enabled = false)
+    }
+
+    @AfterTest
+    fun tearDown() {
+        JikanRateLimiter.resetForTest(enabled = true)
+    }
 
     private val jsonConfig = Json {
         ignoreUnknownKeys = true
@@ -92,7 +104,7 @@ class JikanServiceTest {
 
         val client = createMockClient { url, _ ->
             capturedUrl = url
-            Pair(HttpStatusCode.OK, """{}""")
+            Pair(HttpStatusCode.OK, """{"data":{"mal_id":101}}""")
         }
         val service = JikanService(client)
 
@@ -109,7 +121,7 @@ class JikanServiceTest {
 
         val client = createMockClient { url, _ ->
             capturedUrl = url
-            Pair(HttpStatusCode.OK, """{}""")
+            Pair(HttpStatusCode.OK, """{"data":{"mal_id":202}}""")
         }
         val service = JikanService(client)
 

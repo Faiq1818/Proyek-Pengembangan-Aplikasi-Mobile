@@ -21,8 +21,11 @@ internal object JikanRateLimiter {
     private val mutex = Mutex()
     private val requestTimestamps = ArrayDeque<Long>()
     private var lastRequestAt = 0L
+    private var enabled = true
 
     suspend fun awaitTurn() {
+        if (!enabled) return
+
         mutex.withLock {
             var acquired = false
 
@@ -51,5 +54,10 @@ internal object JikanRateLimiter {
                 }
             }
         }
+    }
+    internal fun resetForTest(enabled: Boolean = true) {
+        this.enabled = enabled
+        lastRequestAt = 0L
+        requestTimestamps.clear()
     }
 }
