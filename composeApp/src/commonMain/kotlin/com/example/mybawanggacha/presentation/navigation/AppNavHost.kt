@@ -93,7 +93,17 @@ fun AppNavHost(
                 malId = route.malId,
                 onNavigateBack = { navigationActions.navigateBack() },
                 onNavigateToAnimeDetail = { malId -> navigationActions.navigateToAnimeDetail(malId) },
-                onNavigateToMangaDetail = { malId -> navigationActions.navigateToMangaDetail(malId) }
+                onNavigateToMangaDetail = { malId -> navigationActions.navigateToMangaDetail(malId) },
+                onNavigateToLibraryEditor = { manga, entryId ->
+                    navigationActions.navigateToLibraryEntryEditor(
+                        mediaId = manga.malId,
+                        mediaType = MediaType.Manga.storageKey,
+                        title = manga.title,
+                        imageUrl = manga.imageUrl,
+                        totalCount = manga.chapters,
+                        entryId = entryId
+                    )
+                }
             )
         }
 
