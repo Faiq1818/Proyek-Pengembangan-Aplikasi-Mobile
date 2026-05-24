@@ -220,7 +220,7 @@ fun MBGRailBackButton(
         icon = Icons.AutoMirrored.Filled.ArrowBack,
         contentDescription = "Kembali",
         onClick = onClick,
-        modifier = modifier
+        modifier = modifier.padding(top = 12.dp)
     )
 }
 

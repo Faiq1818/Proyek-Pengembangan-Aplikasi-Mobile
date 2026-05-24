@@ -41,11 +41,15 @@ class UserPreferences(
     }
     
     /**
-     * Set dark mode
+     * Set dark mode. Null means follow system theme.
      */
-    suspend fun setDarkMode(enabled: Boolean) {
+    suspend fun setDarkMode(enabled: Boolean?) {
         dataStore.edit { prefs ->
-            prefs[Keys.DARK_MODE] = enabled
+            if (enabled == null) {
+                prefs.remove(Keys.DARK_MODE)
+            } else {
+                prefs[Keys.DARK_MODE] = enabled
+            }
         }
     }
     

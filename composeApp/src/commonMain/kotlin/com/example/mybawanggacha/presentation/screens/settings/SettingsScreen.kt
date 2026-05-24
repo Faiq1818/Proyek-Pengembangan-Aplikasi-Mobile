@@ -9,9 +9,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.size
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -70,40 +70,101 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 16.dp)
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Theme",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = when (darkModePreference) {
+                        null -> if (isDarkMode) "Mengikuti sistem: gelap" else "Mengikuti sistem: terang"
+                        true -> "Tema gelap aktif"
+                        false -> "Tema terang aktif"
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "Dark theme",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontWeight = FontWeight.SemiBold
+                    ThemeChoiceChip(
+                        label = "System",
+                        selected = darkModePreference == null,
+                        onClick = {
+                            scope.launch { userPreferences.setDarkMode(null) }
+                        }
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = if (isDarkMode) "Tema gelap aktif" else "Tema terang aktif",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    ThemeChoiceChip(
+                        label = "Light",
+                        selected = darkModePreference == false,
+                        onClick = {
+                            scope.launch { userPreferences.setDarkMode(false) }
+                        }
+                    )
+                    ThemeChoiceChip(
+                        label = "Dark",
+                        selected = darkModePreference == true,
+                        onClick = {
+                            scope.launch { userPreferences.setDarkMode(true) }
+                        }
                     )
                 }
-
-                Switch(
-                    modifier = Modifier.size(width = 52.dp, height = 32.dp),
-                    checked = isDarkMode,
-                    onCheckedChange = { enabled ->
-                        scope.launch {
-                            userPreferences.setDarkMode(enabled)
-                        }
-                    }
-                )
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "About",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = FontWeight.SemiBold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "MyBawangGacha",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = FontWeight.Medium
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Version 1.0",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Anime, manga, library, notes, and AI assistant in one app.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Anime data provided by Jikan API (api.jikan.moe/v4), an unofficial MyAnimeList database API.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
+}
+
+@Composable
+private fun ThemeChoiceChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = { Text(text = label) }
+    )
 }
