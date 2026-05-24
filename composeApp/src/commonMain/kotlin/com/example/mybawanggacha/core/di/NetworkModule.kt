@@ -11,15 +11,14 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val networkModule = module {
-    single { HttpClientFactory.create(enableLogging = false) }
-    singleOf(::GeminiService)
-    singleOf(::JikanService)
-    singleOf(::JikanAnimeRemoteDataSource)
-    singleOf(::JikanMangaRemoteDataSource)
-    singleOf(::JikanSearchRemoteDataSource)
     single {
         HttpClientFactory.create(
             enableLogging = get<Boolean>(named(NETWORK_LOGGING_ENABLED_QUALIFIER))
         )
     }
+    singleOf(::GeminiService)
+    singleOf(::JikanService)
+    singleOf(::JikanAnimeRemoteDataSource)
+    singleOf(::JikanMangaRemoteDataSource)
+    singleOf(::JikanSearchRemoteDataSource)
 }
