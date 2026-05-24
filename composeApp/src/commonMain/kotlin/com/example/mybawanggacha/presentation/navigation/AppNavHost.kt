@@ -35,6 +35,7 @@ fun AppNavHost(
         composable<Route.Home> {
             HomeScreen(
                 onNavigateToAnimeDetail = { malId -> navigationActions.navigateToAnimeDetail(malId) },
+                onNavigateToMangaDetail = { malId -> navigationActions.navigateToMangaDetail(malId) },
                 onNavigateToMyLibrary = { navigationActions.navigateToMyLibrary() },
                 onNavigateToAnimeList = { navigationActions.navigateToAnimeList() },
                 onNavigateToMangaList = { navigationActions.navigateToMangaList() },
