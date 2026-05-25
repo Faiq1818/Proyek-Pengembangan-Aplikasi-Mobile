@@ -2,9 +2,13 @@ package com.example.mybawanggacha.presentation.screens.search
 
 import com.example.mybawanggacha.domain.search.model.MediaSearchFilters
 import com.example.mybawanggacha.domain.search.model.MediaSearchItem
+import com.example.mybawanggacha.domain.search.model.SearchFilterOption
 import com.example.mybawanggacha.domain.search.model.SearchMediaType
 
-internal fun buildActiveFilterLabels(filters: MediaSearchFilters): List<String> {
+internal fun buildActiveFilterLabels(
+    filters: MediaSearchFilters,
+    filterMetadata: SearchFilterMetadataUiState = SearchFilterMetadataUiState()
+): List<String> {
     return buildList {
         filters.query.takeIf { it.isNotBlank() }?.let { add("${SearchText.queryLabel}: $it") }
         filters.type?.takeIf { it.isNotBlank() }?.let { add("${SearchText.typeLabel}: $it") }
@@ -16,8 +20,12 @@ internal fun buildActiveFilterLabels(filters: MediaSearchFilters): List<String> 
         filters.score.takeIf { it.isNotBlank() }?.let { add("${SearchText.exactScoreLabel}: $it") }
         filters.minScore.takeIf { it.isNotBlank() }?.let { add("Min: $it") }
         filters.maxScore.takeIf { it.isNotBlank() }?.let { add("Max: $it") }
-        filters.genres.takeIf { it.isNotBlank() }?.let { add("Genres: $it") }
-        filters.genresExclude.takeIf { it.isNotBlank() }?.let { add("Exclude: $it") }
+        filters.genres.takeIf { it.isNotBlank() }?.let {
+            add("${SearchText.includedGenreLabel}: ${it.toOptionLabels(filterMetadata.genres)}")
+        }
+        filters.genresExclude.takeIf { it.isNotBlank() }?.let {
+            add("${SearchText.excludedGenreLabel}: ${it.toOptionLabels(filterMetadata.genres)}")
+        }
         filters.orderBy?.takeIf { it.isNotBlank() }?.let { add("Order: $it") }
         filters.sort?.takeIf { it.isNotBlank() }?.let { add("${SearchText.sortLabel}: $it") }
         filters.letter.takeIf { it.isNotBlank() }?.let { add("${SearchText.letterLabel}: $it") }
@@ -26,9 +34,13 @@ internal fun buildActiveFilterLabels(filters: MediaSearchFilters): List<String> 
         if (!filters.sfw) add(SearchText.adultAllowedLabel)
         if (filters.unapproved) add(SearchText.unapprovedActiveLabel)
         if (filters.mediaType == SearchMediaType.Anime) {
-            filters.producers.takeIf { it.isNotBlank() }?.let { add("Producers: $it") }
+            filters.producers.takeIf { it.isNotBlank() }?.let {
+                add("${SearchText.producerIdsLabel}: ${it.toOptionLabels(filterMetadata.related)}")
+            }
         } else {
-            filters.magazines.takeIf { it.isNotBlank() }?.let { add("Magazines: $it") }
+            filters.magazines.takeIf { it.isNotBlank() }?.let {
+                add("${SearchText.magazineIdsLabel}: ${it.toOptionLabels(filterMetadata.related)}")
+            }
         }
     }
 }
@@ -44,4 +56,15 @@ internal fun buildSearchSubtitle(item: MediaSearchItem): String {
         item.volumes?.let { volumes -> add("$volumes vol") }
     }
     return parts.joinToString(" • ").ifBlank { SearchText.missingMetadata }
+}
+
+private fun String.toOptionLabels(options: List<SearchFilterOption>): String {
+    val optionMap = options.associateBy { option -> option.id.toString() }
+
+    return split(",")
+        .map { value -> value.trim() }
+        .filter { value -> value.isNotBlank() }
+        .joinToString(", ") { value ->
+            optionMap[value]?.name ?: "#$value"
+        }
 }

@@ -34,6 +34,14 @@ val repositoryModule = module {
     singleOf(::AnimeRepositoryImpl) bind AnimeRepository::class
     singleOf(::LibraryRepositoryImpl) bind LibraryRepository::class
     singleOf(::MangaRepositoryImpl) bind MangaRepository::class
+    single<SearchRepository> {
+        SearchRepositoryImpl(
+            remoteDataSource = get(),
+            dispatchers = get(),
+            mediaPageCacheLocalDataSource = get()
+        )
+    }
+    singleOf(::SettingsRepositoryImpl) bind SettingsRepository::class
     singleOf(::SearchRepositoryImpl) bind SearchRepository::class
     singleOf(::SettingsRepositoryImpl) bind SettingsRepository::class
 }

@@ -3,6 +3,7 @@ package com.example.mybawanggacha.data.remote.jikan.api
 import com.example.mybawanggacha.data.remote.jikan.dto.AnimeDetailResponse
 import com.example.mybawanggacha.data.remote.jikan.dto.AnimeEpisodesResponse
 import com.example.mybawanggacha.data.remote.jikan.dto.JikanAnimeListResponse
+import com.example.mybawanggacha.data.remote.jikan.dto.JikanFilterOptionResponse
 import com.example.mybawanggacha.data.remote.jikan.dto.JikanRecommendationsResponse
 import com.example.mybawanggacha.data.remote.jikan.dto.JikanSeasonArchiveResponse
 import com.example.mybawanggacha.data.remote.jikan.dto.MangaDetailResponse
@@ -49,6 +50,24 @@ class JikanService(private val client: HttpClient) {
         return getBody("watch/episodes") {
             parameter("page", page)
         }
+    }
+
+
+
+    suspend fun fetchAnimeGenres(): JikanFilterOptionResponse {
+        return getBody("genres/anime")
+    }
+
+    suspend fun fetchMangaGenres(): JikanFilterOptionResponse {
+        return getBody("genres/manga")
+    }
+
+    suspend fun fetchProducers(): JikanFilterOptionResponse {
+        return getBody("producers")
+    }
+
+    suspend fun fetchMagazines(): JikanFilterOptionResponse {
+        return getBody("magazines")
     }
 
     suspend fun fetchAnimeSearch(

@@ -4,15 +4,20 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.Button
@@ -34,11 +39,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.mybawanggacha.domain.search.model.MediaSearchFilters
+import com.example.mybawanggacha.domain.search.model.SearchFilterOption
 import com.example.mybawanggacha.domain.search.model.SearchMediaType
 
 @Composable
 internal fun SearchFilterSheet(
     filters: MediaSearchFilters,
+    filterMetadata: SearchFilterMetadataUiState,
     onFiltersChange: (MediaSearchFilters) -> Unit,
     onReset: () -> Unit,
     onApply: () -> Unit,
@@ -177,38 +184,87 @@ internal fun SearchFilterSheet(
                 expanded = metadataExpanded,
                 onToggle = { metadataExpanded = !metadataExpanded }
             ) {
-                SmallSearchTextField(
-                    label = SearchText.genreIdsLabel,
-                    value = filters.genres,
-                    modifier = Modifier.fillMaxWidth(),
-                    onValueChange = { value -> onFiltersChange(filters.copy(genres = value)) }
-                )
-                SmallSearchTextField(
-                    label = SearchText.excludedGenreIdsLabel,
-                    value = filters.genresExclude,
-                    modifier = Modifier.fillMaxWidth(),
-                    onValueChange = { value -> onFiltersChange(filters.copy(genresExclude = value)) }
-                )
-                SmallSearchTextField(
-                    label = if (filters.mediaType == SearchMediaType.Anime) {
-                        SearchText.producerIdsLabel
-                    } else {
-                        SearchText.magazineIdsLabel
-                    },
-                    value = if (filters.mediaType == SearchMediaType.Anime) {
-                        filters.producers
-                    } else {
-                        filters.magazines
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    onValueChange = { value ->
-                        if (filters.mediaType == SearchMediaType.Anime) {
-                            onFiltersChange(filters.copy(producers = value))
-                        } else {
-                            onFiltersChange(filters.copy(magazines = value))
+                MetadataStatusMessage(filterMetadata = filterMetadata)
+
+                if (filterMetadata.genres.isNotEmpty()) {
+                    MetadataTriStateSelector(
+                        title = SearchText.genreSelectorTitle,
+                        hint = SearchText.genreSelectorHint,
+                        options = filterMetadata.genres,
+                        includedValues = filters.genres,
+                        excludedValues = filters.genresExclude,
+                        onValuesChange = { included, excluded ->
+                            onFiltersChange(
+                                filters.copy(
+                                    genres = included,
+                                    genresExclude = excluded
+                                )
+                            )
                         }
-                    }
-                )
+                    )
+                } else {
+                    SmallSearchTextField(
+                        label = SearchText.genreIdsLabel,
+                        value = filters.genres,
+                        modifier = Modifier.fillMaxWidth(),
+                        onValueChange = { value -> onFiltersChange(filters.copy(genres = value)) }
+                    )
+                    SmallSearchTextField(
+                        label = SearchText.excludedGenreIdsLabel,
+                        value = filters.genresExclude,
+                        modifier = Modifier.fillMaxWidth(),
+                        onValueChange = { value -> onFiltersChange(filters.copy(genresExclude = value)) }
+                    )
+                }
+
+                if (filterMetadata.related.isNotEmpty()) {
+                    MetadataIncludeSelector(
+                        title = if (filters.mediaType == SearchMediaType.Anime) {
+                            SearchText.producerIdsLabel
+                        } else {
+                            SearchText.magazineIdsLabel
+                        },
+                        hint = if (filters.mediaType == SearchMediaType.Anime) {
+                            SearchText.producerSelectorHint
+                        } else {
+                            SearchText.magazineSelectorHint
+                        },
+                        options = filterMetadata.related,
+                        selectedValues = if (filters.mediaType == SearchMediaType.Anime) {
+                            filters.producers
+                        } else {
+                            filters.magazines
+                        },
+                        onValuesChange = { values ->
+                            if (filters.mediaType == SearchMediaType.Anime) {
+                                onFiltersChange(filters.copy(producers = values))
+                            } else {
+                                onFiltersChange(filters.copy(magazines = values))
+                            }
+                        }
+                    )
+                } else {
+                    SmallSearchTextField(
+                        label = if (filters.mediaType == SearchMediaType.Anime) {
+                            SearchText.producerIdsLabel
+                        } else {
+                            SearchText.magazineIdsLabel
+                        },
+                        value = if (filters.mediaType == SearchMediaType.Anime) {
+                            filters.producers
+                        } else {
+                            filters.magazines
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        onValueChange = { value ->
+                            if (filters.mediaType == SearchMediaType.Anime) {
+                                onFiltersChange(filters.copy(producers = value))
+                            } else {
+                                onFiltersChange(filters.copy(magazines = value))
+                            }
+                        }
+                    )
+                }
             }
         }
 
@@ -351,4 +407,271 @@ internal fun FilterSection(
             }
         }
     }
+}
+
+
+@Composable
+private fun MetadataStatusMessage(filterMetadata: SearchFilterMetadataUiState) {
+    when {
+        filterMetadata.isLoading -> Text(
+            text = SearchText.metadataLoading,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        filterMetadata.errorMessage != null -> Text(
+            text = SearchText.metadataLoadFailed,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error,
+            fontWeight = FontWeight.SemiBold
+        )
+    }
+}
+
+@Composable
+private fun MetadataTriStateSelector(
+    title: String,
+    hint: String,
+    options: List<SearchFilterOption>,
+    includedValues: String,
+    excludedValues: String,
+    onValuesChange: (includedValues: String, excludedValues: String) -> Unit
+) {
+    val included = includedValues.toMetadataValueSet()
+    val excluded = excludedValues.toMetadataValueSet()
+
+    MetadataSelectorContainer(
+        title = title,
+        hint = hint
+    ) {
+        options.forEach { option ->
+            val id = option.id.toString()
+            val state = when (id) {
+                in included -> MetadataSelectionState.Included
+                in excluded -> MetadataSelectionState.Excluded
+                else -> MetadataSelectionState.Neutral
+            }
+
+            MetadataOptionRow(
+                option = option,
+                state = state,
+                onStateClick = {
+                    val newIncluded = included.toMutableSet()
+                    val newExcluded = excluded.toMutableSet()
+
+                    when (state) {
+                        MetadataSelectionState.Neutral -> {
+                            newIncluded.add(id)
+                            newExcluded.remove(id)
+                        }
+
+                        MetadataSelectionState.Included -> {
+                            newIncluded.remove(id)
+                            newExcluded.add(id)
+                        }
+
+                        MetadataSelectionState.Excluded -> {
+                            newIncluded.remove(id)
+                            newExcluded.remove(id)
+                        }
+                    }
+
+                    onValuesChange(
+                        newIncluded.toMetadataValueString(options),
+                        newExcluded.toMetadataValueString(options)
+                    )
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun MetadataIncludeSelector(
+    title: String,
+    hint: String,
+    options: List<SearchFilterOption>,
+    selectedValues: String,
+    onValuesChange: (String) -> Unit
+) {
+    val selected = selectedValues.toMetadataValueSet()
+
+    MetadataSelectorContainer(
+        title = title,
+        hint = hint
+    ) {
+        options.forEach { option ->
+            val id = option.id.toString()
+            val state = if (id in selected) {
+                MetadataSelectionState.Included
+            } else {
+                MetadataSelectionState.Neutral
+            }
+
+            MetadataOptionRow(
+                option = option,
+                state = state,
+                onStateClick = {
+                    val newSelected = selected.toMutableSet()
+
+                    if (!newSelected.add(id)) {
+                        newSelected.remove(id)
+                    }
+
+                    onValuesChange(newSelected.toMetadataValueString(options))
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun MetadataSelectorContainer(
+    title: String,
+    hint: String,
+    content: @Composable () -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = hint,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            content()
+        }
+    }
+}
+
+@Composable
+private fun MetadataOptionRow(
+    option: SearchFilterOption,
+    state: MetadataSelectionState,
+    onStateClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onStateClick)
+            .padding(vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        MetadataSelectionBox(
+            state = state,
+            onClick = onStateClick
+        )
+
+        Row(
+            modifier = Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            Text(
+                text = option.name,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false)
+            )
+            Text(
+                text = "#${option.id}",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1
+            )
+        }
+    }
+}
+
+@Composable
+private fun MetadataSelectionBox(
+    state: MetadataSelectionState,
+    onClick: () -> Unit
+) {
+    val selected = state != MetadataSelectionState.Neutral
+    val containerColor = if (selected) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+    val contentColor = if (selected) {
+        MaterialTheme.colorScheme.onPrimaryContainer
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
+    Card(
+        modifier = Modifier
+            .size(24.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(7.dp),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        border = BorderStroke(
+            width = 1.dp,
+            color = if (selected) {
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.72f)
+            } else {
+                MaterialTheme.colorScheme.outline.copy(alpha = 0.48f)
+            }
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            when (state) {
+                MetadataSelectionState.Included -> Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = SearchText.includeChip,
+                    tint = contentColor,
+                    modifier = Modifier.size(15.dp)
+                )
+
+                MetadataSelectionState.Excluded -> Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = SearchText.excludeChip,
+                    tint = contentColor,
+                    modifier = Modifier.size(15.dp)
+                )
+
+                MetadataSelectionState.Neutral -> Unit
+            }
+        }
+    }
+}
+
+private enum class MetadataSelectionState {
+    Neutral,
+    Included,
+    Excluded
+}
+
+private fun String.toMetadataValueSet(): Set<String> {
+    return split(",")
+        .map { value -> value.trim() }
+        .filter { value -> value.isNotBlank() }
+        .toSet()
+}
+
+private fun Set<String>.toMetadataValueString(options: List<SearchFilterOption>): String {
+    val orderedKnownValues = options
+        .map { option -> option.id.toString() }
+        .filter { value -> value in this }
+    val unknownValues = filterNot { value -> value in orderedKnownValues }
+        .sortedBy { value -> value.toIntOrNull() ?: Int.MAX_VALUE }
+
+    return (orderedKnownValues + unknownValues).joinToString(",")
 }

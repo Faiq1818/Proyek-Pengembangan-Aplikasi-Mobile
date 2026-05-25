@@ -3,13 +3,31 @@ package com.example.mybawanggacha.data.remote.jikan.source
 import com.example.mybawanggacha.core.coroutines.AppDispatchers
 import com.example.mybawanggacha.data.remote.jikan.api.JikanService
 import com.example.mybawanggacha.data.remote.jikan.dto.JikanAnimeListResponse
+import com.example.mybawanggacha.data.remote.jikan.mapper.toSearchFilterOptions
 import com.example.mybawanggacha.domain.search.model.MediaSearchFilters
+import com.example.mybawanggacha.domain.search.model.SearchFilterMetadata
 import kotlinx.coroutines.withContext
 
 class JikanSearchRemoteDataSource(
     private val service: JikanService,
     private val dispatchers: AppDispatchers
 ) {
+
+
+    suspend fun getAnimeFilterMetadata(): SearchFilterMetadata = withContext(dispatchers.io) {
+        SearchFilterMetadata(
+            genres = service.fetchAnimeGenres().toSearchFilterOptions(),
+            related = service.fetchProducers().toSearchFilterOptions()
+        )
+    }
+
+    suspend fun getMangaFilterMetadata(): SearchFilterMetadata = withContext(dispatchers.io) {
+        SearchFilterMetadata(
+            genres = service.fetchMangaGenres().toSearchFilterOptions(),
+            related = service.fetchMagazines().toSearchFilterOptions()
+        )
+    }
+
     suspend fun searchAnime(
         filters: MediaSearchFilters,
         page: Int

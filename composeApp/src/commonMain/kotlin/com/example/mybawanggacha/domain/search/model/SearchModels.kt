@@ -1,5 +1,7 @@
 package com.example.mybawanggacha.domain.search.model
 
+import kotlinx.serialization.Serializable
+
 enum class SearchMediaType(val label: String) {
     Anime("Anime"),
     Manga("Manga")
@@ -46,4 +48,16 @@ data class MediaSearchPage(
     val items: List<MediaSearchItem>,
     val nextPage: Int?,
     val hasNextPage: Boolean
+)
+
+@Serializable
+data class SearchFilterOption(
+    val id: Int,
+    val name: String
+)
+
+@Serializable
+data class SearchFilterMetadata(
+    val genres: List<SearchFilterOption> = emptyList(),
+    val related: List<SearchFilterOption> = emptyList()
 )

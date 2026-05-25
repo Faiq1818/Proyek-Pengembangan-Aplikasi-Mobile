@@ -44,6 +44,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 internal fun SearchContent(
     filters: MediaSearchFilters,
     uiState: SearchUiState,
+    filterMetadata: SearchFilterMetadataUiState,
     onFiltersChange: (MediaSearchFilters) -> Unit,
     onSearch: () -> Unit,
     onReset: () -> Unit,
@@ -52,7 +53,9 @@ internal fun SearchContent(
     onItemClick: (MediaSearchItem) -> Unit
 ) {
     var showFilters by remember { mutableStateOf(false) }
-    val activeLabels = remember(filters) { buildActiveFilterLabels(filters) }
+    val activeLabels = remember(filters, filterMetadata) {
+        buildActiveFilterLabels(filters = filters, filterMetadata = filterMetadata)
+    }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val listState = rememberLazyListState()
 
@@ -174,6 +177,7 @@ internal fun SearchContent(
         ) {
             SearchFilterSheet(
                 filters = draft,
+                filterMetadata = filterMetadata,
                 onFiltersChange = { draft = it },
                 onReset = { draft = MediaSearchFilters(mediaType = draft.mediaType) },
                 onApply = {

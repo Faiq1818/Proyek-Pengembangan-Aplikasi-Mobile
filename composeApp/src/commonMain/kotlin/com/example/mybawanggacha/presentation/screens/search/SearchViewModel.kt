@@ -3,6 +3,8 @@ package com.example.mybawanggacha.presentation.screens.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mybawanggacha.domain.search.model.MediaSearchFilters
+import com.example.mybawanggacha.domain.search.model.SearchFilterMetadata
+import com.example.mybawanggacha.domain.search.model.SearchMediaType
 import com.example.mybawanggacha.domain.search.repository.SearchRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,11 +24,25 @@ class SearchViewModel(
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
+    private val _filterMetadata = MutableStateFlow(SearchFilterMetadataUiState())
+    val filterMetadata: StateFlow<SearchFilterMetadataUiState> = _filterMetadata.asStateFlow()
+
+    private val filterMetadataCache = mutableMapOf<SearchMediaType, SearchFilterMetadata>()
+
     private var searchJob: Job? = null
     private var lastRequestedLoadMorePage: Int? = null
 
+    init {
+        loadFilterMetadata(_filters.value.mediaType)
+    }
+
     fun updateFilters(filters: MediaSearchFilters) {
+        val previousMediaType = _filters.value.mediaType
         _filters.value = filters
+
+        if (filters.mediaType != previousMediaType) {
+            loadFilterMetadata(filters.mediaType)
+        }
     }
 
     fun resetFilters() {
@@ -126,4 +142,37 @@ class SearchViewModel(
             _isRefreshing.value = false
         }
     }
+    private fun loadFilterMetadata(mediaType: SearchMediaType) {
+        filterMetadataCache[mediaType]?.let { cached ->
+            _filterMetadata.value = cached.toUiState()
+            return
+        }
+
+        _filterMetadata.value = SearchFilterMetadataUiState(isLoading = true)
+
+        viewModelScope.launch {
+            runCatching {
+                repository.getFilterMetadata(mediaType)
+            }.onSuccess { metadata ->
+                filterMetadataCache[mediaType] = metadata
+
+                if (_filters.value.mediaType == mediaType) {
+                    _filterMetadata.value = metadata.toUiState()
+                }
+            }.onFailure { error ->
+                if (_filters.value.mediaType == mediaType) {
+                    _filterMetadata.value = SearchFilterMetadataUiState(
+                        errorMessage = error.message ?: "Gagal memuat metadata filter"
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun SearchFilterMetadata.toUiState(): SearchFilterMetadataUiState {
+    return SearchFilterMetadataUiState(
+        genres = genres,
+        related = related
+    )
 }

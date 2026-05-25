@@ -26,6 +26,7 @@ fun SearchScreen(
     val filters by viewModel.filters.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val filterMetadata by viewModel.filterMetadata.collectAsStateWithLifecycle()
 
     MBGSideRailScaffold(
         selectedRailKey = MBGMainRailKey.Search,
@@ -50,6 +51,7 @@ fun SearchScreen(
             SearchContent(
                 filters = filters,
                 uiState = uiState,
+                filterMetadata = filterMetadata,
                 onFiltersChange = viewModel::updateFilters,
                 onSearch = viewModel::submitSearch,
                 onReset = viewModel::resetFilters,
