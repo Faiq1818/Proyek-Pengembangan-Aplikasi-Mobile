@@ -1,12 +1,31 @@
 # Project Plan — My Bawang Gacha
 
-**Tim:** Varasina Farmadani (123140107) · Faiq Ghozy Erlangga (123140139)
+## TIM
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/sinavarasina">
+        <img src="https://github.com/sinavarasina.png" width="100px;" alt="Varasina Farmadani" style="border-radius:50%;"/><br />
+        <sub><b>Varasina Farmadani</b></sub>
+      </a><br />
+      <sub>NIM. 123140107</sub>
+    </td>
+    <td align="center">
+      <a href="https://github.com/Faiq1818">
+        <img src="https://github.com/Faiq1818.png" width="100px;" alt="Faiq Ghozy Erlangga" style="border-radius:50%;"/><br />
+        <sub><b>Faiq Ghozy Erlangga</b></sub>
+      </a><br />
+      <sub>NIM. 123140139</sub>
+    </td>
+  </tr>
+</table>
+
 
 ## Deskripsi Singkat
 
 My Bawang Gacha adalah aplikasi Kotlin Multiplatform untuk menemukan, menyimpan, dan mengatur anime/manga.
 
-Pengguna dapat membuat daftar anime/manga pribadi, melacak status tontonan/bacaan, melihat detail dari Jikan API, dan menggunakan fitur gacha untuk mendapatkan rekomendasi acak berdasarkan preferensi seperti genre, type, score, status, serta aturan apakah item yang sudah watched/read boleh muncul kembali.
+Pengguna dapat membuat daftar anime/manga pribadi, melacak status tontonan/bacaan, melihat detail dari Jikan API, mencari anime/manga, menyimpan item ke library lokal, serta menggunakan fitur gacha untuk mendapatkan rekomendasi acak berdasarkan preferensi seperti genre, type, score, status, serta aturan apakah item yang sudah watched/read boleh muncul kembali.
 
 ---
 
@@ -18,24 +37,24 @@ Pengguna dapat membuat daftar anime/manga pribadi, melacak status tontonan/bacaa
 - [x] Pemilihan ide proyek: anime/manga manager + preference-based gacha
 - [x] Setup GitHub repository
 - [x] Setup struktur Clean Architecture:
-    - `data/`
-    - `domain/`
-    - `presentation/`
-    - `core/`
+  - `data/`
+  - `domain/`
+  - `presentation/`
+  - `core/`
 - [x] Setup Koin Dependency Injection
 - [x] Setup GitHub Actions CI
 - [x] README awal berisi:
-    - nama aplikasi
-    - anggota tim
-    - deskripsi singkat
-    - tech stack
-    - cara menjalankan project
+  - nama aplikasi
+  - anggota tim
+  - deskripsi singkat
+  - tech stack
+  - cara menjalankan project
 - [x] Project plan document
 - [x] Menentukan core entity:
-    - Anime/Manga item
-    - Watch/Read status
-    - User library/list entry
-    - Gacha preference
+  - Anime/Manga item
+  - Watch/Read status
+  - User library/list entry
+  - Gacha preference
 
 ---
 
@@ -48,74 +67,99 @@ Fokus Sprint 2: fitur dasar aplikasi harus berjalan secara lokal dengan arsitekt
 ### UI & Navigation
 
 - [x] HomeScreen / DiscoverScreen
-    - menampilkan ringkasan anime/manga atau rekomendasi awal
+  - menampilkan ringkasan anime/manga atau rekomendasi awal
 - [x] AnimeDetailScreen
-    - menampilkan detail anime
-    - menerima argument ID dari navigation
-- [X] MyListScreen
-    - tab/list status:
-        - Plan to Watch / Plan to Read
-        - Watching / Reading
-        - Completed / Watched
-        - On Hold
-        - Dropped
-- [X] ListEntryEditor
-    - form tambah/edit item ke daftar pribadi
-    - edit status
-    - edit progress episode/chapter
-    - edit rating pribadi/catatan opsional
+  - menampilkan detail anime
+  - menerima argument ID dari navigation
+- [x] MangaDetailScreen
+  - menampilkan detail manga
+  - menerima argument ID dari navigation
+- [x] AnimeListScreen
+  - menampilkan daftar anime berdasarkan tab/kategori
+  - mendukung pagination/load more
+- [x] MangaListScreen
+  - menampilkan daftar manga berdasarkan tab/kategori
+  - mendukung pagination/load more
+- [x] SearchScreen
+  - mencari anime dan manga
+  - menampilkan hasil search gabungan berdasarkan tipe media
+- [x] MyListScreen / MyLibraryScreen
+  - tab/list status:
+    - Plan to Watch / Plan to Read
+    - Watching / Reading
+    - Completed / Watched
+    - On Hold
+    - Dropped
+- [x] ListEntryEditor
+  - form tambah/edit item ke daftar pribadi
+  - edit status
+  - edit progress episode/chapter
+  - edit rating pribadi/catatan opsional
 - [x] Navigation setup
-    - AppNavHost
-    - Routes
-    - argument passing by ID
-    - back navigation
+  - AppNavHost
+  - Routes
+  - argument passing by ID
+  - back navigation
+  - navigasi Home, Anime, Manga, Search, Library, Settings, dan Detail
 
 ### Domain & Data Layer
 
 - [x] Domain model dasar:
-    - `AnimeSummary`
-    - `AnimeDetail`
-    - `AnimeEpisode`
-    - `AnimeRelation`
-- [X] Domain model list management:
-    - `LibraryEntry`
-    - `MediaType`
-    - `LibraryStatus`
-    - `UserProgress`
-    - `UserScore`
+  - `AnimeSummary`
+  - `AnimeDetail`
+  - `AnimeEpisode`
+  - `AnimeRelation`
+  - `MangaSummary`
+  - `MangaDetail`
+  - `MangaRelation`
+- [x] Domain model list management:
+  - `LibraryEntry`
+  - `MediaType`
+  - `LibraryStatus`
+  - `UserProgress`
+  - `UserScore`
 - [x] Repository pattern untuk anime detail/recommendation:
-    - `AnimeRepository`
-    - `AnimeRepositoryImpl`
-- [X] Repository untuk list lokal pengguna:
-    - `LibraryRepository`
-    - `LibraryRepositoryImpl`
+  - `AnimeRepository`
+  - `AnimeRepositoryImpl`
+- [x] Repository pattern untuk manga detail/list:
+  - `MangaRepository`
+  - `MangaRepositoryImpl`
+- [x] Repository pattern untuk search:
+  - `SearchRepository`
+  - `SearchRepositoryImpl`
+- [x] Repository untuk list lokal pengguna:
+  - `LibraryRepository`
+  - `LibraryRepositoryImpl`
 - [x] SQLDelight database setup
-- [X] SQLDelight table untuk library:
-    - saved anime/manga
-    - status
-    - progress episode/chapter
-    - user score
-    - updated timestamp
+- [x] SQLDelight table untuk library:
+  - saved anime/manga
+  - status
+  - progress episode/chapter
+  - user score
+  - updated timestamp
 - [x] SQLDelight table untuk episode progress anime
-- [X] CRUD library:
-    - Create: tambah anime/manga ke list
-    - Read: tampilkan list berdasarkan status
-    - Update: ubah status/progress/rating
-    - Delete: hapus dari list
+- [x] SQLDelight table/cache untuk anime detail, manga detail, relation preview, dan media page
+- [x] CRUD library:
+  - Create: tambah anime/manga ke list
+  - Read: tampilkan list berdasarkan status
+  - Update: ubah status/progress/rating
+  - Delete: hapus dari list
 
 ### State Management & Quality
 
 - [x] UI states:
-    - Loading
-    - Success
-    - Error
-    - Empty
+  - Loading
+  - Success
+  - Error
+  - Empty
+  - Refreshing
 - [x] ViewModel menggunakan repository, bukan langsung service API
 - [x] DTO Jikan tidak dibawa langsung ke UI detail
 - [x] Koin modules untuk data + ViewModel
-- [X] Basic validation untuk form list entry
-- [X] Confirm dialog saat delete item dari list
-- [X] Basic manual test untuk flow CRUD
+- [x] Koin network module memakai satu shared `HttpClient` binding
+- [x] Basic validation untuk form list entry
+- [x] Confirm dialog saat delete item dari list
+- [x] Basic manual test untuk flow CRUD
 
 ---
 
@@ -132,61 +176,76 @@ Fokus Sprint 3: fitur pencarian, integrasi API yang lebih lengkap, gacha, cache/
 - [x] Fetch anime full detail
 - [x] Fetch anime episodes
 - [x] Fetch relation preview
-- [ ] Search anime via Jikan
-- [ ] Search manga via Jikan
+- [x] Search anime via Jikan
+- [x] Search manga via Jikan
 - [x] Fetch manga detail
-- [ ] DTO mapping lengkap:
-    - Anime DTO → domain model
-    - Manga DTO → domain model
-    - Search DTO → domain model
-- [ ] Error handling Jikan:
-    - network error
-    - empty result
-    - rate limit
-    - unavailable server
-- [ ] Debounce search query agar tidak spam request API
+- [x] Fetch manga list/top manga
+- [x] Fetch current season, upcoming season, top anime, dan season archive
+- [x] DTO mapping lengkap untuk fitur yang dipakai:
+  - Anime DTO → domain model
+  - Manga DTO → domain model
+  - Search DTO → domain model
+  - Relation preview DTO → domain model
+- [x] Error handling Jikan dasar:
+  - network/server error
+  - empty result
+  - rate limit
+  - unavailable server / HTTP error
+- [x] Rate limiter untuk Jikan API
+- [x] Debounce search query agar tidak spam request API
 
 ### Gacha Feature
 
 - [ ] GachaScreen
-    - input preferensi pengguna:
-        - media type: anime / manga / both
-        - genre
-        - score minimum
-        - status airing/publishing/completed
-        - type: TV, Movie, OVA, Manga, Light Novel, dll
-        - include watched/read item atau tidak
+  - input preferensi pengguna:
+    - media type: anime / manga / both
+    - genre
+    - score minimum
+    - status airing/publishing/completed
+    - type: TV, Movie, OVA, Manga, Light Novel, dll
+    - include watched/read item atau tidak
 - [ ] GachaResultScreen
-    - menampilkan hasil gacha
-    - tombol reroll
-    - tombol buka detail
-    - tombol tambah ke list
+  - menampilkan hasil gacha
+  - tombol reroll
+  - tombol buka detail
+  - tombol tambah ke list
 - [ ] Gacha logic di domain/usecase
-    - filter kandidat berdasarkan preferensi
-    - randomize hasil
-    - exclude item tertentu jika user memilih exclude watched/read
+  - filter kandidat berdasarkan preferensi
+  - randomize hasil
+  - exclude item tertentu jika user memilih exclude watched/read
 - [ ] Simpan gacha preference terakhir secara lokal
 - [ ] Optional: simpan history hasil gacha
 
 ### Offline & Cache
 
 - [x] Cache anime/manga detail ke SQLDelight
-- [ ] Pull-to-refresh di Home/Discover atau MyList
-- [ ] Refresh state:
-    - idle
-    - refreshing
-    - success
-    - failed but cache available
+- [x] Cache relation preview ke SQLDelight
+- [x] Cache media page/list ke SQLDelight
+- [x] Pull-to-refresh di Home/Discover
+- [x] Pull-to-refresh di AnimeList
+- [x] Pull-to-refresh di MangaList
+- [x] Pull-to-refresh di Search
+- [x] Pull-to-refresh di MyLibrary
+- [x] Pull-to-refresh di AnimeDetail
+- [x] Pull-to-refresh di MangaDetail
+- [x] Refresh state:
+  - idle
+  - refreshing
+  - success
+  - failed but cache/content available
+- [x] Stale-while-revalidate untuk refresh list/detail agar konten lama tetap tampil saat refresh
+- [x] Force refresh untuk detail screen agar pull-refresh bisa bypass cache lama
+- [ ] Offline mode final untuk seluruh screen saat tidak ada koneksi
 
 ### Additional Screen
 
 - [x] SettingsScreen
-    - theme mode: system/light/dark
-    - clear cache
-    - app info/about
+  - theme mode: system/light/dark
+  - clear cache
+  - app info/about
 - [x] About/Info section
-    - sumber data: Jikan API
-    - keterangan bahwa list user disimpan lokal
+  - sumber data: Jikan API
+  - keterangan bahwa list user disimpan lokal
 
 ---
 
@@ -200,9 +259,12 @@ Fokus Sprint 4: stabilitas, konsistensi UI, edge case, performa, dan test.
 
 - [ ] Buat daftar known bugs di GitHub Issues
 - [ ] Prioritaskan bug:
-    - P0: crash / data loss / fitur utama rusak
-    - P1: flow penting terganggu
-    - P2: minor UI/UX
+  - P0: crash / data loss / fitur utama rusak
+  - P1: flow penting terganggu
+  - P2: minor UI/UX
+- [x] Fix bug duplicate/single `HttpClient` binding di network module
+- [x] Fix compile error `AnimatedContent` content lambda pada `AnimatedSectionContent`
+- [x] Fix blink putih awal navigasi dengan root surface/background
 - [ ] Fix semua P0 bugs
 - [ ] Fix semua broken navigation
 - [ ] Pastikan semua fitur Sprint 2 dan Sprint 3 tetap berjalan
@@ -212,45 +274,63 @@ Fokus Sprint 4: stabilitas, konsistensi UI, edge case, performa, dan test.
 - [ ] Konsistensi spacing berbasis 8dp grid
 - [ ] Konsistensi typography
 - [ ] Konsistensi warna Material 3
-- [ ] Empty state yang jelas untuk:
-    - list kosong
-    - search no result
-    - cache kosong saat offline
-- [ ] Error state yang ramah + retry button
-- [ ] Loading state/skeleton untuk screen yang mengambil API
+- [x] Empty state yang jelas untuk:
+  - list kosong
+  - search no result
+  - cache kosong saat offline
+- [x] Error state yang ramah + retry button
+- [x] Loading state/skeleton untuk screen yang mengambil API
+  - anime list skeleton
+  - manga list skeleton
+  - library list skeleton
 - [ ] Image placeholder/error placeholder
 - [ ] Perbaiki long text overflow
-- [ ] Animasi ringan:
-    - list item animation
-    - screen transition
-    - button/card feedback
+- [x] Animasi ringan:
+  - section transition di AnimeDetail
+  - section transition di MangaDetail
+  - pull-refresh indicator
+  - button/card feedback dasar
+- [x] UI refresh tidak mengosongkan konten lama saat refresh berjalan
 
 ### Testing
 
 - [ ] Unit tests minimal 10:
-    - Repository tests
-    - ViewModel tests
-    - Mapper tests
-    - Gacha filter/random logic tests
+  - Repository tests
+  - ViewModel tests
+  - Mapper tests
+  - Gacha filter/random logic tests
+- [x] Mapper tests untuk Jikan anime/manga dasar
+- [x] Service tests untuk endpoint Jikan dasar
+- [x] Repository/search tests dasar
+- [ ] ViewModel tests untuk screen utama
+- [ ] Gacha filter/random logic tests
 - [ ] UI tests minimal 3 critical journey:
-    - buka Home → Detail
-    - tambah item ke MyList → muncul di list
-    - gacha dengan preferensi → buka result/detail
+  - buka Home → Detail
+  - tambah item ke MyList → muncul di list
+  - gacha dengan preferensi → buka result/detail
 - [ ] Test error/edge cases:
-    - empty list
-    - network error
-    - no internet
-    - missing image
-    - long title/synopsis
+  - empty list
+  - network error
+  - no internet
+  - missing image
+  - long title/synopsis
 - [ ] Coverage target minimal 50%
 - [ ] README update dengan cara menjalankan test
 
 ### Performance
 
-- [ ] Gunakan key di LazyColumn/LazyVerticalGrid
-- [ ] Hindari request API berlebihan
-- [ ] Pastikan search memakai debounce
-- [ ] Pastikan screen detail tidak terasa jank
+- [x] Gunakan key di LazyColumn/LazyVerticalGrid
+- [x] Tambahkan `contentType` di LazyColumn/LazyVerticalGrid untuk item sejenis
+- [x] Hindari request API berlebihan
+  - Jikan rate limiter
+  - cache detail/list
+  - debounce search
+- [x] Pastikan search memakai debounce
+- [x] Pastikan screen detail tidak terasa jank
+  - animated section transition
+  - pull-refresh tanpa blank state
+  - stale-while-revalidate
+- [x] Kurangi blink putih saat navigasi dengan root background yang stabil
 - [ ] Review recomposition berat di UI besar
 
 ---
@@ -268,26 +348,30 @@ Fokus Sprint 5: finalisasi, demo, release build, dokumentasi, dan presentasi.
 - [ ] App bisa dijalankan di device/emulator demo
 - [ ] Data demo realistis sudah disiapkan
 - [ ] Offline/error path sudah diuji
+- [ ] Pull-refresh dan cache behavior sudah diuji pada device/emulator
+- [ ] Flow Home → Detail → Add/Edit Library → Search sudah diuji ulang
 
 ### Documentation
 
 - [ ] README finalized:
-    - deskripsi aplikasi
-    - anggota tim + role
-    - fitur utama
-    - tech stack
-    - arsitektur
-    - setup guide
-    - cara build/run
-    - cara menjalankan test
-    - screenshots
+  - deskripsi aplikasi
+  - anggota tim + role
+  - fitur utama
+  - tech stack
+  - arsitektur
+  - setup guide
+  - cara build/run
+  - cara menjalankan test
+  - screenshots
 - [ ] Architecture diagram:
-    - UI Layer
-    - ViewModel + State
-    - Repository
-    - Local SQLDelight
-    - Remote Jikan API
+  - UI Layer
+  - ViewModel + State
+  - Repository
+  - Local SQLDelight
+  - Remote Jikan API
 - [ ] Catatan endpoint Jikan yang dipakai
+- [ ] Dokumentasi cache/offline behavior
+- [ ] Dokumentasi pull-refresh dan stale-while-revalidate behavior
 - [ ] Known limitations / future improvements
 
 ### Release & Submission
@@ -297,40 +381,40 @@ Fokus Sprint 5: finalisasi, demo, release build, dokumentasi, dan presentasi.
 - [ ] Version name/code diset
 - [ ] Pastikan credential/secret tidak masuk Git
 - [ ] Submit:
-    - GitHub repository
-    - APK
-    - slides PDF/PPTX
+  - GitHub repository
+  - APK
+  - slides PDF/PPTX
 
 ### Demo Preparation
 
 - [ ] Presentation slides:
-    - title
-    - problem statement
-    - solution overview
-    - features
-    - demo flow
-    - architecture
-    - challenges & learnings
-    - future plans
-    - Q&A
+  - title
+  - problem statement
+  - solution overview
+  - features
+  - demo flow
+  - architecture
+  - challenges & learnings
+  - future plans
+  - Q&A
 - [ ] Demo script written
 - [ ] Demo flow 10–15 menit:
-    - buka Home/Discover
-    - buka Detail
-    - tambah item ke MyList
-    - update progress/status
-    - search anime/manga
-    - jalankan gacha berdasarkan preferensi
-    - tunjukkan offline/error handling
+  - buka Home/Discover
+  - buka Detail
+  - tambah item ke MyList
+  - update progress/status
+  - search anime/manga
+  - jalankan gacha berdasarkan preferensi
+  - tunjukkan offline/error handling
 - [ ] Backup video recording demo
 - [ ] Tim latihan demo minimal 2x
 - [ ] Siapkan jawaban Q&A:
-    - kenapa pakai KMP?
-    - kenapa Clean Architecture?
-    - bagaimana handle offline?
-    - bagaimana handle Jikan rate limit?
-    - bagaimana pembagian kerja tim?
-    - apa tantangan teknis terbesar?
+  - kenapa pakai KMP?
+  - kenapa Clean Architecture?
+  - bagaimana handle offline?
+  - bagaimana handle Jikan rate limit?
+  - bagaimana pembagian kerja tim?
+  - apa tantangan teknis terbesar?
 
 ---
 
@@ -345,67 +429,70 @@ Fokus UAS: presentasi akhir, live demo, technical explanation, code review, dan 
 Target durasi: 10–15 menit.
 
 - [ ] Introduction, 1–2 menit:
-    - perkenalan tim
-    - nama aplikasi
-    - problem statement
+  - perkenalan tim
+  - nama aplikasi
+  - problem statement
 - [ ] Features Overview, 1–2 menit:
-    - fitur utama aplikasi
-    - manfaat aplikasi untuk user
+  - fitur utama aplikasi
+  - manfaat aplikasi untuk user
 - [ ] Live Demo, 5–7 menit:
-    - tunjukkan aplikasi berjalan langsung
-    - demo flow utama tanpa terlalu banyak pause
+  - tunjukkan aplikasi berjalan langsung
+  - demo flow utama tanpa terlalu banyak pause
 - [ ] Technical Highlights, 2–3 menit:
-    - arsitektur aplikasi
-    - repository pattern
-    - local storage
-    - Jikan API integration
-    - gacha logic
-    - error/offline handling
+  - arsitektur aplikasi
+  - repository pattern
+  - local storage
+  - Jikan API integration
+  - cache + pull-refresh
+  - gacha logic
+  - error/offline handling
 - [ ] Q&A, 2–3 menit:
-    - jawab pertanyaan panel
-    - jelaskan alasan teknis dengan percaya diri
+  - jawab pertanyaan panel
+  - jelaskan alasan teknis dengan percaya diri
 
 ### UAS Grading Focus
 
 - [ ] App Functionality:
-    - fitur utama berjalan
-    - tidak crash
-    - UX cukup polished
+  - fitur utama berjalan
+  - tidak crash
+  - UX cukup polished
 - [ ] Code Quality:
-    - Clean Architecture
-    - MVVM
-    - Repository pattern
-    - state management jelas
-    - testing tersedia
+  - Clean Architecture
+  - MVVM
+  - Repository pattern
+  - state management jelas
+  - testing tersedia
 - [ ] Demo & Presentation:
-    - flow demo jelas
-    - pembagian bicara antar anggota
-    - tidak membaca slide terus-menerus
+  - flow demo jelas
+  - pembagian bicara antar anggota
+  - tidak membaca slide terus-menerus
 - [ ] Technical Depth:
-    - bisa menjelaskan keputusan teknis
-    - bisa menjelaskan problem solving
-    - bisa menjelaskan trade-off
+  - bisa menjelaskan keputusan teknis
+  - bisa menjelaskan problem solving
+  - bisa menjelaskan trade-off
 - [ ] Q&A Response:
-    - memahami kode sendiri
-    - bisa menjawab alasan penggunaan teknologi
-    - bisa menjelaskan keterbatasan dan rencana pengembangan
+  - memahami kode sendiri
+  - bisa menjawab alasan penggunaan teknologi
+  - bisa menjelaskan keterbatasan dan rencana pengembangan
 
 ### UAS Demo Flow
 
-- [ ] Buka Home/Discover
-- [ ] Tampilkan anime/manga recommendation
-- [ ] Buka detail anime
-- [ ] Tambahkan item ke MyList
-- [ ] Ubah status/progress item
-- [ ] Search anime/manga
+- [x] Buka Home/Discover
+- [x] Tampilkan anime/manga recommendation
+- [x] Buka detail anime
+- [x] Buka detail manga
+- [x] Tambahkan item ke MyList
+- [x] Ubah status/progress item
+- [x] Search anime/manga
+- [x] Tunjukkan pull-refresh di list/detail
 - [ ] Jalankan gacha dengan preferensi:
-    - genre tertentu
-    - minimum score
-    - media type anime/manga
-    - include/exclude watched/read
+  - genre tertentu
+  - minimum score
+  - media type anime/manga
+  - include/exclude watched/read
 - [ ] Buka hasil gacha ke detail
 - [ ] Tunjukkan error/offline handling atau fallback cache
-- [ ] Tunjukkan Settings/About jika tersedia
+- [x] Tunjukkan Settings/About jika tersedia
 
 ### Expected Q&A Preparation
 
@@ -414,6 +501,7 @@ Target durasi: 10–15 menit.
 - [ ] Bagaimana data user disimpan?
 - [ ] Bagaimana aplikasi handle Jikan API rate limit?
 - [ ] Bagaimana aplikasi handle offline mode?
+- [ ] Bagaimana pull-refresh tetap mempertahankan konten lama?
 - [ ] Bagaimana gacha memilih hasil?
 - [ ] Bagaimana mencegah item watched/read muncul lagi jika user tidak ingin?
 - [ ] Bagaimana pembagian kerja tim?
