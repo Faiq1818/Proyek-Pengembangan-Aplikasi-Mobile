@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.example.mybawanggacha.domain.anime.model.AnimeDetail
+import com.example.mybawanggacha.presentation.components.CopyableTitleText
 
 @Composable
 internal fun AnimeOverviewSection(anime: AnimeDetail) {
@@ -40,7 +41,8 @@ internal fun AnimeOverviewSection(anime: AnimeDetail) {
             .verticalScroll(rememberScrollState())
             .padding(start = 8.dp, top = 32.dp, end = 20.dp, bottom = 32.dp)
     ) {
-        Text(
+
+        CopyableTitleText(
             text = anime.title,
             style = MaterialTheme.typography.headlineLarge,
             color = MaterialTheme.colorScheme.onBackground,
@@ -53,7 +55,7 @@ internal fun AnimeOverviewSection(anime: AnimeDetail) {
             ?.takeIf { it.isNotBlank() && it != anime.title }
             ?.let { englishTitle ->
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(
+                CopyableTitleText(
                     text = englishTitle,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -67,7 +69,7 @@ internal fun AnimeOverviewSection(anime: AnimeDetail) {
             ?.takeIf { it.isNotBlank() }
             ?.let { japaneseTitle ->
                 Spacer(modifier = Modifier.height(3.dp))
-                Text(
+                CopyableTitleText(
                     text = japaneseTitle,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
