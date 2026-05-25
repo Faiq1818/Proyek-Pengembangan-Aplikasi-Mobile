@@ -19,11 +19,46 @@ class MangaDetailViewModel(
     val uiState: StateFlow<MangaDetailUiState> = _uiState.asStateFlow()
 
     fun fetchMangaDetail(malId: Int) {
+        loadMangaDetail(
+            malId = malId,
+            keepCurrentContent = false,
+            forceRefresh = false
+        )
+    }
+
+    fun refreshMangaDetail(malId: Int) {
+        loadMangaDetail(
+            malId = malId,
+            keepCurrentContent = true,
+            forceRefresh = true
+        )
+    }
+
+    private fun loadMangaDetail(
+        malId: Int,
+        keepCurrentContent: Boolean,
+        forceRefresh: Boolean
+    ) {
+        val currentSuccess = _uiState.value as? MangaDetailUiState.Success
+        val canKeepContent = keepCurrentContent && currentSuccess?.manga?.malId == malId
+
+        if (canKeepContent && currentSuccess?.isRefreshing == true) return
+
         viewModelScope.launch {
-            _uiState.value = MangaDetailUiState.Loading
+            val staleState = _uiState.value as? MangaDetailUiState.Success
+            val shouldKeepStaleState = keepCurrentContent && staleState?.manga?.malId == malId
+
+            if (shouldKeepStaleState && staleState != null) {
+                _uiState.value = staleState.copy(isRefreshing = true)
+            } else {
+                _uiState.value = MangaDetailUiState.Loading
+            }
 
             runCatching {
-                val manga = mangaRepository.getMangaDetail(malId)
+                val manga = mangaRepository.getMangaDetail(
+                    malId = malId,
+                    forceRefresh = forceRefresh
+                )
                 val existingEntry = libraryRepository.getEntry(
                     mediaId = manga.malId,
                     mediaType = MediaType.Manga
@@ -33,12 +68,18 @@ class MangaDetailViewModel(
             }.onSuccess { (manga, existingEntry) ->
                 _uiState.value = MangaDetailUiState.Success(
                     manga = manga,
-                    libraryEntryId = existingEntry?.id
+                    libraryEntryId = existingEntry?.id,
+                    isRefreshing = false
                 )
             }.onFailure { error ->
-                _uiState.value = MangaDetailUiState.Error(
-                    error.message ?: "Unknown error occurred"
-                )
+                val latestState = _uiState.value as? MangaDetailUiState.Success
+                if (shouldKeepStaleState && latestState != null) {
+                    _uiState.value = latestState.copy(isRefreshing = false)
+                } else {
+                    _uiState.value = MangaDetailUiState.Error(
+                        error.message ?: "Unknown error occurred"
+                    )
+                }
             }
         }
     }

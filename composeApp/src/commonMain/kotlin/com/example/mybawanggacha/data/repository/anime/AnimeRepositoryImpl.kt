@@ -261,13 +261,16 @@ class AnimeRepositoryImpl(
         }
     }
 
-    override suspend fun getAnimeDetail(malId: Int): AnimeDetailBundle = withContext(dispatchers.default) {
+    override suspend fun getAnimeDetail(
+        malId: Int,
+        forceRefresh: Boolean
+    ): AnimeDetailBundle = withContext(dispatchers.default) {
         val watchedNumbers = progressLocalDataSource.getWatchedEpisodeNumbers(malId)
         val cachedDetail = runCatching {
             detailCacheLocalDataSource.getAnimeDetail(malId)
         }.getOrNull()
 
-        if (cachedDetail?.isFresh() == true) {
+        if (!forceRefresh && cachedDetail?.isFresh() == true) {
             return@withContext buildAnimeDetailBundle(
                 animeDto = cachedDetail.detail,
                 episodeDtos = cachedDetail.episodes,

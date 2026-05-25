@@ -174,12 +174,15 @@ class MangaRepositoryImpl(
         }
     }
 
-    override suspend fun getMangaDetail(malId: Int): MangaDetail = withContext(dispatchers.default) {
+    override suspend fun getMangaDetail(
+        malId: Int,
+        forceRefresh: Boolean
+    ): MangaDetail = withContext(dispatchers.default) {
         val cachedDetail = runCatching {
             detailCacheLocalDataSource.getMangaDetail(malId)
         }.getOrNull()
 
-        if (cachedDetail?.isFresh() == true) {
+        if (!forceRefresh && cachedDetail?.isFresh() == true) {
             return@withContext buildMangaDetail(
                 mangaDto = MangaDetailCacheCodec.decodeDetail(cachedDetail.detailJson),
                 loadRelationPreviews = true

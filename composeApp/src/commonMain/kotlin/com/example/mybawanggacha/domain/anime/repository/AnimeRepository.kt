@@ -17,6 +17,6 @@ interface AnimeRepository {
     suspend fun getUpcomingSeasonAnimePage(page: Int): AnimePage
     suspend fun getTopAnimePage(page: Int): AnimePage
     suspend fun getAvailableSeasonPeriods(): List<AnimeSeasonPeriod>
-    suspend fun getAnimeDetail(malId: Int): AnimeDetailBundle
+    suspend fun getAnimeDetail(malId: Int, forceRefresh: Boolean = false): AnimeDetailBundle
     suspend fun setEpisodeWatched(animeId: Int, episodeNumber: Int, watched: Boolean)
 }
