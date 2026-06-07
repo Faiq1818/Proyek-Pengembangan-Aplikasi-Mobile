@@ -6,6 +6,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import com.example.mybawanggacha.domain.settings.model.AppColorScheme
+import com.example.mybawanggacha.presentation.theme.color.CatppuccinColor
 import com.example.mybawanggacha.presentation.theme.color.GruvboxColor
 import com.example.mybawanggacha.presentation.theme.color.PakHabibColor
 
@@ -160,6 +161,58 @@ private val GruvboxDarkColorScheme = darkColorScheme(
     outline = GruvboxColor.OutlineDark
 )
 
+private val CatppuccinLatteColorScheme = lightColorScheme(
+    primary = CatppuccinColor.Latte.Mauve,
+    onPrimary = CatppuccinColor.Latte.Base,
+    primaryContainer = CatppuccinColor.Latte.Surface1,
+    onPrimaryContainer = CatppuccinColor.Latte.Text,
+    secondary = CatppuccinColor.Latte.Blue,
+    onSecondary = CatppuccinColor.Latte.Base,
+    secondaryContainer = CatppuccinColor.Latte.Surface0,
+    onSecondaryContainer = CatppuccinColor.Latte.Text,
+    tertiary = CatppuccinColor.Latte.Peach,
+    onTertiary = CatppuccinColor.Latte.Base,
+    tertiaryContainer = CatppuccinColor.Latte.Surface0,
+    onTertiaryContainer = CatppuccinColor.Latte.Text,
+    error = CatppuccinColor.Latte.Red,
+    onError = CatppuccinColor.Latte.Base,
+    errorContainer = CatppuccinColor.Latte.Maroon,
+    onErrorContainer = CatppuccinColor.Latte.Base,
+    background = CatppuccinColor.Latte.Base,
+    onBackground = CatppuccinColor.Latte.Text,
+    surface = CatppuccinColor.Latte.Mantle,
+    onSurface = CatppuccinColor.Latte.Text,
+    surfaceVariant = CatppuccinColor.Latte.Surface0,
+    onSurfaceVariant = CatppuccinColor.Latte.Subtext0,
+    outline = CatppuccinColor.Latte.Overlay0
+)
+
+private val CatppuccinMochaColorScheme = darkColorScheme(
+    primary = CatppuccinColor.Mocha.Mauve,
+    onPrimary = CatppuccinColor.Mocha.Base,
+    primaryContainer = CatppuccinColor.Mocha.Surface1,
+    onPrimaryContainer = CatppuccinColor.Mocha.Text,
+    secondary = CatppuccinColor.Mocha.Blue,
+    onSecondary = CatppuccinColor.Mocha.Base,
+    secondaryContainer = CatppuccinColor.Mocha.Surface0,
+    onSecondaryContainer = CatppuccinColor.Mocha.Text,
+    tertiary = CatppuccinColor.Mocha.Peach,
+    onTertiary = CatppuccinColor.Mocha.Base,
+    tertiaryContainer = CatppuccinColor.Mocha.Surface0,
+    onTertiaryContainer = CatppuccinColor.Mocha.Text,
+    error = CatppuccinColor.Mocha.Red,
+    onError = CatppuccinColor.Mocha.Base,
+    errorContainer = CatppuccinColor.Mocha.Maroon,
+    onErrorContainer = CatppuccinColor.Mocha.Base,
+    background = CatppuccinColor.Mocha.Crust,
+    onBackground = CatppuccinColor.Mocha.Text,
+    surface = CatppuccinColor.Mocha.Base,
+    onSurface = CatppuccinColor.Mocha.Text,
+    surfaceVariant = CatppuccinColor.Mocha.Surface0,
+    onSurfaceVariant = CatppuccinColor.Mocha.Subtext0,
+    outline = CatppuccinColor.Mocha.Overlay0
+)
+
 // ==================== THEME ====================
 
 @Composable
@@ -172,6 +225,7 @@ fun MBGTheme(
         AppColorScheme.CodeGeass -> if (darkTheme) CodeGeassDarkColorScheme else CodeGeassLightColorScheme
         AppColorScheme.PakHabib -> if (darkTheme) PakHabibDarkColorScheme else PakHabibLightColorScheme
         AppColorScheme.Gruvbox -> if (darkTheme) GruvboxDarkColorScheme else GruvboxLightColorScheme
+        AppColorScheme.Catppuccin -> if (darkTheme) CatppuccinMochaColorScheme else CatppuccinLatteColorScheme
     }
 
     MaterialTheme(

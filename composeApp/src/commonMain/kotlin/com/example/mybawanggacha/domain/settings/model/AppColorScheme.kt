@@ -23,6 +23,12 @@ enum class AppColorScheme(
         description = "Retro warm palette: earthy, low contrast, terminal friendly.",
         lightSwatches = listOf("#FBF1C7", "#79740E", "#B57614", "#427B58", "#D5C4A1", "#3C3836"),
         darkSwatches = listOf("#282828", "#B8BB26", "#FABD2F", "#8EC07C", "#504945", "#EBDBB2")
+    ),
+    Catppuccin(
+        label = "Catppuccin",
+        description = "Latte untuk light, Mocha untuk dark.",
+        lightSwatches = listOf("#EFF1F5", "#8839EF", "#1E66F5", "#40A02B", "#FE640B", "#4C4F69"),
+        darkSwatches = listOf("#1E1E2E", "#CBA6F7", "#89B4FA", "#A6E3A1", "#FAB387", "#CDD6F4")
     );
 
     fun swatches(darkTheme: Boolean): List<String> {
