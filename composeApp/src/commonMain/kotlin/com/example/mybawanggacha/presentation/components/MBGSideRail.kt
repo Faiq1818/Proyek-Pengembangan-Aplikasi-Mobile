@@ -60,6 +60,7 @@ object MBGMainRailKey {
     const val Home = "home"
     const val Search = "search"
     const val MyLibrary = "my_library"
+    const val Gacha = "gacha"
     const val AnimeList = "anime_list"
     const val MangaList = "manga_list"
 }
@@ -81,6 +82,11 @@ fun animeMainRailItems(): List<MBGSideRailItem> = listOf(
         key = MBGMainRailKey.MyLibrary,
         label = "My Library",
         icon = Icons.Default.CollectionsBookmark
+    ),
+    MBGSideRailItem(
+        key = MBGMainRailKey.Gacha,
+        label = "Gacha",
+        icon = null
     ),
     MBGSideRailItem(
         key = MBGMainRailKey.AnimeList,

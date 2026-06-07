@@ -16,6 +16,7 @@ import com.example.mybawanggacha.presentation.screens.anime.detail.AnimeDetailSc
 import com.example.mybawanggacha.presentation.screens.anime.list.AnimeListScreen
 import com.example.mybawanggacha.presentation.screens.notes.detail.NoteDetailScreen
 import com.example.mybawanggacha.presentation.screens.discover.HomeScreen
+import com.example.mybawanggacha.presentation.screens.gacha.GachaScreen
 import com.example.mybawanggacha.presentation.screens.library.editor.LibraryEntryEditorScreen
 import com.example.mybawanggacha.presentation.screens.library.list.MyListScreen
 import com.example.mybawanggacha.presentation.screens.manga.detail.MangaDetailScreen
@@ -46,6 +47,7 @@ fun AppNavHost(
                 onNavigateToAnimeList = { navigationActions.navigateToAnimeList() },
                 onNavigateToMangaList = { navigationActions.navigateToMangaList() },
                 onNavigateToSearch = { navigationActions.navigateToSearch() },
+                onNavigateToGacha = { navigationActions.navigateToGacha() },
                 onNavigateToSettings = { navigationActions.navigateToSettings() }
             )
         }
@@ -57,6 +59,7 @@ fun AppNavHost(
                 onNavigateToMyLibrary = { navigationActions.navigateToMyLibrary() },
                 onNavigateToAnimeList = { navigationActions.navigateToAnimeList() },
                 onNavigateToMangaList = { navigationActions.navigateToMangaList() },
+                onNavigateToGacha = { navigationActions.navigateToGacha() },
                 onNavigateToAnimeDetail = { malId -> navigationActions.navigateToAnimeDetail(malId) },
                 onNavigateToMangaDetail = { malId -> navigationActions.navigateToMangaDetail(malId) }
             )
@@ -69,6 +72,7 @@ fun AppNavHost(
                 onNavigateToAnimeList = { navigationActions.navigateToAnimeList() },
                 onNavigateToMangaList = { navigationActions.navigateToMangaList() },
                 onNavigateToSearch = { navigationActions.navigateToSearch() },
+                onNavigateToGacha = { navigationActions.navigateToGacha() },
                 onNavigateToDetail = { mediaId, mediaType ->
                     when (mediaType) {
                         MediaType.Anime -> navigationActions.navigateToAnimeDetail(mediaId)
@@ -95,6 +99,7 @@ fun AppNavHost(
                 onNavigateToMyLibrary = { navigationActions.navigateToMyLibrary() },
                 onNavigateToMangaList = { navigationActions.navigateToMangaList() },
                 onNavigateToSearch = { navigationActions.navigateToSearch() },
+                onNavigateToGacha = { navigationActions.navigateToGacha() },
                 onNavigateToAnimeDetail = { malId -> navigationActions.navigateToAnimeDetail(malId) }
             )
         }
@@ -106,6 +111,7 @@ fun AppNavHost(
                 onNavigateToMyLibrary = { navigationActions.navigateToMyLibrary() },
                 onNavigateToAnimeList = { navigationActions.navigateToAnimeList() },
                 onNavigateToSearch = { navigationActions.navigateToSearch() },
+                onNavigateToGacha = { navigationActions.navigateToGacha() },
                 onNavigateToMangaDetail = { malId -> navigationActions.navigateToMangaDetail(malId) }
             )
         }
@@ -150,10 +156,24 @@ fun AppNavHost(
                 onNavigateToMyLibrary = { navigationActions.navigateToMyLibrary() },
                 onNavigateToAnimeList = { navigationActions.navigateToAnimeList() },
                 onNavigateToMangaList = { navigationActions.navigateToMangaList() },
-                onNavigateToSearch = { navigationActions.navigateToSearch() }
+                onNavigateToSearch = { navigationActions.navigateToSearch() },
+                onNavigateToGacha = { navigationActions.navigateToGacha() }
             )
         }
-        
+
+        composable<Route.Gacha> {
+            GachaScreen(
+                onNavigateBack = { navigationActions.navigateBack() },
+                onNavigateHome = { navigationActions.navigateToHome() },
+                onNavigateToMyLibrary = { navigationActions.navigateToMyLibrary() },
+                onNavigateToAnimeList = { navigationActions.navigateToAnimeList() },
+                onNavigateToMangaList = { navigationActions.navigateToMangaList() },
+                onNavigateToSearch = { navigationActions.navigateToSearch() },
+                onNavigateToAnimeDetail = { malId -> navigationActions.navigateToAnimeDetail(malId) },
+                onNavigateToMangaDetail = { malId -> navigationActions.navigateToMangaDetail(malId) }
+            )
+        }
+
         composable<Route.AddNote> { backStackEntry ->
             val route: Route.AddNote = backStackEntry.toRoute()
             AddNoteScreen(
@@ -224,6 +244,10 @@ private fun createNavigationActions(navController: NavHostController): Navigatio
 
         override fun navigateToMyLibrary() {
             navController.navigate(Route.MyLibrary)
+        }
+
+        override fun navigateToGacha() {
+            navController.navigate(Route.Gacha)
         }
 
         override fun navigateToAnimeList() {

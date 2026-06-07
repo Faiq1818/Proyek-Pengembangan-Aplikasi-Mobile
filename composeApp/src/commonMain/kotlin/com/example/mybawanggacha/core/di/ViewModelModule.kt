@@ -7,6 +7,7 @@ import com.example.mybawanggacha.presentation.screens.anime.home.AnimeHomeViewMo
 import com.example.mybawanggacha.presentation.screens.anime.list.AnimeListViewModel
 import com.example.mybawanggacha.presentation.screens.notes.detail.NoteDetailViewModel
 import com.example.mybawanggacha.presentation.screens.discover.HomeViewModel
+import com.example.mybawanggacha.presentation.screens.gacha.GachaViewModel
 import com.example.mybawanggacha.presentation.screens.library.editor.LibraryEntryEditorViewModel
 import com.example.mybawanggacha.presentation.screens.library.list.LibraryViewModel
 import com.example.mybawanggacha.presentation.screens.manga.detail.MangaDetailViewModel
@@ -30,4 +31,5 @@ val viewModelModule = module {
     viewModelOf(::LibraryViewModel)
     viewModelOf(::LibraryEntryEditorViewModel)
     viewModelOf(::SettingsViewModel)
+    viewModelOf(::GachaViewModel)
 }
