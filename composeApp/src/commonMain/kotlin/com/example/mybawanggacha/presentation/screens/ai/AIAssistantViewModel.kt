@@ -3,6 +3,8 @@ package com.example.mybawanggacha.presentation.screens.ai
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mybawanggacha.domain.ai.repository.AIRepository
+import com.example.mybawanggacha.domain.ai.repository.ChatMessage
+import com.example.mybawanggacha.domain.ai.repository.MessageSender
 import com.example.mybawanggacha.domain.ai.repository.WritingStyle
 import com.example.mybawanggacha.domain.note.usecase.GenerateIdeasUseCase
 import com.example.mybawanggacha.domain.note.usecase.ImproveWritingUseCase
@@ -57,12 +59,13 @@ class AIAssistantViewModel(
         }
         
         val userMessage = ChatMessage(sender = MessageSender.USER, text = messageText)
+        val updatedHistory = state.chatHistory + userMessage
         _uiState.update { 
             it.copy(
                 inputText = "",
                 isLoading = true,
                 error = null,
-                chatHistory = it.chatHistory + userMessage
+                chatHistory = updatedHistory
             ) 
         }
         
@@ -76,7 +79,7 @@ class AIAssistantViewModel(
                     Gunakan informasi di atas jika pengguna bertanya tentang anime tersebut. Jawab dengan bersahabat dan kontekstual.
                 """.trimIndent()
             }
-            val result = chat(messageText, systemPrompt)
+            val result = chat(updatedHistory, systemPrompt)
             
             result
                 .onSuccess { output ->
@@ -143,8 +146,8 @@ class AIAssistantViewModel(
         return aiRepository.suggestTitle(content)
     }
     
-    private suspend fun chat(message: String, systemPrompt: String? = null): Result<String> {
-        return aiRepository.chat(message, systemPrompt)
+    private suspend fun chat(history: List<ChatMessage>, systemPrompt: String? = null): Result<String> {
+        return aiRepository.chat(history, systemPrompt)
     }
 }
 
@@ -157,14 +160,6 @@ enum class AIAction(val displayName: String, val description: String) {
     CHAT("Tanya", "Tanya AI tentang apapun")
 }
 
-data class ChatMessage(
-    val sender: MessageSender,
-    val text: String
-)
-
-enum class MessageSender {
-    USER, AI
-}
 
 data class AIAssistantUiState(
     val inputText: String = "",

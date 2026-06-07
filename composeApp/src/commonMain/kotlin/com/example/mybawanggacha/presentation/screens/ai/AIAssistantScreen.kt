@@ -43,6 +43,8 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mybawanggacha.presentation.components.MBGTopBar
+import com.example.mybawanggacha.domain.ai.repository.ChatMessage
+import com.example.mybawanggacha.domain.ai.repository.MessageSender
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -2,7 +2,11 @@ package com.example.mybawanggacha.data.repository.ai
 
 import com.example.mybawanggacha.data.remote.gemini.api.GeminiService
 import com.example.mybawanggacha.data.remote.gemini.api.SystemPrompts
+import com.example.mybawanggacha.data.remote.gemini.dto.GeminiContent
+import com.example.mybawanggacha.data.remote.gemini.dto.GeminiPart
 import com.example.mybawanggacha.domain.ai.repository.AIRepository
+import com.example.mybawanggacha.domain.ai.repository.ChatMessage
+import com.example.mybawanggacha.domain.ai.repository.MessageSender
 import com.example.mybawanggacha.domain.ai.repository.WritingStyle
 
 class AIRepositoryImpl(
@@ -76,8 +80,34 @@ class AIRepositoryImpl(
         )
     }
 
-    override suspend fun chat(message: String, systemPrompt: String?): Result<String> {
-        return geminiService.generateContent(prompt = message, systemPrompt = systemPrompt)
+    override suspend fun chat(history: List<ChatMessage>, systemPrompt: String?): Result<String> {
+        val contents = mutableListOf<GeminiContent>()
+        
+        if (systemPrompt != null) {
+            contents.add(
+                GeminiContent(
+                    parts = listOf(GeminiPart(text = systemPrompt)),
+                    role = "user"
+                )
+            )
+            contents.add(
+                GeminiContent(
+                    parts = listOf(GeminiPart(text = "Baik, saya akan mengikuti instruksi tersebut.")),
+                    role = "model"
+                )
+            )
+        }
+        
+        history.forEach { message ->
+            contents.add(
+                GeminiContent(
+                    parts = listOf(GeminiPart(text = message.text)),
+                    role = if (message.sender == MessageSender.USER) "user" else "model"
+                )
+            )
+        }
+        
+        return geminiService.generateContent(contents)
     }
 
     override suspend fun suggestTitle(content: String): Result<String> {

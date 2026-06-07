@@ -1,11 +1,20 @@
 package com.example.mybawanggacha.domain.ai.repository
 
+data class ChatMessage(
+    val sender: MessageSender,
+    val text: String
+)
+
+enum class MessageSender {
+    USER, AI
+}
+
 interface AIRepository {
     suspend fun summarize(text: String): Result<String>
     suspend fun generateIdeas(topic: String): Result<List<String>>
     suspend fun improveWriting(text: String, style: WritingStyle = WritingStyle.NEUTRAL): Result<String>
     suspend fun translate(text: String, targetLanguage: String): Result<String>
-    suspend fun chat(message: String, systemPrompt: String? = null): Result<String>
+    suspend fun chat(history: List<ChatMessage>, systemPrompt: String? = null): Result<String>
     suspend fun suggestTitle(content: String): Result<String>
 }
 
