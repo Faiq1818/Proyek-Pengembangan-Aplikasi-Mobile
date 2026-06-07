@@ -3,6 +3,7 @@ package com.example.mybawanggacha.data.repository.jikan
 import com.example.mybawanggacha.data.remote.jikan.dto.AnimeDetailData
 import com.example.mybawanggacha.data.remote.jikan.dto.JikanAnimeListResponse
 import com.example.mybawanggacha.data.remote.jikan.dto.JikanRecommendationsResponse
+import com.example.mybawanggacha.data.remote.jikan.dto.JikanSeasonArchiveResponse
 import com.example.mybawanggacha.data.remote.jikan.dto.MangaDetailData
 import com.example.mybawanggacha.data.remote.jikan.dto.RelationEntryPreviewDto
 import com.example.mybawanggacha.data.remote.jikan.dto.WatchEpisodesResponse
@@ -29,6 +30,14 @@ internal object JikanResponseCacheCodec {
 
     fun decodeRecommendations(value: String): JikanRecommendationsResponse {
         return json.decodeFromString(JikanRecommendationsResponse.serializer(), value)
+    }
+
+    fun encodeSeasonArchive(response: JikanSeasonArchiveResponse): String {
+        return json.encodeToString(JikanSeasonArchiveResponse.serializer(), response)
+    }
+
+    fun decodeSeasonArchive(value: String): JikanSeasonArchiveResponse {
+        return json.decodeFromString(JikanSeasonArchiveResponse.serializer(), value)
     }
 
     fun encodeAnimeDetails(details: List<AnimeDetailData>): String {

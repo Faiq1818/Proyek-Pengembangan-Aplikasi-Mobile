@@ -7,6 +7,8 @@ import com.example.mybawanggacha.data.local.source.MediaPageCacheLocalDataSource
 import com.example.mybawanggacha.data.local.source.RelationPreviewCacheLocalDataSource
 import com.example.mybawanggacha.data.repository.ai.AIRepositoryImpl
 import com.example.mybawanggacha.data.repository.anime.AnimeRepositoryImpl
+import com.example.mybawanggacha.data.repository.jikan.JikanCachePolicy
+import com.example.mybawanggacha.data.repository.jikan.SettingsJikanCachePolicy
 import com.example.mybawanggacha.data.repository.library.LibraryRepositoryImpl
 import com.example.mybawanggacha.data.repository.manga.MangaRepositoryImpl
 import com.example.mybawanggacha.data.repository.note.NoteRepositoryImpl
@@ -29,6 +31,7 @@ val repositoryModule = module {
     singleOf(::MangaDetailCacheLocalDataSource)
     singleOf(::MediaPageCacheLocalDataSource)
     singleOf(::RelationPreviewCacheLocalDataSource)
+    single<JikanCachePolicy> { SettingsJikanCachePolicy(get()) }
     singleOf(::NoteRepositoryImpl) bind NoteRepository::class
     singleOf(::AIRepositoryImpl) bind AIRepository::class
     singleOf(::AnimeRepositoryImpl) bind AnimeRepository::class
@@ -38,10 +41,9 @@ val repositoryModule = module {
         SearchRepositoryImpl(
             remoteDataSource = get(),
             dispatchers = get(),
-            mediaPageCacheLocalDataSource = get()
+            mediaPageCacheLocalDataSource = get(),
+            cachePolicy = get()
         )
     }
-    singleOf(::SettingsRepositoryImpl) bind SettingsRepository::class
-    singleOf(::SearchRepositoryImpl) bind SearchRepository::class
     singleOf(::SettingsRepositoryImpl) bind SettingsRepository::class
 }

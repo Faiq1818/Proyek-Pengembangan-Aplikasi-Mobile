@@ -16,7 +16,10 @@ import com.example.mybawanggacha.data.remote.jikan.source.JikanAnimeRemoteDataSo
 import com.example.mybawanggacha.data.remote.jikan.dto.AnimeRelationEntryDto
 import com.example.mybawanggacha.data.remote.jikan.dto.JikanAnimeListResponse
 import com.example.mybawanggacha.data.remote.jikan.dto.JikanRecommendationsResponse
+import com.example.mybawanggacha.data.remote.jikan.dto.JikanSeasonArchiveResponse
 import com.example.mybawanggacha.data.remote.jikan.dto.WatchEpisodesResponse
+import com.example.mybawanggacha.data.repository.jikan.AlwaysOnlineJikanCachePolicy
+import com.example.mybawanggacha.data.repository.jikan.JikanCachePolicy
 import com.example.mybawanggacha.data.repository.jikan.JikanResponseCacheCodec
 import com.example.mybawanggacha.domain.anime.model.AnimeDetailBundle
 import com.example.mybawanggacha.domain.anime.model.AnimeEpisode
@@ -38,7 +41,8 @@ class AnimeRepositoryImpl(
     private val detailCacheLocalDataSource: AnimeDetailCacheLocalDataSource,
     private val pageCacheLocalDataSource: MediaPageCacheLocalDataSource,
     private val relationPreviewCacheLocalDataSource: RelationPreviewCacheLocalDataSource,
-    private val dispatchers: AppDispatchers
+    private val dispatchers: AppDispatchers,
+    private val cachePolicy: JikanCachePolicy = AlwaysOnlineJikanCachePolicy
 ) : AnimeRepository {
 
     private val memoryRelationPreviewCache = mutableMapOf<String, AnimeRelationPreview>()
@@ -120,8 +124,10 @@ class AnimeRepositoryImpl(
     }
 
     override suspend fun getAvailableSeasonPeriods(): List<AnimeSeasonPeriod> = withContext(dispatchers.default) {
-        remoteDataSource.fetchSeasonArchive()
-            .data
+        getCachedSeasonArchive(
+            cacheKey = "anime:season:archive",
+            fetchRemote = { remoteDataSource.fetchSeasonArchive() }
+        ).data
             .flatMap { yearDto ->
                 yearDto.seasons.mapNotNull { seasonKey ->
                     AnimeSeason.fromApiKey(seasonKey)?.let { season ->
@@ -133,6 +139,39 @@ class AnimeRepositoryImpl(
             .sortedByDescending { it.sortValue }
     }
 
+    private suspend fun getCachedSeasonArchive(
+        cacheKey: String,
+        fetchRemote: suspend () -> JikanSeasonArchiveResponse
+    ): JikanSeasonArchiveResponse {
+        val cached = runCatching { pageCacheLocalDataSource.getPage(cacheKey) }.getOrNull()
+
+        if (cached?.isFresh() == true) {
+            return JikanResponseCacheCodec.decodeSeasonArchive(cached.payloadJson)
+        }
+
+        if (!cachePolicy.allowsNetwork()) {
+            return cached?.let { JikanResponseCacheCodec.decodeSeasonArchive(it.payloadJson) }
+                ?: error(cachePolicy.cacheMissMessage("arsip musim"))
+        }
+
+        return runCatching {
+            fetchRemote().also { response ->
+                runCatching {
+                    pageCacheLocalDataSource.savePage(
+                        cacheKey = cacheKey,
+                        payloadJson = JikanResponseCacheCodec.encodeSeasonArchive(response)
+                    )
+                }
+            }
+        }.getOrElse { error ->
+            if (cached != null) {
+                JikanResponseCacheCodec.decodeSeasonArchive(cached.payloadJson)
+            } else {
+                throw error
+            }
+        }
+    }
+
     private suspend fun getCachedAnimeList(
         cacheKey: String,
         fetchRemote: suspend () -> JikanAnimeListResponse
@@ -141,6 +180,11 @@ class AnimeRepositoryImpl(
 
         if (cached?.isFresh() == true) {
             return JikanResponseCacheCodec.decodeAnimeList(cached.payloadJson)
+        }
+
+        if (!cachePolicy.allowsNetwork()) {
+            return cached?.let { JikanResponseCacheCodec.decodeAnimeList(it.payloadJson) }
+                ?: error(cachePolicy.cacheMissMessage("daftar anime"))
         }
 
         return runCatching {
@@ -171,6 +215,11 @@ class AnimeRepositoryImpl(
             return JikanResponseCacheCodec.decodeRecommendations(cached.payloadJson)
         }
 
+        if (!cachePolicy.allowsNetwork()) {
+            return cached?.let { JikanResponseCacheCodec.decodeRecommendations(it.payloadJson) }
+                ?: error(cachePolicy.cacheMissMessage("rekomendasi anime"))
+        }
+
         return runCatching {
             fetchRemote().also { response ->
                 runCatching {
@@ -197,6 +246,11 @@ class AnimeRepositoryImpl(
 
         if (cached?.isFresh() == true) {
             return JikanResponseCacheCodec.decodeAnimeDetails(cached.payloadJson)
+        }
+
+        if (!cachePolicy.allowsNetwork()) {
+            return cached?.let { JikanResponseCacheCodec.decodeAnimeDetails(it.payloadJson) }
+                ?: error(cachePolicy.cacheMissMessage("random anime"))
         }
 
         return runCatching {
@@ -243,6 +297,11 @@ class AnimeRepositoryImpl(
             return JikanResponseCacheCodec.decodeWatchEpisodes(cached.payloadJson)
         }
 
+        if (!cachePolicy.allowsNetwork()) {
+            return cached?.let { JikanResponseCacheCodec.decodeWatchEpisodes(it.payloadJson) }
+                ?: error(cachePolicy.cacheMissMessage("episode terbaru"))
+        }
+
         return runCatching {
             fetchRemote().also { response ->
                 runCatching {
@@ -277,6 +336,18 @@ class AnimeRepositoryImpl(
                 watchedNumbers = watchedNumbers,
                 loadRelationPreviews = true
             )
+        }
+
+        if (!cachePolicy.allowsNetwork()) {
+            if (cachedDetail != null) {
+                return@withContext buildAnimeDetailBundle(
+                    animeDto = cachedDetail.detail,
+                    episodeDtos = cachedDetail.episodes,
+                    watchedNumbers = watchedNumbers,
+                    loadRelationPreviews = true
+                )
+            }
+            error(cachePolicy.cacheMissMessage("detail anime"))
         }
 
         runCatching {
@@ -396,6 +467,16 @@ class AnimeRepositoryImpl(
                         .toDomain()
                     memoryRelationPreviewCache[key] = preview
                     previews[key] = preview
+                    return@forEachIndexed
+                }
+
+                if (!cachePolicy.allowsNetwork()) {
+                    if (cachedPreview != null) {
+                        val preview = JikanResponseCacheCodec.decodeRelationPreview(cachedPreview.previewJson)
+                            .toDomain()
+                        memoryRelationPreviewCache[key] = preview
+                        previews[key] = preview
+                    }
                     return@forEachIndexed
                 }
 

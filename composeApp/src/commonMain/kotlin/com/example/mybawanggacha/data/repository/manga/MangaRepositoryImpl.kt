@@ -14,6 +14,8 @@ import com.example.mybawanggacha.data.remote.jikan.mapper.toMangaDomain
 import com.example.mybawanggacha.data.remote.jikan.mapper.toMangaDomainPage
 import com.example.mybawanggacha.data.remote.jikan.mapper.toSummary
 import com.example.mybawanggacha.data.remote.jikan.source.JikanMangaRemoteDataSource
+import com.example.mybawanggacha.data.repository.jikan.AlwaysOnlineJikanCachePolicy
+import com.example.mybawanggacha.data.repository.jikan.JikanCachePolicy
 import com.example.mybawanggacha.data.repository.jikan.JikanResponseCacheCodec
 import com.example.mybawanggacha.domain.manga.model.MangaDetail
 import com.example.mybawanggacha.domain.manga.model.MangaPage
@@ -30,19 +32,24 @@ class MangaRepositoryImpl(
     private val detailCacheLocalDataSource: MangaDetailCacheLocalDataSource,
     private val pageCacheLocalDataSource: MediaPageCacheLocalDataSource,
     private val relationPreviewCacheLocalDataSource: RelationPreviewCacheLocalDataSource,
-    private val dispatchers: AppDispatchers
+    private val dispatchers: AppDispatchers,
+    private val cachePolicy: JikanCachePolicy = AlwaysOnlineJikanCachePolicy
 ) : MangaRepository {
 
     private val memoryRelationPreviewCache = mutableMapOf<String, MangaRelationPreview>()
 
     override suspend fun getTopMangaPage(page: Int): MangaPage = withContext(dispatchers.default) {
-        remoteDataSource.fetchTopManga(page = page, type = "manga")
-            .toMangaDomainPage(requestedPage = page)
+        getCachedMangaList(
+            cacheKey = "manga:top:manga:$page",
+            fetchRemote = { remoteDataSource.fetchTopManga(page = page, type = "manga") }
+        ).toMangaDomainPage(requestedPage = page)
     }
 
     override suspend fun getPopularMangaPage(page: Int): MangaPage = withContext(dispatchers.default) {
-        remoteDataSource.fetchTopManga(page = page, filter = "bypopularity")
-            .toMangaDomainPage(requestedPage = page)
+        getCachedMangaList(
+            cacheKey = "manga:top:bypopularity:$page",
+            fetchRemote = { remoteDataSource.fetchTopManga(page = page, filter = "bypopularity") }
+        ).toMangaDomainPage(requestedPage = page)
     }
 
     override suspend fun getRecommendations(): List<MangaSummary> = withContext(dispatchers.default) {
@@ -84,6 +91,11 @@ class MangaRepositoryImpl(
             return JikanResponseCacheCodec.decodeAnimeList(cached.payloadJson)
         }
 
+        if (!cachePolicy.allowsNetwork()) {
+            return cached?.let { JikanResponseCacheCodec.decodeAnimeList(it.payloadJson) }
+                ?: error(cachePolicy.cacheMissMessage("daftar manga"))
+        }
+
         return runCatching {
             fetchRemote().also { response ->
                 runCatching {
@@ -112,6 +124,11 @@ class MangaRepositoryImpl(
             return JikanResponseCacheCodec.decodeRecommendations(cached.payloadJson)
         }
 
+        if (!cachePolicy.allowsNetwork()) {
+            return cached?.let { JikanResponseCacheCodec.decodeRecommendations(it.payloadJson) }
+                ?: error(cachePolicy.cacheMissMessage("rekomendasi manga"))
+        }
+
         return runCatching {
             fetchRemote().also { response ->
                 runCatching {
@@ -138,6 +155,11 @@ class MangaRepositoryImpl(
 
         if (cached?.isFresh() == true) {
             return JikanResponseCacheCodec.decodeMangaDetails(cached.payloadJson)
+        }
+
+        if (!cachePolicy.allowsNetwork()) {
+            return cached?.let { JikanResponseCacheCodec.decodeMangaDetails(it.payloadJson) }
+                ?: error(cachePolicy.cacheMissMessage("random manga"))
         }
 
         return runCatching {
@@ -187,6 +209,16 @@ class MangaRepositoryImpl(
                 mangaDto = MangaDetailCacheCodec.decodeDetail(cachedDetail.detailJson),
                 loadRelationPreviews = true
             )
+        }
+
+        if (!cachePolicy.allowsNetwork()) {
+            if (cachedDetail != null) {
+                return@withContext buildMangaDetail(
+                    mangaDto = MangaDetailCacheCodec.decodeDetail(cachedDetail.detailJson),
+                    loadRelationPreviews = true
+                )
+            }
+            error(cachePolicy.cacheMissMessage("detail manga"))
         }
 
         runCatching {
@@ -250,6 +282,16 @@ class MangaRepositoryImpl(
                     .toMangaDomain()
                 memoryRelationPreviewCache[key] = preview
                 previews[key] = preview
+                return@forEachIndexed
+            }
+
+            if (!cachePolicy.allowsNetwork()) {
+                if (cachedPreview != null) {
+                    val preview = JikanResponseCacheCodec.decodeRelationPreview(cachedPreview.previewJson)
+                        .toMangaDomain()
+                    memoryRelationPreviewCache[key] = preview
+                    previews[key] = preview
+                }
                 return@forEachIndexed
             }
 
