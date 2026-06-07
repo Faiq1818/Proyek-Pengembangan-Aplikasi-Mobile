@@ -49,6 +49,12 @@ class LibraryRepositoryImpl(
             .map { row -> row?.toDomain() }
     }
 
+    override suspend fun getEntries(): List<LibraryEntry> = withContext(dispatchers.io) {
+        queries.getLibraryEntries()
+            .executeAsList()
+            .map { row -> row.toDomain() }
+    }
+
     override suspend fun getEntryById(id: Long): LibraryEntry? = withContext(dispatchers.io) {
         queries.getLibraryEntryById(id).executeAsOneOrNull()?.toDomain()
     }

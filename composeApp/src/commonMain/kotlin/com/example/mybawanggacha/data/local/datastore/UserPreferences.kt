@@ -30,6 +30,8 @@ class UserPreferences(
         val SHOW_PREVIEW = booleanPreferencesKey("show_preview")
         val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
         val NETWORK_MODE = stringPreferencesKey("network_mode")
+        val GACHA_PREFERENCE = stringPreferencesKey("gacha_preference")
+        val GACHA_HISTORY = stringPreferencesKey("gacha_history")
     }
     
     // ==================== DARK MODE ====================
@@ -124,6 +126,28 @@ class UserPreferences(
     suspend fun setNetworkMode(mode: String) {
         dataStore.edit { prefs ->
             prefs[Keys.NETWORK_MODE] = mode
+        }
+    }
+
+    // ==================== GACHA ====================
+
+    val gachaPreferenceJson: Flow<String> = dataStore.data.map { prefs ->
+        prefs[Keys.GACHA_PREFERENCE] ?: ""
+    }
+
+    suspend fun setGachaPreferenceJson(value: String) {
+        dataStore.edit { prefs ->
+            prefs[Keys.GACHA_PREFERENCE] = value
+        }
+    }
+
+    val gachaHistoryJson: Flow<String> = dataStore.data.map { prefs ->
+        prefs[Keys.GACHA_HISTORY] ?: "[]"
+    }
+
+    suspend fun setGachaHistoryJson(value: String) {
+        dataStore.edit { prefs ->
+            prefs[Keys.GACHA_HISTORY] = value
         }
     }
 

@@ -1,5 +1,6 @@
 package com.example.mybawanggacha.core.di
 
+import com.example.mybawanggacha.domain.gacha.usecase.RunGachaUseCase
 import com.example.mybawanggacha.domain.note.usecase.DeleteNoteUseCase
 import com.example.mybawanggacha.domain.note.usecase.GenerateIdeasUseCase
 import com.example.mybawanggacha.domain.note.usecase.GetAllNotesUseCase
@@ -18,4 +19,5 @@ val useCaseModule = module {
     singleOf(::SummarizeNoteUseCase)
     singleOf(::ImproveWritingUseCase)
     singleOf(::GenerateIdeasUseCase)
+    singleOf(::RunGachaUseCase)
 }
