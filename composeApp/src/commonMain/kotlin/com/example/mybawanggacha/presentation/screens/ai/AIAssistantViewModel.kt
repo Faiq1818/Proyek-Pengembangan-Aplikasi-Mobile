@@ -35,6 +35,10 @@ class AIAssistantViewModel(
         }
     }
     
+    fun setAnimeContext(context: String?) {
+        _uiState.update { state -> state.copy(animeContext = context) }
+    }
+    
     fun onInputTextChange(text: String) {
         _uiState.update { it.copy(inputText = text, error = null) }
     }
@@ -45,49 +49,65 @@ class AIAssistantViewModel(
     
     fun executeAction() {
         val state = _uiState.value
+        val messageText = state.inputText.trim()
         
-        if (state.inputText.isBlank()) {
+        if (messageText.isBlank()) {
             _uiState.update { it.copy(error = "Masukkan teks terlebih dahulu") }
             return
         }
         
-        _uiState.update { it.copy(isLoading = true, error = null, result = null) }
+        val userMessage = ChatMessage(sender = MessageSender.USER, text = messageText)
+        _uiState.update { 
+            it.copy(
+                inputText = "",
+                isLoading = true,
+                error = null,
+                chatHistory = it.chatHistory + userMessage
+            ) 
+        }
         
         viewModelScope.launch {
-            val result = when (state.selectedAction) {
-                AIAction.SUMMARIZE -> summarize(state.inputText)
-                AIAction.GENERATE_IDEAS -> generateIdeas(state.inputText)
-                AIAction.IMPROVE_WRITING -> improveWriting(state.inputText, state.writingStyle)
-                AIAction.TRANSLATE -> translate(state.inputText, state.targetLanguage)
-                AIAction.SUGGEST_TITLE -> suggestTitle(state.inputText)
-                AIAction.CHAT -> chat(state.inputText)
+            val systemPrompt = state.animeContext?.let {
+                """
+                    Kamu adalah chatbot asisten AI.
+                    Berikut adalah data konteks anime yang sedang dilihat oleh pengguna saat ini:
+                    $it
+                    
+                    Gunakan informasi di atas jika pengguna bertanya tentang anime tersebut. Jawab dengan bersahabat dan kontekstual.
+                """.trimIndent()
             }
+            val result = chat(messageText, systemPrompt)
             
             result
                 .onSuccess { output ->
-                    _uiState.update { it.copy(isLoading = false, result = output) }
+                    val aiMessage = ChatMessage(sender = MessageSender.AI, text = output)
+                    _uiState.update { 
+                        it.copy(
+                            isLoading = false,
+                            chatHistory = it.chatHistory + aiMessage
+                        ) 
+                    }
                 }
                 .onFailure { error ->
-                    _uiState.update { it.copy(isLoading = false, error = error.message ?: "Terjadi kesalahan") }
+                    _uiState.update { 
+                        it.copy(
+                            isLoading = false,
+                            error = error.message ?: "Terjadi kesalahan"
+                        ) 
+                    }
                 }
         }
     }
     
-    fun copyResult() {
-        val result = _uiState.value.result
-        if (result != null) {
-            viewModelScope.launch {
-                _events.emit(AIAssistantEvent.CopyToClipboard(result))
-            }
+    fun copyResult(text: String) {
+        viewModelScope.launch {
+            _events.emit(AIAssistantEvent.CopyToClipboard(text))
         }
     }
     
-    fun applyToNote() {
-        val result = _uiState.value.result
-        if (result != null) {
-            viewModelScope.launch {
-                _events.emit(AIAssistantEvent.ApplyToNote(result))
-            }
+    fun applyToNote(text: String) {
+        viewModelScope.launch {
+            _events.emit(AIAssistantEvent.ApplyToNote(text))
         }
     }
     
@@ -123,8 +143,8 @@ class AIAssistantViewModel(
         return aiRepository.suggestTitle(content)
     }
     
-    private suspend fun chat(message: String): Result<String> {
-        return aiRepository.chat(message)
+    private suspend fun chat(message: String, systemPrompt: String? = null): Result<String> {
+        return aiRepository.chat(message, systemPrompt)
     }
 }
 
@@ -137,14 +157,25 @@ enum class AIAction(val displayName: String, val description: String) {
     CHAT("Tanya", "Tanya AI tentang apapun")
 }
 
+data class ChatMessage(
+    val sender: MessageSender,
+    val text: String
+)
+
+enum class MessageSender {
+    USER, AI
+}
+
 data class AIAssistantUiState(
     val inputText: String = "",
-    val selectedAction: AIAction = AIAction.SUMMARIZE,
+    val selectedAction: AIAction = AIAction.CHAT,
     val writingStyle: WritingStyle = WritingStyle.NEUTRAL,
     val targetLanguage: String = "English",
     val isLoading: Boolean = false,
     val result: String? = null,
-    val error: String? = null
+    val error: String? = null,
+    val chatHistory: List<ChatMessage> = emptyList(),
+    val animeContext: String? = null
 ) {
     val canExecute: Boolean
         get() = inputText.isNotBlank() && !isLoading

@@ -203,6 +203,7 @@ fun AppNavHost(
             AIAssistantScreen(
                 noteId = route.noteId,
                 initialText = route.initialText,
+                animeContext = route.animeContext,
                 onNavigateBack = { navigationActions.navigateBack() },
                 onApplyResult = null
             )
@@ -224,6 +225,9 @@ fun AppNavHost(
                         totalCount = anime.episodes,
                         entryId = entryId
                     )
+                },
+                onNavigateToAIAssistant = { animeContext ->
+                    navigationActions.navigateToAIAssistant(noteId = null, initialText = null, animeContext = animeContext)
                 }
             )
         }
@@ -290,8 +294,8 @@ private fun createNavigationActions(navController: NavHostController): Navigatio
             navController.navigate(Route.NoteDetail(noteId))
         }
         
-        override fun navigateToAIAssistant(noteId: Long?, initialText: String?) {
-            navController.navigate(Route.AIAssistant(noteId, initialText))
+        override fun navigateToAIAssistant(noteId: Long?, initialText: String?, animeContext: String?) {
+            navController.navigate(Route.AIAssistant(noteId, initialText, animeContext))
         }
 
         override fun navigateToAnimeDetail(malId: Int) {
