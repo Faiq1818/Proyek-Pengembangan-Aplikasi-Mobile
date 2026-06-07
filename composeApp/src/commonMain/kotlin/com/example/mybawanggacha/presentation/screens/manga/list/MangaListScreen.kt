@@ -26,6 +26,7 @@ fun MangaListScreen(
     onNavigateToMyLibrary: () -> Unit,
     onNavigateToAnimeList: () -> Unit,
     onNavigateToSearch: () -> Unit,
+    onNavigateToGacha: () -> Unit,
     onNavigateToMangaDetail: (Int) -> Unit,
     viewModel: MangaListViewModel = koinViewModel()
 ) {
@@ -40,6 +41,7 @@ fun MangaListScreen(
                 MBGMainRailKey.Home -> onNavigateHome()
                 MBGMainRailKey.Search -> onNavigateToSearch()
                 MBGMainRailKey.MyLibrary -> onNavigateToMyLibrary()
+                MBGMainRailKey.Gacha -> onNavigateToGacha()
                 MBGMainRailKey.AnimeList -> onNavigateToAnimeList()
                 MBGMainRailKey.MangaList -> Unit
             }

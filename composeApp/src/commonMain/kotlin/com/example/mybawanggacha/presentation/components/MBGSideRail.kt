@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SmartDisplay
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -60,6 +61,7 @@ object MBGMainRailKey {
     const val Home = "home"
     const val Search = "search"
     const val MyLibrary = "my_library"
+    const val Gacha = "gacha"
     const val AnimeList = "anime_list"
     const val MangaList = "manga_list"
 }
@@ -81,6 +83,11 @@ fun animeMainRailItems(): List<MBGSideRailItem> = listOf(
         key = MBGMainRailKey.MyLibrary,
         label = "My Library",
         icon = Icons.Default.CollectionsBookmark
+    ),
+    MBGSideRailItem(
+        key = MBGMainRailKey.Gacha,
+        label = "Gacha",
+        icon = Icons.Default.Star
     ),
     MBGSideRailItem(
         key = MBGMainRailKey.AnimeList,

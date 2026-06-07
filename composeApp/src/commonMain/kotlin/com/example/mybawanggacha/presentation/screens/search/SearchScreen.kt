@@ -19,6 +19,7 @@ fun SearchScreen(
     onNavigateToMyLibrary: () -> Unit,
     onNavigateToAnimeList: () -> Unit,
     onNavigateToMangaList: () -> Unit,
+    onNavigateToGacha: () -> Unit,
     onNavigateToAnimeDetail: (Int) -> Unit,
     onNavigateToMangaDetail: (Int) -> Unit,
     viewModel: SearchViewModel = koinViewModel()
@@ -35,6 +36,7 @@ fun SearchScreen(
                 MBGMainRailKey.Home -> onNavigateHome()
                 MBGMainRailKey.Search -> Unit
                 MBGMainRailKey.MyLibrary -> onNavigateToMyLibrary()
+                MBGMainRailKey.Gacha -> onNavigateToGacha()
                 MBGMainRailKey.AnimeList -> onNavigateToAnimeList()
                 MBGMainRailKey.MangaList -> onNavigateToMangaList()
             }

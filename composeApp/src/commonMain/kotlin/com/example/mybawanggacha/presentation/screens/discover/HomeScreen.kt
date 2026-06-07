@@ -59,6 +59,7 @@ fun HomeScreen(
     onNavigateToAnimeList: () -> Unit,
     onNavigateToMangaList: () -> Unit,
     onNavigateToSearch: () -> Unit,
+    onNavigateToGacha: () -> Unit,
     onNavigateToSettings: () -> Unit,
     viewModel: AnimeHomeViewModel = koinViewModel()
 ) {
@@ -72,6 +73,7 @@ fun HomeScreen(
                 MBGMainRailKey.Home -> Unit
                 MBGMainRailKey.Search -> onNavigateToSearch()
                 MBGMainRailKey.MyLibrary -> onNavigateToMyLibrary()
+                MBGMainRailKey.Gacha -> onNavigateToGacha()
                 MBGMainRailKey.AnimeList -> onNavigateToAnimeList()
                 MBGMainRailKey.MangaList -> onNavigateToMangaList()
             }
