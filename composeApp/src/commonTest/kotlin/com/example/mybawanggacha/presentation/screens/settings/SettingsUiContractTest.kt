@@ -26,5 +26,8 @@ class SettingsUiContractTest {
         assertEquals(AppColorScheme.CodeGeass, AppColorScheme.fromString(null))
         assertEquals(AppColorScheme.CodeGeass, AppColorScheme.fromString("broken"))
         assertEquals(AppColorScheme.PakHabib, AppColorScheme.fromString("pakhabib"))
+        assertEquals(AppColorScheme.Gruvbox, AppColorScheme.fromString("gruvbox"))
+        assertEquals(AppColorScheme.Catppuccin, AppColorScheme.fromString("catppuccin"))
+        assertEquals(AppColorScheme.HatsuneMiku, AppColorScheme.fromString("hatsunemiku"))
     }
 }
