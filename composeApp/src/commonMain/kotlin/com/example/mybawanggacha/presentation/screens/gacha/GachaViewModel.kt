@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mybawanggacha.domain.gacha.model.GachaHistoryEntry
 import com.example.mybawanggacha.domain.gacha.model.GachaMediaFormat
+import com.example.mybawanggacha.domain.gacha.model.GachaMediaPool
 import com.example.mybawanggacha.domain.gacha.model.GachaPreference
 import com.example.mybawanggacha.domain.gacha.model.GachaResultItem
 import com.example.mybawanggacha.domain.gacha.model.GachaResultMediaType
@@ -13,6 +14,9 @@ import com.example.mybawanggacha.domain.library.model.LibraryEntry
 import com.example.mybawanggacha.domain.library.model.LibraryStatus
 import com.example.mybawanggacha.domain.library.model.UserProgress
 import com.example.mybawanggacha.domain.library.repository.LibraryRepository
+import com.example.mybawanggacha.domain.search.model.SearchFilterOption
+import com.example.mybawanggacha.domain.search.model.SearchMediaType
+import com.example.mybawanggacha.domain.search.repository.SearchRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,7 +26,8 @@ import kotlinx.coroutines.launch
 class GachaViewModel(
     private val runGachaUseCase: RunGachaUseCase,
     private val gachaRepository: GachaRepository,
-    private val libraryRepository: LibraryRepository
+    private val libraryRepository: LibraryRepository,
+    private val searchRepository: SearchRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(GachaUiState())
     val uiState: StateFlow<GachaUiState> = _uiState.asStateFlow()
@@ -30,9 +35,11 @@ class GachaViewModel(
     init {
         viewModelScope.launch {
             gachaRepository.observeLastPreference().collect { preference ->
+                val normalized = preference.withValidFormat()
                 _uiState.update { state ->
-                    state.copy(preference = preference.withValidFormat())
+                    state.copy(preference = normalized)
                 }
+                refreshGenres(normalized.mediaPool)
             }
         }
 
@@ -44,12 +51,19 @@ class GachaViewModel(
     }
 
     fun updatePreference(transform: (GachaPreference) -> GachaPreference) {
+        val previous = _uiState.value.preference
+        val updated = transform(previous).withValidFormat()
+
         _uiState.update { state ->
             state.copy(
-                preference = transform(state.preference).withValidFormat(),
+                preference = updated,
                 errorMessage = null,
                 infoMessage = null
             )
+        }
+
+        if (updated.mediaPool != previous.mediaPool) {
+            refreshGenres(updated.mediaPool)
         }
     }
 
@@ -117,12 +131,106 @@ class GachaViewModel(
         }
     }
 
-    private fun GachaPreference.withValidFormat(): GachaPreference {
-        return if (format in GachaMediaFormat.availableFor(mediaPool)) {
-            this
-        } else {
-            copy(format = GachaMediaFormat.Any)
+    private fun refreshGenres(mediaPool: GachaMediaPool) {
+        _uiState.update { state ->
+            state.copy(
+                isGenreLoading = true,
+                genreErrorMessage = null
+            )
         }
+
+        viewModelScope.launch {
+            runCatching {
+                loadGenreOptions(mediaPool)
+            }.onSuccess { genres ->
+                _uiState.update { state ->
+                    state.copy(
+                        preference = state.preference.withValidGenres(genres),
+                        availableGenres = genres,
+                        isGenreLoading = false,
+                        genreErrorMessage = null
+                    )
+                }
+            }.onFailure { error ->
+                _uiState.update { state ->
+                    state.copy(
+                        availableGenres = emptyList(),
+                        isGenreLoading = false,
+                        genreErrorMessage = error.message ?: "Gagal memuat genre"
+                    )
+                }
+            }
+        }
+    }
+
+    private suspend fun loadGenreOptions(mediaPool: GachaMediaPool): List<SearchFilterOption> {
+        return when (mediaPool) {
+            GachaMediaPool.Anime -> {
+                searchRepository.getFilterMetadata(SearchMediaType.Anime)
+                    .genres
+                    .normalizedGenreOptions()
+            }
+            GachaMediaPool.Manga -> {
+                searchRepository.getFilterMetadata(SearchMediaType.Manga)
+                    .genres
+                    .normalizedGenreOptions()
+            }
+            GachaMediaPool.Both -> {
+                val animeGenres = searchRepository.getFilterMetadata(SearchMediaType.Anime).genres
+                val mangaGenres = searchRepository.getFilterMetadata(SearchMediaType.Manga).genres
+                (animeGenres + mangaGenres).normalizedGenreOptions()
+            }
+        }
+    }
+
+    private fun GachaPreference.withValidGenres(
+        availableGenres: List<SearchFilterOption>
+    ): GachaPreference {
+        val normalizedIncludedGenres = selectedGenreIds.normalizeGenreIdsByName(availableGenres)
+        val normalizedExcludedGenres = excludedGenreIds
+            .normalizeGenreIdsByName(availableGenres)
+            .filterNot { genreId -> genreId in normalizedIncludedGenres }
+
+        return copy(
+            selectedGenreIds = normalizedIncludedGenres,
+            excludedGenreIds = normalizedExcludedGenres
+        )
+    }
+
+    private fun GachaPreference.withValidFormat(): GachaPreference {
+        val normalizedIncludedGenres = selectedGenreIds.distinct()
+        val normalizedExcludedGenres = excludedGenreIds
+            .distinct()
+            .filterNot { genreId -> genreId in normalizedIncludedGenres }
+        val normalizedFormat = if (format in GachaMediaFormat.availableFor(mediaPool)) {
+            format
+        } else {
+            GachaMediaFormat.Any
+        }
+
+        return copy(
+            selectedGenreIds = normalizedIncludedGenres,
+            excludedGenreIds = normalizedExcludedGenres,
+            format = normalizedFormat
+        )
+    }
+
+    private fun List<SearchFilterOption>.normalizedGenreOptions(): List<SearchFilterOption> {
+        return distinctBy { option -> option.normalizedGenreName() }
+            .sortedBy { option -> option.name.lowercase() }
+    }
+
+    private fun List<Int>.normalizeGenreIdsByName(
+        availableGenres: List<SearchFilterOption>
+    ): List<Int> {
+        val genresById = availableGenres.associateBy { option -> option.id }
+        return mapNotNull { genreId -> genresById[genreId] }
+            .distinctBy { option -> option.normalizedGenreName() }
+            .map { option -> option.id }
+    }
+
+    private fun SearchFilterOption.normalizedGenreName(): String {
+        return name.trim().lowercase()
     }
 
     private fun GachaResultItem.toLibraryEntry(): LibraryEntry {

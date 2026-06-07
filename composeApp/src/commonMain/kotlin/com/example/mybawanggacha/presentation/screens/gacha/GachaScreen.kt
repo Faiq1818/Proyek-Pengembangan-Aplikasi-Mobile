@@ -1,10 +1,13 @@
 package com.example.mybawanggacha.presentation.screens.gacha
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,27 +18,41 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.OpenInNew
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,6 +69,7 @@ import com.example.mybawanggacha.domain.gacha.model.GachaPreference
 import com.example.mybawanggacha.domain.gacha.model.GachaResultItem
 import com.example.mybawanggacha.domain.gacha.model.GachaResultMediaType
 import com.example.mybawanggacha.domain.gacha.model.GachaStatusFilter
+import com.example.mybawanggacha.domain.search.model.SearchFilterOption
 import com.example.mybawanggacha.presentation.components.EmptyState
 import com.example.mybawanggacha.presentation.components.MBGMainRailKey
 import com.example.mybawanggacha.presentation.components.MBGRailBackButton
@@ -117,8 +135,8 @@ private fun GachaContent(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 4.dp, top = 32.dp, end = 18.dp, bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
+        contentPadding = PaddingValues(start = 4.dp, top = 26.dp, end = 18.dp, bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         item(contentType = "gacha_header") {
             GachaHeader()
@@ -127,6 +145,9 @@ private fun GachaContent(
         item(contentType = "gacha_preferences") {
             GachaPreferencePanel(
                 preference = uiState.preference,
+                availableGenres = uiState.availableGenres,
+                isGenreLoading = uiState.isGenreLoading,
+                genreErrorMessage = uiState.genreErrorMessage,
                 isLoading = uiState.isLoading,
                 onPreferenceChange = onPreferenceChange,
                 onRunGacha = onRunGacha
@@ -156,8 +177,8 @@ private fun GachaContent(
             if (result == null) {
                 EmptyState(
                     title = "Belum ada hasil",
-                    message = "Atur preferensi lalu tekan Gacha.",
-                    modifier = Modifier.height(220.dp)
+                    message = "Atur filter seperlunya, lalu tekan Gacha.",
+                    modifier = Modifier.height(190.dp)
                 )
             } else {
                 GachaResultScreen(
@@ -194,31 +215,51 @@ private fun GachaContent(
 
 @Composable
 private fun GachaHeader() {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(
-            text = "Gacha",
-            style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.onBackground,
-            fontWeight = FontWeight.Bold
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = Icons.Default.Star,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(26.dp)
         )
-        Text(
-            text = "Pick acak dari Jikan berdasarkan preferensi.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                text = "Gacha",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "Random pick dari search Jikan.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun GachaPreferencePanel(
     preference: GachaPreference,
+    availableGenres: List<SearchFilterOption>,
+    isGenreLoading: Boolean,
+    genreErrorMessage: String?,
     isLoading: Boolean,
     onPreferenceChange: ((GachaPreference) -> GachaPreference) -> Unit,
     onRunGacha: () -> Unit
 ) {
+    var showFilters by rememberSaveable { mutableStateOf(false) }
+    val activeFilterLabels = remember(preference, availableGenres) {
+        preference.activeFilterLabels(availableGenres)
+    }
+
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         GachaMediaPoolRow(
             selected = preference.mediaPool,
@@ -227,139 +268,518 @@ private fun GachaPreferencePanel(
             }
         )
 
+        GachaActiveFilterRow(
+            labels = activeFilterLabels,
+            onOpenFilters = { showFilters = true }
+        )
+
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            CompactTextField(
-                label = "Genre IDs",
-                value = preference.genreIds,
-                modifier = Modifier.weight(1f),
-                onValueChange = { value ->
-                    onPreferenceChange { current -> current.copy(genreIds = value) }
+            OutlinedButton(
+                onClick = { showFilters = true },
+                modifier = Modifier.weight(0.42f),
+                shape = RoundedCornerShape(14.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp)
+            ) {
+                Text(
+                    text = if (activeFilterLabels.isEmpty()) "Filters" else "Filters ${activeFilterLabels.size}",
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            Button(
+                onClick = onRunGacha,
+                enabled = !isLoading,
+                modifier = Modifier.weight(0.58f),
+                shape = RoundedCornerShape(14.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp)
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.AutoAwesome,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+                Text(
+                    text = if (isLoading) "Loading" else "Gacha",
+                    maxLines = 1
+                )
+            }
+        }
+    }
+
+    if (showFilters) {
+        ModalBottomSheet(
+            onDismissRequest = { showFilters = false },
+            sheetState = rememberModalBottomSheetState()
+        ) {
+            GachaFilterSheetContent(
+                preference = preference,
+                availableGenres = availableGenres,
+                isGenreLoading = isGenreLoading,
+                genreErrorMessage = genreErrorMessage,
+                onPreferenceChange = onPreferenceChange,
+                onClose = { showFilters = false }
+            )
+        }
+    }
+}
+
+@Composable
+private fun GachaActiveFilterRow(
+    labels: List<String>,
+    onOpenFilters: () -> Unit
+) {
+    if (labels.isEmpty()) {
+        Text(
+            text = "Default filter",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        return
+    }
+
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(end = 8.dp)
+    ) {
+        items(
+            items = labels,
+            key = { label -> label }
+        ) { label ->
+            FilterChip(
+                selected = true,
+                onClick = onOpenFilters,
+                label = {
+                    Text(
+                        text = label,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             )
-            CompactTextField(
-                label = "Min score",
-                value = preference.minScore,
-                modifier = Modifier.weight(1f),
-                onValueChange = { value ->
-                    onPreferenceChange { current -> current.copy(minScore = value) }
+        }
+    }
+}
+
+@Composable
+private fun GachaFilterSheetContent(
+    preference: GachaPreference,
+    availableGenres: List<SearchFilterOption>,
+    isGenreLoading: Boolean,
+    genreErrorMessage: String?,
+    onPreferenceChange: ((GachaPreference) -> GachaPreference) -> Unit,
+    onClose: () -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        item(contentType = "sheet_header") {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(
+                        text = "Gacha filters",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                TextButton(
+                    onClick = {
+                        onPreferenceChange { current ->
+                            current.copy(
+                                selectedGenreIds = emptyList(),
+                                excludedGenreIds = emptyList(),
+                                minScore = "",
+                                status = GachaStatusFilter.Any,
+                                format = GachaMediaFormat.Any,
+                                includeKnownItems = false,
+                                allowNsfw = false
+                            )
+                        }
+                    }
+                ) {
+                    Text("Reset")
+                }
+            }
+        }
+
+        item(contentType = "sheet_genres") {
+            GachaGenreSelector(
+                availableGenres = availableGenres,
+                selectedGenreIds = preference.selectedGenreIds,
+                excludedGenreIds = preference.excludedGenreIds,
+                allowNsfw = preference.allowNsfw,
+                isLoading = isGenreLoading,
+                errorMessage = genreErrorMessage,
+                onCycleGenre = { genreId ->
+                    onPreferenceChange { current -> current.cycleGenre(genreId) }
+                },
+                onClearGenres = {
+                    onPreferenceChange { current ->
+                        current.copy(
+                            selectedGenreIds = emptyList(),
+                            excludedGenreIds = emptyList()
+                        )
+                    }
                 }
             )
         }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            GachaDropdown(
-                label = "Type",
-                value = preference.format.label,
-                options = GachaMediaFormat.availableFor(preference.mediaPool),
-                optionLabel = { it.label },
-                modifier = Modifier.weight(1f),
-                onSelected = { format ->
-                    onPreferenceChange { current -> current.copy(format = format) }
-                }
-            )
+        item(contentType = "sheet_core_filters") {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                CompactTextField(
+                    label = "Min score",
+                    value = preference.minScore,
+                    modifier = Modifier.weight(1f),
+                    onValueChange = { value ->
+                        onPreferenceChange { current -> current.copy(minScore = value) }
+                    }
+                )
+                GachaDropdown(
+                    label = "Type",
+                    value = preference.format.label,
+                    options = GachaMediaFormat.availableFor(preference.mediaPool),
+                    optionLabel = { it.label },
+                    modifier = Modifier.weight(1f),
+                    onSelected = { format ->
+                        onPreferenceChange { current -> current.copy(format = format) }
+                    }
+                )
+            }
+        }
+
+        item(contentType = "sheet_status") {
             GachaDropdown(
                 label = "Status",
                 value = preference.status.label,
-                options = GachaStatusFilter.entries,
+                options = GachaStatusFilter.entries.toList(),
                 optionLabel = { it.label },
-                modifier = Modifier.weight(1f),
                 onSelected = { status ->
                     onPreferenceChange { current -> current.copy(status = status) }
                 }
             )
         }
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(18.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.28f))
-                .clickable {
-                    onPreferenceChange { current ->
-                        current.copy(includeKnownItems = !current.includeKnownItems)
+        item(contentType = "sheet_flags") {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                GachaSwitchRow(
+                    title = "Include library",
+                    subtitle = "Izinkan item yang sudah ada di My Library",
+                    checked = preference.includeKnownItems,
+                    onCheckedChange = { checked ->
+                        onPreferenceChange { current -> current.copy(includeKnownItems = checked) }
                     }
-                }
-                .padding(horizontal = 14.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Include saved/read/watched",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.SemiBold
                 )
-                Text(
-                    text = "Off = item di My Library tidak ikut dipilih.",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                GachaSwitchRow(
+                    title = "Allow NSFW",
+                    subtitle = "Matikan safe filter Jikan untuk genre explicit",
+                    checked = preference.allowNsfw,
+                    onCheckedChange = { checked ->
+                        onPreferenceChange { current -> current.copy(allowNsfw = checked) }
+                    }
                 )
             }
-            Switch(
-                checked = preference.includeKnownItems,
-                onCheckedChange = { value ->
-                    onPreferenceChange { current -> current.copy(includeKnownItems = value) }
-                }
-            )
         }
 
-        Button(
-            onClick = onRunGacha,
-            enabled = !isLoading,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .padding(end = 8.dp)
-                        .size(18.dp),
-                    strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
+        item(contentType = "sheet_done") {
+            Button(
+                onClick = onClose,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 10.dp),
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Text("Done")
             }
-            Text(if (isLoading) "Rolling..." else "Gacha")
         }
     }
 }
 
+@Composable
+private fun GachaSwitchRow(
+    title: String,
+    subtitle: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 2.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Medium
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange
+        )
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun GachaGenreSelector(
+    availableGenres: List<SearchFilterOption>,
+    selectedGenreIds: List<Int>,
+    excludedGenreIds: List<Int>,
+    allowNsfw: Boolean,
+    isLoading: Boolean,
+    errorMessage: String?,
+    onCycleGenre: (Int) -> Unit,
+    onClearGenres: () -> Unit
+) {
+    var query by rememberSaveable { mutableStateOf("") }
+    var showAll by rememberSaveable { mutableStateOf(false) }
+    val activeGenreIds = remember(selectedGenreIds, excludedGenreIds) {
+        (selectedGenreIds + excludedGenreIds).toSet()
+    }
+
+    val selectedGenres = remember(availableGenres, selectedGenreIds) {
+        availableGenres
+            .filter { option -> option.id in selectedGenreIds }
+            .sortedBy { option -> option.name.lowercase() }
+    }
+    val excludedGenres = remember(availableGenres, excludedGenreIds) {
+        availableGenres
+            .filter { option -> option.id in excludedGenreIds }
+            .sortedBy { option -> option.name.lowercase() }
+    }
+    val filteredGenres = remember(availableGenres, activeGenreIds, query) {
+        availableGenres
+            .filterNot { option -> option.id in activeGenreIds }
+            .filter { option ->
+                query.isBlank() || option.name.contains(query, ignoreCase = true)
+            }
+            .sortedBy { option -> option.name.lowercase() }
+    }
+    val visibleGenres = if (showAll) {
+        filteredGenres
+    } else {
+        filteredGenres.take(18)
+    }
+    val hasExplicitGenreIncluded = selectedGenres.any { genre ->
+        genre.name.lowercase() in EXPLICIT_GENRE_NAMES
+    }
+    val activeCount = selectedGenreIds.size + excludedGenreIds.size
+
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = "Genre",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = when {
+                        activeCount == 0 -> "Tap chip: include → exclude → off"
+                        excludedGenreIds.isEmpty() -> "${selectedGenreIds.size} include"
+                        selectedGenreIds.isEmpty() -> "${excludedGenreIds.size} exclude"
+                        else -> "${selectedGenreIds.size} include • ${excludedGenreIds.size} exclude"
+                    },
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            if (activeCount > 0) {
+                TextButton(onClick = onClearGenres) {
+                    Icon(
+                        imageVector = Icons.Default.Clear,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Clear")
+                }
+            }
+        }
+
+        if (selectedGenres.isNotEmpty() || excludedGenres.isNotEmpty()) {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(
+                    items = selectedGenres,
+                    key = { genre -> "include:${genre.id}" }
+                ) { genre ->
+                    FilterChip(
+                        selected = true,
+                        onClick = { onCycleGenre(genre.id) },
+                        label = {
+                            Text(
+                                text = "+ ${genre.name}",
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    )
+                }
+
+                items(
+                    items = excludedGenres,
+                    key = { genre -> "exclude:${genre.id}" }
+                ) { genre ->
+                    FilterChip(
+                        selected = true,
+                        onClick = { onCycleGenre(genre.id) },
+                        label = {
+                            Text(
+                                text = "− ${genre.name}",
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    )
+                }
+            }
+        }
+
+        OutlinedTextField(
+            value = query,
+            onValueChange = { query = it },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            label = { Text("Cari genre") },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = null
+                )
+            }
+        )
+
+        when {
+            isLoading -> {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp
+                    )
+                    Text(
+                        text = "Memuat genre...",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            errorMessage != null -> {
+                Text(
+                    text = errorMessage,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+
+        if (hasExplicitGenreIncluded && !allowNsfw) {
+            Text(
+                text = "Genre explicit butuh Allow NSFW agar tidak kosong.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.tertiary
+            )
+        }
+
+        if (visibleGenres.isNotEmpty()) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                visibleGenres.forEach { genre ->
+                    FilterChip(
+                        selected = false,
+                        onClick = { onCycleGenre(genre.id) },
+                        label = {
+                            Text(
+                                text = genre.name,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    )
+                }
+            }
+        } else if (!isLoading && errorMessage == null) {
+            Text(
+                text = "Genre tidak ditemukan.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        if (filteredGenres.size > 18) {
+            TextButton(onClick = { showAll = !showAll }) {
+                Text(if (showAll) "Tampilkan lebih sedikit" else "Tampilkan semua genre")
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun GachaMediaPoolRow(
     selected: GachaMediaPool,
     onSelected: (GachaMediaPool) -> Unit
 ) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
         GachaMediaPool.entries.forEach { pool ->
             FilterChip(
-                selected = selected == pool,
+                selected = pool == selected,
                 onClick = { onSelected(pool) },
                 label = { Text(pool.label) }
             )
         }
     }
-}
-
-@Composable
-private fun CompactTextField(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-    onValueChange: (String) -> Unit
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = modifier,
-        singleLine = true,
-        label = { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis) }
-    )
 }
 
 @Composable
@@ -376,13 +796,25 @@ private fun <T> GachaDropdown(
     Box(modifier = modifier) {
         OutlinedButton(
             onClick = { expanded = true },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp)
         ) {
-            Text(
-                text = "$label: $value",
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
 
         DropdownMenu(
@@ -393,8 +825,8 @@ private fun <T> GachaDropdown(
                 DropdownMenuItem(
                     text = { Text(optionLabel(option)) },
                     onClick = {
-                        onSelected(option)
                         expanded = false
+                        onSelected(option)
                     }
                 )
             }
@@ -403,7 +835,49 @@ private fun <T> GachaDropdown(
 }
 
 @Composable
-internal fun GachaResultScreen(
+private fun CompactTextField(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    onValueChange: (String) -> Unit
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier,
+        singleLine = true,
+        label = { Text(label) }
+    )
+}
+
+@Composable
+private fun GachaInlineMessage(
+    text: String,
+    isError: Boolean
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color = if (isError) {
+                    MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.55f)
+                } else {
+                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.55f)
+                },
+                shape = RoundedCornerShape(14.dp)
+            )
+            .padding(horizontal = 14.dp, vertical = 12.dp)
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (isError) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSecondaryContainer
+        )
+    }
+}
+
+@Composable
+private fun GachaResultScreen(
     item: GachaResultItem,
     isLoading: Boolean,
     onReroll: () -> Unit,
@@ -412,92 +886,90 @@ internal fun GachaResultScreen(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.28f),
+            contentColor = MaterialTheme.colorScheme.onSurface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        shape = RoundedCornerShape(18.dp)
     ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            AsyncImage(
-                model = item.imageUrl.orEmpty(),
-                contentDescription = item.title,
-                modifier = Modifier
-                    .width(86.dp)
-                    .height(122.dp)
-                    .clip(RoundedCornerShape(18.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentScale = ContentScale.Crop
-            )
-
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(7.dp)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                verticalAlignment = Alignment.Top
             ) {
-                Text(
-                    text = item.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = item.metadataLine(),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = "${item.mediaType.label} #${item.malId}",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold
+                AsyncImage(
+                    model = item.imageUrl,
+                    contentDescription = item.title,
+                    modifier = Modifier
+                        .size(width = 96.dp, height = 136.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                    contentScale = ContentScale.Crop
                 )
 
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(
-                        onClick = onReroll,
-                        enabled = !isLoading
-                    ) {
-                        Text("Reroll")
-                    }
-                    OutlinedButton(onClick = onOpenDetail) {
-                        Text("Detail")
-                    }
-                }
-
-                Button(
-                    onClick = onAddToLibrary,
-                    modifier = Modifier.fillMaxWidth()
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text("Add to list")
+                    FilterChip(
+                        selected = true,
+                        onClick = {},
+                        label = { Text(item.mediaType.label) }
+                    )
+                    Text(
+                        text = item.title,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = item.metadataLine(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                OutlinedButton(
+                    onClick = onReroll,
+                    enabled = !isLoading,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Reroll")
+                }
+                OutlinedButton(
+                    onClick = onOpenDetail,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Default.OpenInNew, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Detail")
+                }
+            }
+
+            Button(
+                onClick = onAddToLibrary,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Tambah ke My Library")
             }
         }
     }
-}
-
-@Composable
-private fun GachaInlineMessage(
-    text: String,
-    isError: Boolean
-) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.bodySmall,
-        color = if (isError) {
-            MaterialTheme.colorScheme.error
-        } else {
-            MaterialTheme.colorScheme.primary
-        },
-        fontWeight = FontWeight.SemiBold
-    )
 }
 
 @Composable
@@ -507,51 +979,61 @@ private fun GachaHistoryHeader(
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = "History ($count)",
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.onSurface,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.weight(1f)
-        )
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                text = "History",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = "$count hasil terakhir",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
         TextButton(onClick = onClearHistory) {
             Text("Clear")
         }
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun GachaHistoryRow(
     history: GachaHistoryEntry,
     onClick: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-    ) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 7.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                .clickable(onClick = onClick)
+                .padding(vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = history.item.mediaType.label,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.width(48.dp)
+            AsyncImage(
+                model = history.item.imageUrl,
+                contentDescription = history.item.title,
+                modifier = Modifier
+                    .size(width = 48.dp, height = 64.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentScale = ContentScale.Crop
             )
-            Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
                 Text(
                     text = history.item.title,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Medium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -578,3 +1060,74 @@ private fun GachaResultItem.metadataLine(): String {
         volumes?.let { add("$it vol") }
     }.joinToString(" • ").ifBlank { "No metadata" }
 }
+
+private fun GachaPreference.activeFilterLabels(
+    availableGenres: List<SearchFilterOption>
+): List<String> {
+    val genresById = availableGenres.associateBy { option -> option.id }
+
+    return buildList {
+        if (mediaPool != GachaMediaPool.Both) {
+            add(mediaPool.label)
+        }
+        if (selectedGenreIds.isNotEmpty()) {
+            add("Genre: ${selectedGenreIds.toGenreSummary(genresById)}")
+        }
+        if (excludedGenreIds.isNotEmpty()) {
+            add("Exclude: ${excludedGenreIds.toGenreSummary(genresById)}")
+        }
+        minScore.trim().takeIf { it.isNotBlank() }?.let { score ->
+            add("Score ≥ $score")
+        }
+        if (status != GachaStatusFilter.Any) {
+            add(status.label)
+        }
+        if (format != GachaMediaFormat.Any) {
+            add(format.label)
+        }
+        if (includeKnownItems) {
+            add("Include library")
+        }
+        if (allowNsfw) {
+            add("NSFW")
+        }
+    }
+}
+
+private fun List<Int>.toGenreSummary(
+    genresById: Map<Int, SearchFilterOption>
+): String {
+    val names = mapNotNull { genreId -> genresById[genreId]?.name }
+        .take(2)
+
+    return if (names.isEmpty()) {
+        "$size genre"
+    } else {
+        buildString {
+            append(names.joinToString(", "))
+            val remaining = size - names.size
+            if (remaining > 0) append(" +$remaining")
+        }
+    }
+}
+
+private fun GachaPreference.cycleGenre(genreId: Int): GachaPreference {
+    return when {
+        genreId in selectedGenreIds -> copy(
+            selectedGenreIds = selectedGenreIds.filterNot { item -> item == genreId },
+            excludedGenreIds = excludedGenreIds + genreId
+        )
+        genreId in excludedGenreIds -> copy(
+            excludedGenreIds = excludedGenreIds.filterNot { item -> item == genreId }
+        )
+        else -> copy(
+            selectedGenreIds = selectedGenreIds + genreId
+        )
+    }
+}
+
+private val EXPLICIT_GENRE_NAMES = setOf(
+    "ecchi",
+    "erotica",
+    "hentai"
+)

@@ -43,7 +43,7 @@ class RunGachaUseCase(
             .distinctBy { item -> "${item.mediaType}:${item.malId}" }
 
         if (candidates.isEmpty()) {
-            error("Tidak ada kandidat gacha yang cocok. Coba longgarkan filter.")
+            error("Tidak ada kandidat gacha yang cocok. Coba longgarkan filter atau aktifkan NSFW jika perlu.")
         }
 
         return candidates.random(random).toGachaResultItem()
@@ -55,17 +55,23 @@ class RunGachaUseCase(
     ): List<MediaSearchItem> {
         val filters = MediaSearchFilters(
             mediaType = mediaType,
-            limit = "25",
+            limit = SEARCH_LIMIT_PER_PAGE.toString(),
             minScore = preference.minScore.trim(),
             status = preference.status.searchValueFor(mediaType),
             type = preference.format.searchValueFor(mediaType),
-            sfw = true,
-            genres = preference.genreIds.trim()
+            sfw = !preference.allowNsfw,
+            genres = preference.selectedGenreIds.joinToString(","),
+            genresExclude = preference.excludedGenreIds.joinToString(",")
         )
 
-        return searchRepository
-            .search(filters = filters, page = 1)
-            .items
+        val firstPage = searchRepository.search(filters = filters, page = 1)
+        val secondPageItems = if (firstPage.hasNextPage) {
+            searchRepository.search(filters = filters, page = 2).items
+        } else {
+            emptyList()
+        }
+
+        return firstPage.items + secondPageItems
     }
 
     private fun List<MediaSearchItem>.filterByMinimumScore(minScore: String): List<MediaSearchItem> {
@@ -78,5 +84,9 @@ class RunGachaUseCase(
             SearchMediaType.Anime -> "ANIME"
             SearchMediaType.Manga -> "MANGA"
         }
+    }
+
+    private companion object {
+        const val SEARCH_LIMIT_PER_PAGE = 25
     }
 }

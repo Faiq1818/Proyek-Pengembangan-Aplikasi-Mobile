@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SmartDisplay
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -86,7 +87,7 @@ fun animeMainRailItems(): List<MBGSideRailItem> = listOf(
     MBGSideRailItem(
         key = MBGMainRailKey.Gacha,
         label = "Gacha",
-        icon = null
+        icon = Icons.Default.Star
     ),
     MBGSideRailItem(
         key = MBGMainRailKey.AnimeList,

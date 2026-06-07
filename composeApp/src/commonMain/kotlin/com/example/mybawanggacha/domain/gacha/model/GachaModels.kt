@@ -84,11 +84,13 @@ enum class GachaMediaFormat(
 @Serializable
 data class GachaPreference(
     val mediaPool: GachaMediaPool = GachaMediaPool.Both,
-    val genreIds: String = "",
+    val selectedGenreIds: List<Int> = emptyList(),
+    val excludedGenreIds: List<Int> = emptyList(),
     val minScore: String = "",
     val status: GachaStatusFilter = GachaStatusFilter.Any,
     val format: GachaMediaFormat = GachaMediaFormat.Any,
-    val includeKnownItems: Boolean = false
+    val includeKnownItems: Boolean = false,
+    val allowNsfw: Boolean = false
 )
 
 @Serializable
