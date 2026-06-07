@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import com.example.mybawanggacha.domain.settings.model.AppColorScheme
 import com.example.mybawanggacha.presentation.theme.color.CatppuccinColor
 import com.example.mybawanggacha.presentation.theme.color.GruvboxColor
+import com.example.mybawanggacha.presentation.theme.color.HatsuneMikuColor
 import com.example.mybawanggacha.presentation.theme.color.PakHabibColor
 
 // ==================== COLOR SCHEMES ====================
@@ -213,6 +214,58 @@ private val CatppuccinMochaColorScheme = darkColorScheme(
     outline = CatppuccinColor.Mocha.Overlay0
 )
 
+private val HatsuneMikuLightColorScheme = lightColorScheme(
+    primary = HatsuneMikuColor.MikuTeal,
+    onPrimary = HatsuneMikuColor.Snow,
+    primaryContainer = HatsuneMikuColor.MikuCyan,
+    onPrimaryContainer = HatsuneMikuColor.Charcoal,
+    secondary = HatsuneMikuColor.MikuCyan,
+    onSecondary = HatsuneMikuColor.Charcoal,
+    secondaryContainer = HatsuneMikuColor.LightSurfaceVariant,
+    onSecondaryContainer = HatsuneMikuColor.LightOnSurface,
+    tertiary = HatsuneMikuColor.MikuPink,
+    onTertiary = HatsuneMikuColor.Snow,
+    tertiaryContainer = HatsuneMikuColor.MikuSoftPink,
+    onTertiaryContainer = HatsuneMikuColor.Charcoal,
+    error = HatsuneMikuColor.MikuPink,
+    onError = HatsuneMikuColor.Snow,
+    errorContainer = HatsuneMikuColor.MikuSoftPink,
+    onErrorContainer = HatsuneMikuColor.Charcoal,
+    background = HatsuneMikuColor.LightBackground,
+    onBackground = HatsuneMikuColor.LightOnBackground,
+    surface = HatsuneMikuColor.LightSurface,
+    onSurface = HatsuneMikuColor.LightOnSurface,
+    surfaceVariant = HatsuneMikuColor.LightSurfaceVariant,
+    onSurfaceVariant = HatsuneMikuColor.LightOnSurfaceVariant,
+    outline = HatsuneMikuColor.LightOutline
+)
+
+private val HatsuneMikuDarkColorScheme = darkColorScheme(
+    primary = HatsuneMikuColor.MikuCyan,
+    onPrimary = HatsuneMikuColor.DeepCharcoal,
+    primaryContainer = HatsuneMikuColor.MikuDeepTeal,
+    onPrimaryContainer = HatsuneMikuColor.Snow,
+    secondary = HatsuneMikuColor.MikuTeal,
+    onSecondary = HatsuneMikuColor.Snow,
+    secondaryContainer = HatsuneMikuColor.DarkSurfaceVariant,
+    onSecondaryContainer = HatsuneMikuColor.DarkOnSurface,
+    tertiary = HatsuneMikuColor.MikuPink,
+    onTertiary = HatsuneMikuColor.Snow,
+    tertiaryContainer = HatsuneMikuColor.Charcoal,
+    onTertiaryContainer = HatsuneMikuColor.MikuSoftPink,
+    error = HatsuneMikuColor.MikuPink,
+    onError = HatsuneMikuColor.Snow,
+    errorContainer = HatsuneMikuColor.Charcoal,
+    onErrorContainer = HatsuneMikuColor.MikuSoftPink,
+    background = HatsuneMikuColor.DarkBackground,
+    onBackground = HatsuneMikuColor.DarkOnBackground,
+    surface = HatsuneMikuColor.DarkSurface,
+    onSurface = HatsuneMikuColor.DarkOnSurface,
+    surfaceVariant = HatsuneMikuColor.DarkSurfaceVariant,
+    onSurfaceVariant = HatsuneMikuColor.DarkOnSurfaceVariant,
+    outline = HatsuneMikuColor.DarkOutline
+)
+
 // ==================== THEME ====================
 
 @Composable
@@ -226,6 +279,7 @@ fun MBGTheme(
         AppColorScheme.PakHabib -> if (darkTheme) PakHabibDarkColorScheme else PakHabibLightColorScheme
         AppColorScheme.Gruvbox -> if (darkTheme) GruvboxDarkColorScheme else GruvboxLightColorScheme
         AppColorScheme.Catppuccin -> if (darkTheme) CatppuccinMochaColorScheme else CatppuccinLatteColorScheme
+        AppColorScheme.HatsuneMiku -> if (darkTheme) HatsuneMikuDarkColorScheme else HatsuneMikuLightColorScheme
     }
 
     MaterialTheme(

@@ -29,6 +29,12 @@ enum class AppColorScheme(
         description = "Latte untuk light, Mocha untuk dark.",
         lightSwatches = listOf("#EFF1F5", "#8839EF", "#1E66F5", "#40A02B", "#FE640B", "#4C4F69"),
         darkSwatches = listOf("#1E1E2E", "#CBA6F7", "#89B4FA", "#A6E3A1", "#FAB387", "#CDD6F4")
+    ),
+    HatsuneMiku(
+        label = "Hatsune Miku",
+        description = "Miku cyan/teal dengan aksen pink dan neutral charcoal.",
+        lightSwatches = listOf("#F2F8FA", "#86CECB", "#137A7F", "#E12885", "#BEC8D1", "#373B3E"),
+        darkSwatches = listOf("#0F1214", "#86CECB", "#137A7F", "#E12885", "#5C7478", "#F2F8FA")
     );
 
     fun swatches(darkTheme: Boolean): List<String> {
