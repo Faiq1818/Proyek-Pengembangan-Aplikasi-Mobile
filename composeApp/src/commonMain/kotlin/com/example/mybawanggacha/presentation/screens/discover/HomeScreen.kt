@@ -19,6 +19,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -45,6 +47,7 @@ import com.example.mybawanggacha.presentation.components.MBGMainRailKey
 import com.example.mybawanggacha.presentation.components.MBGRailSettingsButton
 import com.example.mybawanggacha.presentation.components.MBGSideRailScaffold
 import com.example.mybawanggacha.presentation.components.PullRefreshContainer
+import com.example.mybawanggacha.presentation.components.ScreenHeader
 import com.example.mybawanggacha.presentation.components.SectionHeader
 import com.example.mybawanggacha.presentation.screens.anime.home.AnimeHomeUiState
 import com.example.mybawanggacha.presentation.screens.anime.home.AnimeHomeViewModel
@@ -137,23 +140,11 @@ private fun HomeDiscoveryContent(
         verticalArrangement = Arrangement.spacedBy(22.dp)
     ) {
         item {
-            Column {
-                Text(
-                    text = "Home",
-                    style = MaterialTheme.typography.headlineLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "Discovery anime dan manga",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
+            ScreenHeader(
+                icon = Icons.Default.Home,
+                title = "Home",
+                subtitle = "Discovery anime dan manga"
+            )
         }
 
         if (recentEpisodes.isNotEmpty()) {

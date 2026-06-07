@@ -21,6 +21,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.SmartDisplay
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +41,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.mybawanggacha.domain.anime.model.AnimeSeasonPeriod
 import com.example.mybawanggacha.domain.anime.model.AnimeSummary
+import com.example.mybawanggacha.presentation.components.ScreenHeader
 import com.example.mybawanggacha.presentation.components.media.MediaPosterCard
 import com.example.mybawanggacha.presentation.components.media.MediaPosterSkeletonCard
 import com.example.mybawanggacha.presentation.components.EmptyState
@@ -49,20 +52,10 @@ import com.example.mybawanggacha.presentation.screens.anime.list.AnimeListUiStat
 
 @Composable
 fun AnimeListHeader() {
-    Text(
-        text = "Anime List",
-        style = MaterialTheme.typography.headlineLarge,
-        color = MaterialTheme.colorScheme.onBackground,
-        fontWeight = FontWeight.Bold
-    )
-
-    Spacer(modifier = Modifier.height(6.dp))
-
-    Text(
-        text = "Katalog anime dari Jikan",
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        fontWeight = FontWeight.SemiBold
+    ScreenHeader(
+        icon = Icons.Default.SmartDisplay,
+        title = "Anime List",
+        subtitle = "Katalog anime dari Jikan"
     )
 }
 

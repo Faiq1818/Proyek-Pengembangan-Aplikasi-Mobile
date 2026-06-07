@@ -21,6 +21,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
@@ -38,6 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.mybawanggacha.domain.manga.model.MangaSummary
+import com.example.mybawanggacha.presentation.components.ScreenHeader
 import com.example.mybawanggacha.presentation.screens.manga.list.MangaListTab
 import com.example.mybawanggacha.presentation.screens.manga.list.MangaListUiState
 import com.example.mybawanggacha.presentation.components.EmptyState
@@ -48,20 +51,10 @@ import com.example.mybawanggacha.presentation.components.media.MediaPosterSkelet
 
 @Composable
 fun MangaListHeader() {
-    Text(
-        text = "Manga List",
-        style = MaterialTheme.typography.headlineLarge,
-        color = MaterialTheme.colorScheme.onBackground,
-        fontWeight = FontWeight.Bold
-    )
-
-    Spacer(modifier = Modifier.height(6.dp))
-
-    Text(
-        text = "Katalog manga dari Jikan",
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        fontWeight = FontWeight.SemiBold
+    ScreenHeader(
+        icon = Icons.Default.MenuBook,
+        title = "Manga List",
+        subtitle = "Katalog manga dari Jikan"
     )
 }
 

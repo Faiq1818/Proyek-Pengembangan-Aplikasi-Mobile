@@ -74,6 +74,7 @@ import com.example.mybawanggacha.presentation.components.EmptyState
 import com.example.mybawanggacha.presentation.components.MBGMainRailKey
 import com.example.mybawanggacha.presentation.components.MBGRailBackButton
 import com.example.mybawanggacha.presentation.components.MBGSideRailScaffold
+import com.example.mybawanggacha.presentation.components.ScreenHeader
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -215,30 +216,11 @@ private fun GachaContent(
 
 @Composable
 private fun GachaHeader() {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = Icons.Default.Star,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(26.dp)
-        )
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(
-                text = "Gacha",
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = "Random pick dari search Jikan.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
+    ScreenHeader(
+        icon = Icons.Default.Star,
+        title = "Gacha",
+        subtitle = "Random pick dari search Jikan."
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
