@@ -1,11 +1,13 @@
 package com.example.mybawanggacha.presentation.screens.anime.detail
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Face
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SnackbarDuration
@@ -41,6 +43,7 @@ fun AnimeDetailScreen(
     onNavigateToAnimeDetail: (Int) -> Unit = {},
     onNavigateToMangaDetail: (Int) -> Unit = {},
     onNavigateToLibraryEditor: (AnimeDetail, Long?) -> Unit = { _, _ -> },
+    onNavigateToAIAssistant: (String) -> Unit = {},
     viewModel: AnimeDetailViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -103,20 +106,45 @@ fun AnimeDetailScreen(
                         )
                         val isInLibrary = state.libraryEntryId != null
 
-                        FloatingActionButton(
-                            onClick = { onNavigateToLibraryEditor(state.anime, state.libraryEntryId) },
+                        Column(
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
-                                .padding(end = 16.dp, bottom = 80.dp)
+                                .padding(end = 16.dp, bottom = 80.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Icon(
-                                imageVector = if (isInLibrary) Icons.Default.Edit else Icons.Default.Add,
-                                contentDescription = if (isInLibrary) {
-                                    "Edit My Library"
-                                } else {
-                                    "Tambah ke My Library"
-                                }
-                            )
+                            FloatingActionButton(
+                                onClick = {
+                                    val animeContext = """
+                                        Detail Anime:
+                                        Judul: ${state.anime.title}
+                                        Genre: ${state.anime.genres.joinToString(", ")}
+                                        Skor: ${state.anime.score ?: "N/A"}
+                                        Tipe: ${state.anime.type ?: "N/A"}
+                                        Episode: ${state.anime.episodes ?: "N/A"}
+                                        Sinopsis: ${state.anime.synopsis ?: "N/A"}
+                                    """.trimIndent()
+                                    onNavigateToAIAssistant(animeContext)
+                                },
+                                modifier = Modifier.padding(bottom = 16.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Face,
+                                    contentDescription = "AI Assistant"
+                                )
+                            }
+
+                            FloatingActionButton(
+                                onClick = { onNavigateToLibraryEditor(state.anime, state.libraryEntryId) }
+                            ) {
+                                Icon(
+                                    imageVector = if (isInLibrary) Icons.Default.Edit else Icons.Default.Add,
+                                    contentDescription = if (isInLibrary) {
+                                        "Edit My Library"
+                                    } else {
+                                        "Tambah ke My Library"
+                                    }
+                                )
+                            }
                         }
                     }
                 }
