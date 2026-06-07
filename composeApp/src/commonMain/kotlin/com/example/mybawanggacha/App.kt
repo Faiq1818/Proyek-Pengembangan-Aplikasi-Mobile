@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import com.example.mybawanggacha.domain.settings.model.AppColorScheme
 import com.example.mybawanggacha.domain.settings.model.ThemeMode
 import com.example.mybawanggacha.domain.settings.repository.SettingsRepository
 import com.example.mybawanggacha.presentation.navigation.AppNavHost
@@ -25,13 +26,14 @@ fun App(
         val settingsRepository = koinInject<SettingsRepository>()
         val systemDarkTheme = isSystemInDarkTheme()
         val themeMode by settingsRepository.themeMode.collectAsState(initial = ThemeMode.System)
+        val appColorScheme by settingsRepository.appColorScheme.collectAsState(initial = AppColorScheme.CodeGeass)
         val isDarkMode = themeMode.resolve(systemDarkTheme)
 
         LaunchedEffect(isDarkMode) {
             onDarkThemeChange(isDarkMode)
         }
 
-        MBGTheme(darkTheme = isDarkMode) {
+        MBGTheme(darkTheme = isDarkMode, appColorScheme = appColorScheme) {
             Surface(
                 modifier = Modifier.fillMaxSize(),
                 color = MaterialTheme.colorScheme.background

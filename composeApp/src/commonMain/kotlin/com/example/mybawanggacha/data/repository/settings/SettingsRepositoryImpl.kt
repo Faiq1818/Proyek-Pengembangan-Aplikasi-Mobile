@@ -1,6 +1,7 @@
 package com.example.mybawanggacha.data.repository.settings
 
 import com.example.mybawanggacha.data.local.datastore.UserPreferences
+import com.example.mybawanggacha.domain.settings.model.AppColorScheme
 import com.example.mybawanggacha.domain.settings.model.NetworkMode
 import com.example.mybawanggacha.domain.settings.model.ThemeMode
 import com.example.mybawanggacha.domain.settings.repository.SettingsRepository
@@ -23,6 +24,10 @@ class SettingsRepositoryImpl(
         NetworkMode.fromString(value)
     }
 
+    override val appColorScheme: Flow<AppColorScheme> = userPreferences.colorScheme.map { value ->
+        AppColorScheme.fromString(value)
+    }
+
     override suspend fun setThemeMode(themeMode: ThemeMode) {
         userPreferences.setDarkMode(
             when (themeMode) {
@@ -35,5 +40,9 @@ class SettingsRepositoryImpl(
 
     override suspend fun setNetworkMode(networkMode: NetworkMode) {
         userPreferences.setNetworkMode(networkMode.name)
+    }
+
+    override suspend fun setAppColorScheme(appColorScheme: AppColorScheme) {
+        userPreferences.setColorScheme(appColorScheme.name)
     }
 }

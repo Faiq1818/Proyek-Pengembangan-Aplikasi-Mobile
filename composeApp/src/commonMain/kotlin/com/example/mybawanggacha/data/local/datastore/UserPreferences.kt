@@ -30,6 +30,7 @@ class UserPreferences(
         val SHOW_PREVIEW = booleanPreferencesKey("show_preview")
         val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
         val NETWORK_MODE = stringPreferencesKey("network_mode")
+        val COLOR_SCHEME = stringPreferencesKey("color_scheme")
         val GACHA_PREFERENCE = stringPreferencesKey("gacha_preference")
         val GACHA_HISTORY = stringPreferencesKey("gacha_history")
     }
@@ -126,6 +127,18 @@ class UserPreferences(
     suspend fun setNetworkMode(mode: String) {
         dataStore.edit { prefs ->
             prefs[Keys.NETWORK_MODE] = mode
+        }
+    }
+
+    // ==================== COLOR SCHEME ====================
+
+    val colorScheme: Flow<String> = dataStore.data.map { prefs ->
+        prefs[Keys.COLOR_SCHEME] ?: "CodeGeass"
+    }
+
+    suspend fun setColorScheme(value: String) {
+        dataStore.edit { prefs ->
+            prefs[Keys.COLOR_SCHEME] = value
         }
     }
 

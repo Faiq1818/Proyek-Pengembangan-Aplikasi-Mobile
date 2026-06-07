@@ -2,6 +2,7 @@ package com.example.mybawanggacha.presentation.screens.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mybawanggacha.domain.settings.model.AppColorScheme
 import com.example.mybawanggacha.domain.settings.model.JikanRequestUsage
 import com.example.mybawanggacha.domain.settings.model.NetworkMode
 import com.example.mybawanggacha.domain.settings.model.ThemeMode
@@ -21,11 +22,13 @@ class SettingsViewModel(
     val uiState: StateFlow<SettingsUiState> = combine(
         settingsRepository.themeMode,
         settingsRepository.networkMode,
+        settingsRepository.appColorScheme,
         requestUsageRepository.usage
-    ) { themeMode, networkMode, requestUsage ->
+    ) { themeMode, networkMode, appColorScheme, requestUsage ->
         SettingsUiState(
             themeMode = themeMode,
             networkMode = networkMode,
+            appColorScheme = appColorScheme,
             requestUsage = requestUsage.toUiState()
         )
     }.stateIn(
@@ -45,6 +48,13 @@ class SettingsViewModel(
             settingsRepository.setNetworkMode(networkMode)
         }
     }
+
+    fun setAppColorScheme(appColorScheme: AppColorScheme) {
+        viewModelScope.launch {
+            settingsRepository.setAppColorScheme(appColorScheme)
+        }
+    }
+
     private fun JikanRequestUsage.toUiState(): SettingsRequestUsageUiState {
         return SettingsRequestUsageUiState(
             usedLastSecond = usedLastSecond,
