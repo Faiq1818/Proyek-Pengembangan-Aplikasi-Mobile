@@ -1,6 +1,5 @@
 package com.example.mybawanggacha.presentation.screens.search
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -43,11 +42,12 @@ import com.example.mybawanggacha.domain.search.model.SearchMediaType
 @Composable
 internal fun SearchMediaTypeDropdown(
     selected: SearchMediaType,
+    modifier: Modifier = Modifier.fillMaxWidth(),
     onSelected: (SearchMediaType) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    Box(modifier = Modifier.fillMaxWidth()) {
+    Box(modifier = modifier) {
         OutlinedButton(
             onClick = { expanded = true },
             modifier = Modifier
@@ -222,18 +222,19 @@ internal fun ToggleRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(18.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.30f))
             .clickable { onCheckedChange(!checked) }
-            .padding(horizontal = 14.dp, vertical = 10.dp),
+            .padding(horizontal = 2.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurface,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
         )
         Switch(
             checked = checked,
@@ -255,10 +256,6 @@ internal fun SearchResultCard(
         shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
-        ),
-        border = BorderStroke(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.64f)
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {

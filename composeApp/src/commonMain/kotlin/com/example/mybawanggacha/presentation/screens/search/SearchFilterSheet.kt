@@ -1,33 +1,30 @@
 package com.example.mybawanggacha.presentation.screens.search
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,8 +56,8 @@ internal fun SearchFilterSheet(
 
     LazyColumn(
         modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(start = 18.dp, end = 18.dp, bottom = 28.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        contentPadding = PaddingValues(start = 18.dp, end = 18.dp, bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         item { SearchFilterSheetHeader() }
 
@@ -71,18 +68,20 @@ internal fun SearchFilterSheet(
                 expanded = generalExpanded,
                 onToggle = { generalExpanded = !generalExpanded }
             ) {
-                SmallSearchTextField(
-                    label = SearchText.limitLabel,
-                    value = filters.limit,
-                    modifier = Modifier.fillMaxWidth(),
-                    onValueChange = { value -> onFiltersChange(filters.copy(limit = value)) }
-                )
-                SmallSearchTextField(
-                    label = SearchText.letterLabel,
-                    value = filters.letter,
-                    modifier = Modifier.fillMaxWidth(),
-                    onValueChange = { value -> onFiltersChange(filters.copy(letter = value)) }
-                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SmallSearchTextField(
+                        label = SearchText.limitLabel,
+                        value = filters.limit,
+                        modifier = Modifier.weight(1f),
+                        onValueChange = { value -> onFiltersChange(filters.copy(limit = value)) }
+                    )
+                    SmallSearchTextField(
+                        label = SearchText.letterLabel,
+                        value = filters.letter,
+                        modifier = Modifier.weight(1f),
+                        onValueChange = { value -> onFiltersChange(filters.copy(letter = value)) }
+                    )
+                }
                 ToggleRow(
                     label = SearchText.sfwOnlyLabel,
                     checked = filters.sfw,
@@ -103,20 +102,22 @@ internal fun SearchFilterSheet(
                 expanded = classificationExpanded,
                 onToggle = { classificationExpanded = !classificationExpanded }
             ) {
-                SearchDropdown(
-                    label = SearchText.typeLabel,
-                    value = filters.type,
-                    options = if (filters.mediaType == SearchMediaType.Anime) ANIME_TYPES else MANGA_TYPES,
-                    modifier = Modifier.fillMaxWidth(),
-                    onSelected = { value -> onFiltersChange(filters.copy(type = value)) }
-                )
-                SearchDropdown(
-                    label = SearchText.statusLabel,
-                    value = filters.status,
-                    options = if (filters.mediaType == SearchMediaType.Anime) ANIME_STATUSES else MANGA_STATUSES,
-                    modifier = Modifier.fillMaxWidth(),
-                    onSelected = { value -> onFiltersChange(filters.copy(status = value)) }
-                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SearchDropdown(
+                        label = SearchText.typeLabel,
+                        value = filters.type,
+                        options = if (filters.mediaType == SearchMediaType.Anime) ANIME_TYPES else MANGA_TYPES,
+                        modifier = Modifier.weight(1f),
+                        onSelected = { value -> onFiltersChange(filters.copy(type = value)) }
+                    )
+                    SearchDropdown(
+                        label = SearchText.statusLabel,
+                        value = filters.status,
+                        options = if (filters.mediaType == SearchMediaType.Anime) ANIME_STATUSES else MANGA_STATUSES,
+                        modifier = Modifier.weight(1f),
+                        onSelected = { value -> onFiltersChange(filters.copy(status = value)) }
+                    )
+                }
                 if (filters.mediaType == SearchMediaType.Anime) {
                     SearchDropdown(
                         label = SearchText.ratingLabel,
@@ -142,7 +143,7 @@ internal fun SearchFilterSheet(
                     modifier = Modifier.fillMaxWidth(),
                     onValueChange = { value -> onFiltersChange(filters.copy(score = value)) }
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     SmallSearchTextField(
                         label = SearchText.minScoreLabel,
                         value = filters.minScore,
@@ -156,7 +157,7 @@ internal fun SearchFilterSheet(
                         onValueChange = { value -> onFiltersChange(filters.copy(maxScore = value)) }
                     )
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     SmallSearchTextField(
                         label = SearchText.startDateLabel,
                         value = filters.startDate,
@@ -203,19 +204,23 @@ internal fun SearchFilterSheet(
                         }
                     )
                 } else {
-                    SmallSearchTextField(
-                        label = SearchText.genreIdsLabel,
-                        value = filters.genres,
-                        modifier = Modifier.fillMaxWidth(),
-                        onValueChange = { value -> onFiltersChange(filters.copy(genres = value)) }
-                    )
-                    SmallSearchTextField(
-                        label = SearchText.excludedGenreIdsLabel,
-                        value = filters.genresExclude,
-                        modifier = Modifier.fillMaxWidth(),
-                        onValueChange = { value -> onFiltersChange(filters.copy(genresExclude = value)) }
-                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        SmallSearchTextField(
+                            label = SearchText.genreIdsLabel,
+                            value = filters.genres,
+                            modifier = Modifier.weight(1f),
+                            onValueChange = { value -> onFiltersChange(filters.copy(genres = value)) }
+                        )
+                        SmallSearchTextField(
+                            label = SearchText.excludedGenreIdsLabel,
+                            value = filters.genresExclude,
+                            modifier = Modifier.weight(1f),
+                            onValueChange = { value -> onFiltersChange(filters.copy(genresExclude = value)) }
+                        )
+                    }
                 }
+
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.30f))
 
                 if (filterMetadata.related.isNotEmpty()) {
                     MetadataIncludeSelector(
@@ -275,31 +280,36 @@ internal fun SearchFilterSheet(
                 expanded = sortingExpanded,
                 onToggle = { sortingExpanded = !sortingExpanded }
             ) {
-                SearchDropdown(
-                    label = SearchText.orderByLabel,
-                    value = filters.orderBy,
-                    options = if (filters.mediaType == SearchMediaType.Anime) ANIME_ORDER_BY else MANGA_ORDER_BY,
-                    modifier = Modifier.fillMaxWidth(),
-                    onSelected = { value -> onFiltersChange(filters.copy(orderBy = value)) }
-                )
-                SearchDropdown(
-                    label = SearchText.sortLabel,
-                    value = filters.sort,
-                    options = SORT_OPTIONS,
-                    modifier = Modifier.fillMaxWidth(),
-                    onSelected = { value -> onFiltersChange(filters.copy(sort = value)) }
-                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SearchDropdown(
+                        label = SearchText.orderByLabel,
+                        value = filters.orderBy,
+                        options = if (filters.mediaType == SearchMediaType.Anime) ANIME_ORDER_BY else MANGA_ORDER_BY,
+                        modifier = Modifier.weight(1f),
+                        onSelected = { value -> onFiltersChange(filters.copy(orderBy = value)) }
+                    )
+                    SearchDropdown(
+                        label = SearchText.sortLabel,
+                        value = filters.sort,
+                        options = SORT_OPTIONS,
+                        modifier = Modifier.weight(1f),
+                        onSelected = { value -> onFiltersChange(filters.copy(sort = value)) }
+                    )
+                }
             }
         }
 
         item {
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                OutlinedButton(
+                TextButton(
                     onClick = onReset,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(0.9f)
                 ) {
                     Text(SearchText.resetButton)
                 }
@@ -322,17 +332,17 @@ internal fun SearchFilterSheet(
 
 @Composable
 private fun SearchFilterSheetHeader() {
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 2.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Text(
             text = SearchText.advancedFiltersTitle,
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = SearchText.advancedFiltersSubtitle,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -345,67 +355,46 @@ internal fun FilterSection(
     onToggle: () -> Unit,
     content: @Composable () -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        border = BorderStroke(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.64f)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Row(
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onToggle)
+                .padding(vertical = 9.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
+            Icon(
+                imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                contentDescription = subtitle.takeIf { it.isNotBlank() },
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+
+        AnimatedVisibility(visible = expanded) {
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable(onClick = onToggle)
-                    .padding(horizontal = 14.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    .padding(bottom = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = subtitle,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-                Icon(
-                    imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-
-            AnimatedVisibility(visible = expanded) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 14.dp, end = 14.dp, bottom = 14.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.16f)
-                    )
-                    content()
-                }
+                content()
             }
         }
+
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.42f))
     }
 }
-
 
 @Composable
 private fun MetadataStatusMessage(filterMetadata: SearchFilterMetadataUiState) {
@@ -594,30 +583,24 @@ private fun MetadataSelectorContainer(
     onToggleShowAll: () -> Unit,
     content: @Composable () -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = SearchText.metadataCount(visibleCount = visibleCount, totalCount = totalCount),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1
-                )
-            }
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             Text(
-                text = hint,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                text = SearchText.metadataCount(visibleCount = visibleCount, totalCount = totalCount),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1
             )
         }
 
@@ -628,7 +611,7 @@ private fun MetadataSelectorContainer(
             onValueChange = onQueryChange
         )
 
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             content()
         }
 
@@ -686,11 +669,11 @@ private fun MetadataOptionRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onStateClick)
-            .padding(vertical = 1.dp),
+            .padding(vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        MetadataSelectionBox(state = state)
+        MetadataSelectionMark(state = state)
 
         Row(
             modifier = Modifier.weight(1f),
@@ -717,56 +700,40 @@ private fun MetadataOptionRow(
 }
 
 @Composable
-private fun MetadataSelectionBox(
+private fun MetadataSelectionMark(
     state: MetadataSelectionState
 ) {
-    val selected = state != MetadataSelectionState.Neutral
-    val containerColor = if (selected) {
-        MaterialTheme.colorScheme.primaryContainer
-    } else {
-        MaterialTheme.colorScheme.surface
-    }
-    val contentColor = if (selected) {
-        MaterialTheme.colorScheme.onPrimaryContainer
-    } else {
-        MaterialTheme.colorScheme.onSurfaceVariant
+    val tint = when (state) {
+        MetadataSelectionState.Included -> MaterialTheme.colorScheme.primary
+        MetadataSelectionState.Excluded -> MaterialTheme.colorScheme.error
+        MetadataSelectionState.Neutral -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.48f)
     }
 
-    Card(
+    Box(
         modifier = Modifier.size(22.dp),
-        shape = RoundedCornerShape(7.dp),
-        colors = CardDefaults.cardColors(containerColor = containerColor),
-        border = BorderStroke(
-            width = 1.dp,
-            color = if (selected) {
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.72f)
-            } else {
-                MaterialTheme.colorScheme.outline.copy(alpha = 0.40f)
-            }
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        contentAlignment = Alignment.Center
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            when (state) {
-                MetadataSelectionState.Included -> Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = SearchText.includeChip,
-                    tint = contentColor,
-                    modifier = Modifier.size(14.dp)
-                )
+        when (state) {
+            MetadataSelectionState.Included -> Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = SearchText.includeChip,
+                tint = tint,
+                modifier = Modifier.size(16.dp)
+            )
 
-                MetadataSelectionState.Excluded -> Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = SearchText.excludeChip,
-                    tint = contentColor,
-                    modifier = Modifier.size(14.dp)
-                )
+            MetadataSelectionState.Excluded -> Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = SearchText.excludeChip,
+                tint = tint,
+                modifier = Modifier.size(16.dp)
+            )
 
-                MetadataSelectionState.Neutral -> Unit
-            }
+            MetadataSelectionState.Neutral -> Text(
+                text = "•",
+                style = MaterialTheme.typography.bodySmall,
+                color = tint,
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }

@@ -94,11 +94,9 @@ internal fun SearchContent(
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 4.dp, top = 32.dp, end = 18.dp, bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        contentPadding = PaddingValues(start = 4.dp, top = 18.dp, end = 18.dp, bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item(contentType = "search_header") { SearchHeader() }
-
         item(contentType = "search_panel") {
             SearchCompactPanel(
                 filters = filters,
