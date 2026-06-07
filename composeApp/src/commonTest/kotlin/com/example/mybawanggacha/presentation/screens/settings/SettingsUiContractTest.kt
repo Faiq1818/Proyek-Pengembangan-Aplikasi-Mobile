@@ -1,5 +1,6 @@
 package com.example.mybawanggacha.presentation.screens.settings
 
+import com.example.mybawanggacha.domain.settings.model.AppColorScheme
 import com.example.mybawanggacha.domain.settings.model.NetworkMode
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -18,5 +19,12 @@ class SettingsUiContractTest {
     fun networkMode_allowsNetwork_shouldMatchMode() {
         assertTrue(NetworkMode.Auto.allowsNetwork)
         assertFalse(NetworkMode.OfflineOnly.allowsNetwork)
+    }
+
+    @Test
+    fun appColorScheme_fromString_shouldFallbackToCodeGeass() {
+        assertEquals(AppColorScheme.CodeGeass, AppColorScheme.fromString(null))
+        assertEquals(AppColorScheme.CodeGeass, AppColorScheme.fromString("broken"))
+        assertEquals(AppColorScheme.PakHabib, AppColorScheme.fromString("pakhabib"))
     }
 }
