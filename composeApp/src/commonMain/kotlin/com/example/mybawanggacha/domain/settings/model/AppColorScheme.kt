@@ -17,6 +17,12 @@ enum class AppColorScheme(
         description = "Material baseline: ungu aman, netral, tidak neko-neko.",
         lightSwatches = listOf("#6750A4", "#EADDFF", "#625B71", "#7D5260", "#E7E0EC", "#FFFBFE"),
         darkSwatches = listOf("#D0BCFF", "#4F378B", "#CCC2DC", "#EFB8C8", "#49454F", "#1C1B1F")
+    ),
+    Gruvbox(
+        label = "Gruvbox",
+        description = "Retro warm palette: earthy, low contrast, terminal friendly.",
+        lightSwatches = listOf("#FBF1C7", "#79740E", "#B57614", "#427B58", "#D5C4A1", "#3C3836"),
+        darkSwatches = listOf("#282828", "#B8BB26", "#FABD2F", "#8EC07C", "#504945", "#EBDBB2")
     );
 
     fun swatches(darkTheme: Boolean): List<String> {

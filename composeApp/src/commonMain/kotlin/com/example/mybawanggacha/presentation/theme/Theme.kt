@@ -6,6 +6,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import com.example.mybawanggacha.domain.settings.model.AppColorScheme
+import com.example.mybawanggacha.presentation.theme.color.GruvboxColor
 import com.example.mybawanggacha.presentation.theme.color.PakHabibColor
 
 // ==================== COLOR SCHEMES ====================
@@ -107,6 +108,58 @@ private val PakHabibDarkColorScheme = darkColorScheme(
     outline = PakHabibColor.OutlineDark
 )
 
+private val GruvboxLightColorScheme = lightColorScheme(
+    primary = GruvboxColor.PrimaryLight,
+    onPrimary = GruvboxColor.OnPrimaryLight,
+    primaryContainer = GruvboxColor.PrimaryContainerLight,
+    onPrimaryContainer = GruvboxColor.OnPrimaryContainerLight,
+    secondary = GruvboxColor.SecondaryLight,
+    onSecondary = GruvboxColor.OnSecondaryLight,
+    secondaryContainer = GruvboxColor.SecondaryContainerLight,
+    onSecondaryContainer = GruvboxColor.OnSecondaryContainerLight,
+    tertiary = GruvboxColor.TertiaryLight,
+    onTertiary = GruvboxColor.OnTertiaryLight,
+    tertiaryContainer = GruvboxColor.TertiaryContainerLight,
+    onTertiaryContainer = GruvboxColor.OnTertiaryContainerLight,
+    error = GruvboxColor.ErrorLight,
+    onError = GruvboxColor.OnErrorLight,
+    errorContainer = GruvboxColor.ErrorContainerLight,
+    onErrorContainer = GruvboxColor.OnErrorContainerLight,
+    background = GruvboxColor.BgLight,
+    onBackground = GruvboxColor.OnBackgroundLight,
+    surface = GruvboxColor.BgLightHard,
+    onSurface = GruvboxColor.OnSurfaceLight,
+    surfaceVariant = GruvboxColor.SurfaceLight,
+    onSurfaceVariant = GruvboxColor.OnSurfaceVariantLight,
+    outline = GruvboxColor.OutlineLight
+)
+
+private val GruvboxDarkColorScheme = darkColorScheme(
+    primary = GruvboxColor.PrimaryDark,
+    onPrimary = GruvboxColor.OnPrimaryDark,
+    primaryContainer = GruvboxColor.PrimaryContainerDark,
+    onPrimaryContainer = GruvboxColor.OnPrimaryContainerDark,
+    secondary = GruvboxColor.SecondaryDark,
+    onSecondary = GruvboxColor.OnSecondaryDark,
+    secondaryContainer = GruvboxColor.SecondaryContainerDark,
+    onSecondaryContainer = GruvboxColor.OnSecondaryContainerDark,
+    tertiary = GruvboxColor.TertiaryDark,
+    onTertiary = GruvboxColor.OnTertiaryDark,
+    tertiaryContainer = GruvboxColor.TertiaryContainerDark,
+    onTertiaryContainer = GruvboxColor.OnTertiaryContainerDark,
+    error = GruvboxColor.ErrorDark,
+    onError = GruvboxColor.OnErrorDark,
+    errorContainer = GruvboxColor.ErrorContainerDark,
+    onErrorContainer = GruvboxColor.OnErrorContainerDark,
+    background = GruvboxColor.BgDarkHard,
+    onBackground = GruvboxColor.OnBackgroundDark,
+    surface = GruvboxColor.BgDark,
+    onSurface = GruvboxColor.OnSurfaceDark,
+    surfaceVariant = GruvboxColor.SurfaceDark,
+    onSurfaceVariant = GruvboxColor.OnSurfaceVariantDark,
+    outline = GruvboxColor.OutlineDark
+)
+
 // ==================== THEME ====================
 
 @Composable
@@ -118,6 +171,7 @@ fun MBGTheme(
     val colorScheme = when (appColorScheme) {
         AppColorScheme.CodeGeass -> if (darkTheme) CodeGeassDarkColorScheme else CodeGeassLightColorScheme
         AppColorScheme.PakHabib -> if (darkTheme) PakHabibDarkColorScheme else PakHabibLightColorScheme
+        AppColorScheme.Gruvbox -> if (darkTheme) GruvboxDarkColorScheme else GruvboxLightColorScheme
     }
 
     MaterialTheme(
