@@ -1,6 +1,8 @@
 package com.example.mybawanggacha.presentation.screens.settings
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -72,7 +74,8 @@ fun SettingsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(start = 4.dp, top = 32.dp, end = 18.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(start = 4.dp, top = 32.dp, end = 18.dp, bottom = 32.dp)
         ) {
             Text(
                 text = "Settings",
