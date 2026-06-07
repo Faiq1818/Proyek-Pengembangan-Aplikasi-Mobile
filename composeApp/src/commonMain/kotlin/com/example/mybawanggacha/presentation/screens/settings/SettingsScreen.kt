@@ -27,6 +27,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -55,6 +58,8 @@ fun SettingsScreen(
     val systemDarkTheme = isSystemInDarkTheme()
     val isDarkMode = uiState.themeMode.resolve(systemDarkTheme)
 
+    var selectedPane by remember { mutableStateOf(SettingsPane.Main) }
+
     MBGSideRailScaffold(
         selectedRailKey = "",
         onRailItemClick = { key ->
@@ -68,47 +73,210 @@ fun SettingsScreen(
             }
         },
         topAction = {
-            MBGRailBackButton(onClick = onNavigateBack)
+            MBGRailBackButton(
+                onClick = {
+                    if (selectedPane == SettingsPane.Main) {
+                        onNavigateBack()
+                    } else {
+                        selectedPane = SettingsPane.Main
+                    }
+                }
+            )
         }
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(start = 4.dp, top = 32.dp, end = 18.dp, bottom = 32.dp)
+                .padding(start = 4.dp, top = 32.dp, end = 18.dp, bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(
-                text = "Settings",
-                style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-                fontWeight = FontWeight.Bold
-            )
+            when (selectedPane) {
+                SettingsPane.Main -> {
+                    SettingsMainMenu(
+                        themeMode = uiState.themeMode,
+                        isDarkMode = isDarkMode,
+                        networkMode = uiState.networkMode,
+                        requestUsage = uiState.requestUsage,
+                        onPaneSelected = { selectedPane = it }
+                    )
+                }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                SettingsPane.Appearance -> {
+                    SettingsPaneHeader(
+                        title = "Appearance",
+                        description = "Theme dan tampilan aplikasi."
+                    )
+                    SettingsThemeSection(
+                        themeMode = uiState.themeMode,
+                        isDarkMode = isDarkMode,
+                        onThemeModeSelected = viewModel::setThemeMode
+                    )
+                }
 
-            SettingsThemeSection(
-                themeMode = uiState.themeMode,
-                isDarkMode = isDarkMode,
-                onThemeModeSelected = viewModel::setThemeMode
-            )
+                SettingsPane.DataAccess -> {
+                    SettingsPaneHeader(
+                        title = "Data & Offline",
+                        description = "Atur network mode dan fallback cache."
+                    )
+                    SettingsNetworkSection(
+                        networkMode = uiState.networkMode,
+                        onNetworkModeSelected = viewModel::setNetworkMode
+                    )
+                }
 
-            SettingsDivider()
+                SettingsPane.RequestUsage -> {
+                    SettingsPaneHeader(
+                        title = "Request Usage",
+                        description = "Pantau pemakaian request Jikan."
+                    )
+                    SettingsJikanBudgetSection(requestUsage = uiState.requestUsage)
+                }
 
-            SettingsNetworkSection(
-                networkMode = uiState.networkMode,
-                onNetworkModeSelected = viewModel::setNetworkMode
-            )
-
-            SettingsDivider()
-
-            SettingsJikanBudgetSection(requestUsage = uiState.requestUsage)
-
-            SettingsDivider()
-
-            SettingsAboutSection()
+                SettingsPane.About -> {
+                    SettingsPaneHeader(
+                        title = "About",
+                        description = "Info aplikasi dan sumber data."
+                    )
+                    SettingsAboutSection(showTitle = false)
+                }
+            }
         }
     }
 }
+
+
+private enum class SettingsPane {
+    Main,
+    Appearance,
+    DataAccess,
+    RequestUsage,
+    About
+}
+
+@Composable
+private fun SettingsMainMenu(
+    themeMode: ThemeMode,
+    isDarkMode: Boolean,
+    networkMode: NetworkMode,
+    requestUsage: SettingsRequestUsageUiState,
+    onPaneSelected: (SettingsPane) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(
+            text = "Settings",
+            style = MaterialTheme.typography.headlineLarge,
+            color = MaterialTheme.colorScheme.onBackground,
+            fontWeight = FontWeight.Bold
+        )
+
+        SettingsMenuRow(
+            icon = Icons.Default.Verified,
+            title = "Appearance",
+            description = when (themeMode) {
+                ThemeMode.System -> if (isDarkMode) "System theme: dark" else "System theme: light"
+                ThemeMode.Light -> "Light theme"
+                ThemeMode.Dark -> "Dark theme"
+            },
+            onClick = { onPaneSelected(SettingsPane.Appearance) }
+        )
+
+        SettingsMenuRow(
+            icon = Icons.Default.Cloud,
+            title = "Data & Offline",
+            description = networkMode.description,
+            onClick = { onPaneSelected(SettingsPane.DataAccess) }
+        )
+
+        SettingsMenuRow(
+            icon = Icons.Default.Storage,
+            title = "Request Usage",
+            description = "${requestUsage.usedLastMinute}/${requestUsage.minuteLimit} request menit ini • ${requestUsage.remainingThisMinute} tersisa",
+            onClick = { onPaneSelected(SettingsPane.RequestUsage) }
+        )
+
+        SettingsMenuRow(
+            icon = Icons.Default.Info,
+            title = "About",
+            description = "Versi, app info, dan sumber data.",
+            onClick = { onPaneSelected(SettingsPane.About) }
+        )
+    }
+}
+
+@Composable
+private fun SettingsPaneHeader(
+    title: String,
+    description: String
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.onBackground,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = description,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun SettingsMenuRow(
+    icon: ImageVector,
+    title: String,
+    description: String,
+    onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+            contentColor = MaterialTheme.colorScheme.onSurface
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(3.dp))
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
 
 @Composable
 private fun SettingsThemeSection(
@@ -328,17 +496,21 @@ private fun SettingsDivider() {
 }
 
 @Composable
-private fun SettingsAboutSection() {
+private fun SettingsAboutSection(
+    showTitle: Boolean = true
+) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Text(
-            text = "About",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onBackground,
-            fontWeight = FontWeight.SemiBold
-        )
+        if (showTitle) {
+            Text(
+                text = "About",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
 
         SettingsInfoCard(
             icon = Icons.Default.Info,
