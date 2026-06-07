@@ -39,7 +39,9 @@ class RunGachaUseCaseTest {
         val result = useCase(
             preference = GachaPreference(
                 mediaPool = GachaMediaPool.Both,
-                genreIds = "1,2",
+                selectedGenreIds = listOf(1, 2),
+                excludedGenreIds = listOf(9),
+                allowNsfw = true,
                 minScore = "8",
                 status = GachaStatusFilter.Completed,
                 format = GachaMediaFormat.Any,
@@ -51,6 +53,8 @@ class RunGachaUseCaseTest {
         assertTrue(result.malId in listOf(1, 2))
         assertEquals(listOf(SearchMediaType.Anime, SearchMediaType.Manga), searchRepository.requests.map { it.mediaType })
         assertTrue(searchRepository.requests.all { it.genres == "1,2" })
+        assertTrue(searchRepository.requests.all { it.genresExclude == "9" })
+        assertTrue(searchRepository.requests.all { !it.sfw })
         assertTrue(searchRepository.requests.all { it.minScore == "8" })
         assertTrue(searchRepository.requests.all { it.status == "complete" })
     }
