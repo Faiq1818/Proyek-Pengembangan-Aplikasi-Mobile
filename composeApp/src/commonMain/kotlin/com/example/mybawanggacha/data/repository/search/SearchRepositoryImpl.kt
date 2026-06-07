@@ -1,6 +1,7 @@
 package com.example.mybawanggacha.data.repository.search
 
 import com.example.mybawanggacha.core.coroutines.AppDispatchers
+import com.example.mybawanggacha.data.local.source.CachedMediaPagePayload
 import com.example.mybawanggacha.data.local.source.MediaPageCacheLocalDataSource
 import com.example.mybawanggacha.data.remote.jikan.dto.JikanAnimeListResponse
 import com.example.mybawanggacha.data.remote.jikan.mapper.toSearchPage
@@ -99,7 +100,7 @@ class SearchRepositoryImpl(
         cachedPayload
             ?.takeIf { payload -> payload.isFresh() }
             ?.decodeSearchPageOrNull(mediaType = mediaType, requestedPage = page)
-            ?.let { page -> return page }
+            ?.let { cachedPage -> return cachedPage }
 
         if (!cachePolicy.allowsNetwork()) {
             return cachedPayload?.decodeSearchPageOrNull(mediaType = mediaType, requestedPage = page)
@@ -137,9 +138,23 @@ class SearchRepositoryImpl(
         }
     }
 
-    private fun com.example.mybawanggacha.data.local.source.CachedMediaPagePayload.decodeMetadataOrNull(): SearchFilterMetadata? {
+    private fun CachedMediaPagePayload.decodeMetadataOrNull(): SearchFilterMetadata? {
         return runCatching {
             json.decodeFromString<SearchFilterMetadata>(payloadJson)
+        }.getOrNull()
+    }
+
+    private fun CachedMediaPagePayload.decodeSearchPageOrNull(
+        mediaType: SearchMediaType,
+        requestedPage: Int
+    ): MediaSearchPage? {
+        return runCatching {
+            JikanResponseCacheCodec
+                .decodeAnimeList(payloadJson)
+                .toSearchPage(
+                    mediaType = mediaType,
+                    requestedPage = requestedPage
+                )
         }.getOrNull()
     }
 
