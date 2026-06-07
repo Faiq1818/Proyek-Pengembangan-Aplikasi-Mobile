@@ -136,8 +136,8 @@ internal fun SearchCompactPanel(
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             item {
                 QuickFilterChip(
-                    label = SearchText.sfwChip,
-                    selected = filters.sfw,
+                    label = SearchText.nsfwLabel,
+                    selected = !filters.sfw,
                     onClick = { onFiltersChange(filters.copy(sfw = !filters.sfw)) }
                 )
             }

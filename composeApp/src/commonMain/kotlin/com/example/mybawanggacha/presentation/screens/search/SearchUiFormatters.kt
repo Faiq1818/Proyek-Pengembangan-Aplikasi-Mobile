@@ -31,7 +31,6 @@ internal fun buildActiveFilterLabels(
         filters.letter.takeIf { it.isNotBlank() }?.let { add("${SearchText.letterLabel}: $it") }
         filters.startDate.takeIf { it.isNotBlank() }?.let { add("Start: $it") }
         filters.endDate.takeIf { it.isNotBlank() }?.let { add("End: $it") }
-        if (!filters.sfw) add(SearchText.adultAllowedLabel)
         if (filters.unapproved) add(SearchText.unapprovedActiveLabel)
         if (filters.mediaType == SearchMediaType.Anime) {
             filters.producers.takeIf { it.isNotBlank() }?.let {

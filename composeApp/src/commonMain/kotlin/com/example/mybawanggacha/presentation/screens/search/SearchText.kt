@@ -23,7 +23,7 @@ internal object SearchText {
     const val compactFilterHint = ""
 
     const val generalSectionTitle = "General"
-    const val generalSectionSubtitle = "limit, letter, SFW, unapproved"
+    const val generalSectionSubtitle = "limit, letter, NSFW, unapproved"
     const val classificationSectionTitle = "Classification"
     const val classificationSectionSubtitle = "type, status, rating"
     const val scoreDateSectionTitle = "Score & Date"
@@ -36,8 +36,8 @@ internal object SearchText {
 
     const val limitLabel = "Limit"
     const val letterLabel = "Letter"
-    const val sfwChip = "SFW"
-    const val sfwOnlyLabel = "SFW only"
+    const val nsfwLabel = "NSFW"
+    const val allowNsfwLabel = "Allow NSFW"
     const val unapprovedLabel = "Include unapproved entries"
     const val typeLabel = "Type"
     const val statusLabel = "Status"
@@ -74,8 +74,6 @@ internal object SearchText {
     const val defaultOrderByLabel = "Relevance / Default"
     const val defaultSortLabel = "Default"
     const val defaultDropdownLabel = "Default"
-
-    const val adultAllowedLabel = "Adult allowed"
     const val unapprovedActiveLabel = "Unapproved"
 
     fun filterButton(activeFilterCount: Int): String {

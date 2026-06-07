@@ -83,9 +83,9 @@ internal fun SearchFilterSheet(
                     )
                 }
                 ToggleRow(
-                    label = SearchText.sfwOnlyLabel,
-                    checked = filters.sfw,
-                    onCheckedChange = { value -> onFiltersChange(filters.copy(sfw = value)) }
+                    label = SearchText.allowNsfwLabel,
+                    checked = !filters.sfw,
+                    onCheckedChange = { value -> onFiltersChange(filters.copy(sfw = !value)) }
                 )
                 ToggleRow(
                     label = SearchText.unapprovedLabel,
