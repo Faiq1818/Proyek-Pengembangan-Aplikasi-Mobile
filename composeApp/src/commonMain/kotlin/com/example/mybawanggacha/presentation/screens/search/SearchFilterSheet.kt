@@ -19,7 +19,6 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -27,6 +26,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -51,10 +51,10 @@ internal fun SearchFilterSheet(
     onApply: () -> Unit,
     onApplyAndSearch: () -> Unit
 ) {
-    var generalExpanded by remember { mutableStateOf(true) }
-    var classificationExpanded by remember { mutableStateOf(true) }
+    var generalExpanded by remember { mutableStateOf(false) }
+    var classificationExpanded by remember { mutableStateOf(false) }
     var scoreExpanded by remember { mutableStateOf(false) }
-    var metadataExpanded by remember { mutableStateOf(false) }
+    var metadataExpanded by remember { mutableStateOf(true) }
     var sortingExpanded by remember { mutableStateOf(false) }
 
     LazyColumn(
@@ -362,25 +362,20 @@ internal fun FilterSection(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable(onClick = onToggle)
-                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.FilterList,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = title,
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = subtitle,
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -388,7 +383,9 @@ internal fun FilterSection(
                 }
                 Icon(
                     imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                    contentDescription = null
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp)
                 )
             }
 
@@ -439,49 +436,78 @@ private fun MetadataTriStateSelector(
 ) {
     val included = includedValues.toMetadataValueSet()
     val excluded = excludedValues.toMetadataValueSet()
+    var query by remember(options) { mutableStateOf("") }
+    var showAll by remember(options) { mutableStateOf(false) }
+    val activeValues = (included + excluded).toSet()
+    val visibleOptions = remember(options, included, excluded, query, showAll) {
+        options.visibleMetadataOptions(
+            query = query,
+            activeValues = activeValues,
+            showAll = showAll
+        )
+    }
 
     MetadataSelectorContainer(
         title = title,
-        hint = hint
+        hint = hint,
+        query = query,
+        queryLabel = SearchText.genreSearchLabel,
+        totalCount = options.size,
+        visibleCount = visibleOptions.size,
+        showAll = showAll,
+        onQueryChange = { value ->
+            query = value
+            showAll = false
+        },
+        onToggleShowAll = { showAll = !showAll }
     ) {
-        options.forEach { option ->
-            val id = option.id.toString()
-            val state = when (id) {
-                in included -> MetadataSelectionState.Included
-                in excluded -> MetadataSelectionState.Excluded
-                else -> MetadataSelectionState.Neutral
-            }
+        MetadataSelectionSummary(
+            includedCount = included.size,
+            excludedCount = excluded.size
+        )
 
-            MetadataOptionRow(
-                option = option,
-                state = state,
-                onStateClick = {
-                    val newIncluded = included.toMutableSet()
-                    val newExcluded = excluded.toMutableSet()
-
-                    when (state) {
-                        MetadataSelectionState.Neutral -> {
-                            newIncluded.add(id)
-                            newExcluded.remove(id)
-                        }
-
-                        MetadataSelectionState.Included -> {
-                            newIncluded.remove(id)
-                            newExcluded.add(id)
-                        }
-
-                        MetadataSelectionState.Excluded -> {
-                            newIncluded.remove(id)
-                            newExcluded.remove(id)
-                        }
-                    }
-
-                    onValuesChange(
-                        newIncluded.toMetadataValueString(options),
-                        newExcluded.toMetadataValueString(options)
-                    )
+        if (visibleOptions.isEmpty()) {
+            MetadataEmptyMessage()
+        } else {
+            visibleOptions.forEach { option ->
+                val id = option.id.toString()
+                val state = when (id) {
+                    in included -> MetadataSelectionState.Included
+                    in excluded -> MetadataSelectionState.Excluded
+                    else -> MetadataSelectionState.Neutral
                 }
-            )
+
+                MetadataOptionRow(
+                    option = option,
+                    state = state,
+                    onStateClick = {
+                        val newIncluded = included.toMutableSet()
+                        val newExcluded = excluded.toMutableSet()
+
+                        when (state) {
+                            MetadataSelectionState.Neutral -> {
+                                newIncluded.add(id)
+                                newExcluded.remove(id)
+                            }
+
+                            MetadataSelectionState.Included -> {
+                                newIncluded.remove(id)
+                                newExcluded.add(id)
+                            }
+
+                            MetadataSelectionState.Excluded -> {
+                                newIncluded.remove(id)
+                                newExcluded.remove(id)
+                            }
+                        }
+
+                        onValuesChange(
+                            newIncluded.toMetadataValueString(options),
+                            newExcluded.toMetadataValueString(options)
+                        )
+                    }
+                )
+            }
         }
     }
 }
@@ -495,32 +521,62 @@ private fun MetadataIncludeSelector(
     onValuesChange: (String) -> Unit
 ) {
     val selected = selectedValues.toMetadataValueSet()
+    var query by remember(options) { mutableStateOf("") }
+    var showAll by remember(options) { mutableStateOf(false) }
+    val visibleOptions = remember(options, selected, query, showAll) {
+        options.visibleMetadataOptions(
+            query = query,
+            activeValues = selected,
+            showAll = showAll
+        )
+    }
 
     MetadataSelectorContainer(
         title = title,
-        hint = hint
+        hint = hint,
+        query = query,
+        queryLabel = SearchText.metadataSearchLabel,
+        totalCount = options.size,
+        visibleCount = visibleOptions.size,
+        showAll = showAll,
+        onQueryChange = { value ->
+            query = value
+            showAll = false
+        },
+        onToggleShowAll = { showAll = !showAll }
     ) {
-        options.forEach { option ->
-            val id = option.id.toString()
-            val state = if (id in selected) {
-                MetadataSelectionState.Included
-            } else {
-                MetadataSelectionState.Neutral
-            }
-
-            MetadataOptionRow(
-                option = option,
-                state = state,
-                onStateClick = {
-                    val newSelected = selected.toMutableSet()
-
-                    if (!newSelected.add(id)) {
-                        newSelected.remove(id)
-                    }
-
-                    onValuesChange(newSelected.toMetadataValueString(options))
-                }
+        if (selected.isNotEmpty()) {
+            MetadataSelectionSummary(
+                includedCount = selected.size,
+                excludedCount = 0
             )
+        }
+
+        if (visibleOptions.isEmpty()) {
+            MetadataEmptyMessage()
+        } else {
+            visibleOptions.forEach { option ->
+                val id = option.id.toString()
+                val state = if (id in selected) {
+                    MetadataSelectionState.Included
+                } else {
+                    MetadataSelectionState.Neutral
+                }
+
+                MetadataOptionRow(
+                    option = option,
+                    state = state,
+                    onStateClick = {
+                        val newSelected = selected.toMutableSet()
+
+                        if (!newSelected.add(id)) {
+                            newSelected.remove(id)
+                        }
+
+                        onValuesChange(newSelected.toMetadataValueString(options))
+                    }
+                )
+            }
         }
     }
 }
@@ -529,16 +585,35 @@ private fun MetadataIncludeSelector(
 private fun MetadataSelectorContainer(
     title: String,
     hint: String,
+    query: String,
+    queryLabel: String,
+    totalCount: Int,
+    visibleCount: Int,
+    showAll: Boolean,
+    onQueryChange: (String) -> Unit,
+    onToggleShowAll: () -> Unit,
     content: @Composable () -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Bold
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = SearchText.metadataCount(visibleCount = visibleCount, totalCount = totalCount),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1
+                )
+            }
             Text(
                 text = hint,
                 style = MaterialTheme.typography.bodySmall,
@@ -546,10 +621,59 @@ private fun MetadataSelectorContainer(
             )
         }
 
+        SmallSearchTextField(
+            label = queryLabel,
+            value = query,
+            modifier = Modifier.fillMaxWidth(),
+            onValueChange = onQueryChange
+        )
+
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             content()
         }
+
+        if (query.isBlank() && totalCount > METADATA_COLLAPSED_LIMIT) {
+            TextButton(
+                onClick = onToggleShowAll,
+                modifier = Modifier.align(Alignment.End)
+            ) {
+                Text(
+                    text = if (showAll) {
+                        SearchText.showLessMetadata
+                    } else {
+                        SearchText.showAllMetadata(totalCount)
+                    }
+                )
+            }
+        }
     }
+}
+
+@Composable
+private fun MetadataSelectionSummary(
+    includedCount: Int,
+    excludedCount: Int
+) {
+    if (includedCount == 0 && excludedCount == 0) return
+
+    Text(
+        text = SearchText.metadataSelectionSummary(
+            includedCount = includedCount,
+            excludedCount = excludedCount
+        ),
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.primary,
+        fontWeight = FontWeight.SemiBold
+    )
+}
+
+@Composable
+private fun MetadataEmptyMessage() {
+    Text(
+        text = SearchText.metadataNoMatch,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant
+    )
 }
 
 @Composable
@@ -562,14 +686,11 @@ private fun MetadataOptionRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onStateClick)
-            .padding(vertical = 2.dp),
+            .padding(vertical = 1.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        MetadataSelectionBox(
-            state = state,
-            onClick = onStateClick
-        )
+        MetadataSelectionBox(state = state)
 
         Row(
             modifier = Modifier.weight(1f),
@@ -580,7 +701,7 @@ private fun MetadataOptionRow(
                 text = option.name,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f, fill = false)
@@ -597,8 +718,7 @@ private fun MetadataOptionRow(
 
 @Composable
 private fun MetadataSelectionBox(
-    state: MetadataSelectionState,
-    onClick: () -> Unit
+    state: MetadataSelectionState
 ) {
     val selected = state != MetadataSelectionState.Neutral
     val containerColor = if (selected) {
@@ -613,9 +733,7 @@ private fun MetadataSelectionBox(
     }
 
     Card(
-        modifier = Modifier
-            .size(24.dp)
-            .clickable(onClick = onClick),
+        modifier = Modifier.size(22.dp),
         shape = RoundedCornerShape(7.dp),
         colors = CardDefaults.cardColors(containerColor = containerColor),
         border = BorderStroke(
@@ -623,7 +741,7 @@ private fun MetadataSelectionBox(
             color = if (selected) {
                 MaterialTheme.colorScheme.primary.copy(alpha = 0.72f)
             } else {
-                MaterialTheme.colorScheme.outline.copy(alpha = 0.48f)
+                MaterialTheme.colorScheme.outline.copy(alpha = 0.40f)
             }
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
@@ -637,20 +755,46 @@ private fun MetadataSelectionBox(
                     imageVector = Icons.Default.Check,
                     contentDescription = SearchText.includeChip,
                     tint = contentColor,
-                    modifier = Modifier.size(15.dp)
+                    modifier = Modifier.size(14.dp)
                 )
 
                 MetadataSelectionState.Excluded -> Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = SearchText.excludeChip,
                     tint = contentColor,
-                    modifier = Modifier.size(15.dp)
+                    modifier = Modifier.size(14.dp)
                 )
 
                 MetadataSelectionState.Neutral -> Unit
             }
         }
     }
+}
+
+private const val METADATA_COLLAPSED_LIMIT = 18
+
+private fun List<SearchFilterOption>.visibleMetadataOptions(
+    query: String,
+    activeValues: Set<String>,
+    showAll: Boolean
+): List<SearchFilterOption> {
+    val normalizedQuery = query.trim()
+    val filtered = if (normalizedQuery.isBlank()) {
+        this
+    } else {
+        filter { option ->
+            option.name.contains(normalizedQuery, ignoreCase = true) ||
+                option.id.toString().contains(normalizedQuery)
+        }
+    }
+    val activeOptions = filter { option -> option.id.toString() in activeValues }
+    val limitedOptions = if (normalizedQuery.isBlank() && !showAll) {
+        filtered.take(METADATA_COLLAPSED_LIMIT)
+    } else {
+        filtered
+    }
+
+    return (activeOptions + limitedOptions).distinctBy { option -> option.id }
 }
 
 private enum class MetadataSelectionState {

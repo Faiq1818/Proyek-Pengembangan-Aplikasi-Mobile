@@ -20,7 +20,7 @@ internal object SearchText {
     const val missingMetadata = "Tidak ada metadata tambahan"
 
     const val advancedFiltersTitle = "Advanced Filters"
-    const val advancedFiltersSubtitle = "Dafter filter lengkap yang dapat digunakan"
+    const val advancedFiltersSubtitle = "Filter lengkap, tetap ringkas dan tidak berisik"
 
     const val generalSectionTitle = "General"
     const val generalSectionSubtitle = "limit, letter, SFW, unapproved"
@@ -50,13 +50,17 @@ internal object SearchText {
     const val genreIdsLabel = "Genre IDs"
     const val excludedGenreIdsLabel = "Excluded Genre IDs"
     const val genreSelectorTitle = "Genres"
-    const val genreSelectorHint = "Klik sekali untuk include, klik dua kali untuk exclude, klik tiga kali untuk netral."
+    const val genreSelectorHint = "Cari genre, klik 1x include, 2x exclude."
     const val includedGenreLabel = "Included genres"
     const val excludedGenreLabel = "Excluded genres"
     const val producerIdsLabel = "Producers"
     const val magazineIdsLabel = "Magazines"
-    const val producerSelectorHint = "Klik untuk memilih producer/studio tanpa perlu hafal ID."
-    const val magazineSelectorHint = "Klik untuk memilih magazine/publisher tanpa perlu hafal ID."
+    const val producerSelectorHint = "Cari lalu klik untuk memilih producer/studio."
+    const val magazineSelectorHint = "Cari lalu klik untuk memilih magazine/publisher."
+    const val genreSearchLabel = "Cari genre"
+    const val metadataSearchLabel = "Cari metadata"
+    const val metadataNoMatch = "Tidak ada metadata yang cocok."
+    const val showLessMetadata = "Ringkas"
     const val metadataLoading = "Memuat pilihan metadata..."
     const val metadataLoadFailed = "Metadata gagal dimuat. Field ID manual tetap tersedia."
     const val includeChip = "Include"
@@ -76,6 +80,18 @@ internal object SearchText {
 
     fun filterButton(activeFilterCount: Int): String {
         return if (activeFilterCount > 0) "Filter ($activeFilterCount)" else "Filter"
+    }
+
+
+    fun showAllMetadata(totalCount: Int): String = "Tampilkan semua ($totalCount)"
+
+    fun metadataCount(visibleCount: Int, totalCount: Int): String = "$visibleCount/$totalCount"
+
+    fun metadataSelectionSummary(includedCount: Int, excludedCount: Int): String {
+        return buildList {
+            if (includedCount > 0) add("+$includedCount include")
+            if (excludedCount > 0) add("-$excludedCount exclude")
+        }.joinToString(" • ")
     }
 
     fun mediaDropdownLabel(label: String): String = "Media: $label"
