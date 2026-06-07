@@ -2,6 +2,7 @@ package com.example.mybawanggacha
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
@@ -35,7 +36,11 @@ fun App(
                 modifier = Modifier.fillMaxSize(),
                 color = MaterialTheme.colorScheme.background
             ) {
-                AppNavHost(modifier = Modifier.fillMaxSize())
+                AppNavHost(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .statusBarsPadding()
+                )
             }
         }
     }
