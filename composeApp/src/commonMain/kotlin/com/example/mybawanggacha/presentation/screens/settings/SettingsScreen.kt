@@ -20,6 +20,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -95,7 +96,7 @@ fun SettingsScreen(
 
             SettingsDivider()
 
-            SettingsJikanBudgetSection()
+            SettingsJikanBudgetSection(requestUsage = uiState.requestUsage)
 
             SettingsDivider()
 
@@ -191,7 +192,9 @@ private fun SettingsNetworkSection(
 }
 
 @Composable
-private fun SettingsJikanBudgetSection() {
+private fun SettingsJikanBudgetSection(
+    requestUsage: SettingsRequestUsageUiState
+) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -203,16 +206,111 @@ private fun SettingsJikanBudgetSection() {
             fontWeight = FontWeight.SemiBold
         )
 
-        SettingsInfoCard(
-            icon = Icons.Default.Storage,
-            title = "Limit aman",
-            description = "Patokan Jikan: 3 request/detik dan 60 request/menit. Cache lokal dipakai untuk menahan spam request."
-        )
+        SettingsRequestUsageCard(requestUsage = requestUsage)
 
-        SettingsInfoCard(
-            icon = Icons.Default.Cloud,
-            title = "Estimasi request",
-            description = "Search/list: ±1 request per halaman. Detail anime: ±1-2 request + preview relasi bila cache kosong. Gacha nanti idealnya 1-2 halaman search lalu random lokal."
+    }
+}
+
+@Composable
+private fun SettingsRequestUsageCard(
+    requestUsage: SettingsRequestUsageUiState
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+            contentColor = MaterialTheme.colorScheme.onSurface
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            Icon(
+                imageVector = Icons.Default.Storage,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Request terpakai",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "${requestUsage.usedLastMinute}/${requestUsage.minuteLimit}",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                LinearProgressIndicator(
+                    progress = requestUsage.minuteProgress.coerceIn(0f, 1f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(6.dp)
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SettingsUsageMetric(
+                        label = "Menit ini",
+                        value = "${requestUsage.remainingThisMinute} tersisa",
+                        modifier = Modifier.weight(1f)
+                    )
+                    SettingsUsageMetric(
+                        label = "Detik ini",
+                        value = "${requestUsage.usedLastSecond}/${requestUsage.secondLimit}",
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                Text(
+                    text = requestUsage.cooldownLabel,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SettingsUsageMetric(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = value,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.SemiBold
         )
     }
 }
