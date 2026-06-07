@@ -30,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.mybawanggacha.domain.settings.model.NetworkMode
 import com.example.mybawanggacha.domain.settings.model.ThemeMode
 import com.example.mybawanggacha.presentation.components.MBGMainRailKey
 import com.example.mybawanggacha.presentation.components.MBGRailBackButton
@@ -85,9 +86,18 @@ fun SettingsScreen(
                 onThemeModeSelected = viewModel::setThemeMode
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
-            Spacer(modifier = Modifier.height(24.dp))
+            SettingsDivider()
+
+            SettingsNetworkSection(
+                networkMode = uiState.networkMode,
+                onNetworkModeSelected = viewModel::setNetworkMode
+            )
+
+            SettingsDivider()
+
+            SettingsJikanBudgetSection()
+
+            SettingsDivider()
 
             SettingsAboutSection()
         }
@@ -140,6 +150,78 @@ private fun SettingsThemeSection(
             )
         }
     }
+}
+
+@Composable
+private fun SettingsNetworkSection(
+    networkMode: NetworkMode,
+    onNetworkModeSelected: (NetworkMode) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "Network",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onBackground,
+            fontWeight = FontWeight.SemiBold
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = networkMode.description,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            NetworkChoiceChip(
+                label = NetworkMode.Auto.label,
+                selected = networkMode == NetworkMode.Auto,
+                onClick = { onNetworkModeSelected(NetworkMode.Auto) }
+            )
+            NetworkChoiceChip(
+                label = NetworkMode.OfflineOnly.label,
+                selected = networkMode == NetworkMode.OfflineOnly,
+                onClick = { onNetworkModeSelected(NetworkMode.OfflineOnly) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun SettingsJikanBudgetSection() {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Text(
+            text = "Jikan Request Budget",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onBackground,
+            fontWeight = FontWeight.SemiBold
+        )
+
+        SettingsInfoCard(
+            icon = Icons.Default.Storage,
+            title = "Limit aman",
+            description = "Patokan Jikan: 3 request/detik dan 60 request/menit. Cache lokal dipakai untuk menahan spam request."
+        )
+
+        SettingsInfoCard(
+            icon = Icons.Default.Cloud,
+            title = "Estimasi request",
+            description = "Search/list: ±1 request per halaman. Detail anime: ±1-2 request + preview relasi bila cache kosong. Gacha nanti idealnya 1-2 halaman search lalu random lokal."
+        )
+    }
+}
+
+@Composable
+private fun SettingsDivider() {
+    Spacer(modifier = Modifier.height(24.dp))
+    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+    Spacer(modifier = Modifier.height(24.dp))
 }
 
 @Composable
@@ -222,6 +304,19 @@ private fun SettingsInfoCard(
 
 @Composable
 private fun ThemeChoiceChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = { Text(text = label) }
+    )
+}
+
+@Composable
+private fun NetworkChoiceChip(
     label: String,
     selected: Boolean,
     onClick: () -> Unit

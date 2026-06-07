@@ -29,6 +29,7 @@ class UserPreferences(
         val DEFAULT_CATEGORY = stringPreferencesKey("default_category")
         val SHOW_PREVIEW = booleanPreferencesKey("show_preview")
         val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
+        val NETWORK_MODE = stringPreferencesKey("network_mode")
     }
     
     // ==================== DARK MODE ====================
@@ -107,6 +108,25 @@ class UserPreferences(
         }
     }
     
+
+    // ==================== NETWORK MODE ====================
+
+    /**
+     * Observe network mode.
+     *
+     * Values are stored as enum names from domain settings. The datastore layer
+     * intentionally stays string-based so it does not depend on domain models.
+     */
+    val networkMode: Flow<String> = dataStore.data.map { prefs ->
+        prefs[Keys.NETWORK_MODE] ?: "Auto"
+    }
+
+    suspend fun setNetworkMode(mode: String) {
+        dataStore.edit { prefs ->
+            prefs[Keys.NETWORK_MODE] = mode
+        }
+    }
+
     // ==================== ONBOARDING ====================
     
     /**

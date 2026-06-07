@@ -1,6 +1,7 @@
 package com.example.mybawanggacha.data.repository.settings
 
 import com.example.mybawanggacha.data.local.datastore.UserPreferences
+import com.example.mybawanggacha.domain.settings.model.NetworkMode
 import com.example.mybawanggacha.domain.settings.model.ThemeMode
 import com.example.mybawanggacha.domain.settings.repository.SettingsRepository
 import kotlinx.coroutines.flow.Flow
@@ -18,6 +19,10 @@ class SettingsRepositoryImpl(
         }
     }
 
+    override val networkMode: Flow<NetworkMode> = userPreferences.networkMode.map { value ->
+        NetworkMode.fromString(value)
+    }
+
     override suspend fun setThemeMode(themeMode: ThemeMode) {
         userPreferences.setDarkMode(
             when (themeMode) {
@@ -26,5 +31,9 @@ class SettingsRepositoryImpl(
                 ThemeMode.Dark -> true
             }
         )
+    }
+
+    override suspend fun setNetworkMode(networkMode: NetworkMode) {
+        userPreferences.setNetworkMode(networkMode.name)
     }
 }
