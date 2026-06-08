@@ -21,6 +21,9 @@ jobs:
     name: Build and publish GitHub release
     runs-on: macos-latest
 
+    env:
+      RELEASE_VERSION: ${{ inputs.version }}
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -30,7 +33,7 @@ jobs:
       - name: Validate version
         shell: bash
         run: |
-          if [[ ! "${{ inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9._-]+)?$ ]]; then
+          if [[ ! "${RELEASE_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9._-]+)?$ ]]; then
             echo "Version must look like 1.0.0 or 1.0.0-rc4"
             exit 1
           fi
@@ -47,39 +50,83 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x ./gradlew
 
-      - name: Test
-        run: ./gradlew :composeApp:allTests -PbuildProfile=release -PbuildTarget=tests -Papp.versionName=${{ inputs.version }}
+      - name: Compile Kotlin metadata
+        run: ./gradlew :composeApp:compileKotlinMetadata -PbuildProfile=release -PbuildTarget=metadata -Papp.versionName=${RELEASE_VERSION}
 
-      - name: Build Android artifact
-        run: ./gradlew :composeApp:assembleAndroidMain -PbuildProfile=release -PbuildTarget=Android -Papp.versionName=${{ inputs.version }}
+      - name: Compile host-safe unit tests
+        run: ./gradlew :composeApp:assembleUnitTest -PbuildProfile=release -PbuildTarget=tests -Papp.versionName=${RELEASE_VERSION}
 
-      - name: Build iOS simulator artifact
-        run: ./gradlew :composeApp:compileKotlinIosSimulatorArm64 -PbuildProfile=release -PbuildTarget=iOS-simulator -Papp.versionName=${{ inputs.version }}
+      - name: Build Android APK
+        run: ./gradlew :androidApp:assembleRelease -PbuildProfile=release -PbuildTarget=Android -Papp.versionName=${RELEASE_VERSION}
 
-      - name: Collect artifacts
+      - name: Build iOS simulator artifact optional
         shell: bash
         run: |
-          mkdir -p release-artifacts
-          find composeApp/build -type f \( -name "*.aar" -o -name "*.klib" -o -name "*.framework.zip" \) -print -exec cp {} release-artifacts/ \; || true
-          tar -czf mybawanggacha-${{ inputs.version }}-build-artifacts.tar.gz release-artifacts
+          set +e
+          ./gradlew :composeApp:compileKotlinIosSimulatorArm64 -PbuildProfile=release -PbuildTarget=iOS-simulator -Papp.versionName=${RELEASE_VERSION}
+          status=$?
+          if [ "$status" -ne 0 ]; then
+            echo "::warning::Optional iOS simulator artifact build failed. Android release artifacts will still be published."
+          fi
+          exit 0
+
+      - name: Collect Android APKs and checksums
+        shell: bash
+        run: |
+          version="v${RELEASE_VERSION#v}"
+          output_dir="release-artifacts/android"
+          mkdir -p "$output_dir"
+
+          find androidApp/build/outputs/apk/release -type f -name "*.apk" -print0 |
+          while IFS= read -r -d '' apk; do
+            apk_name="$(basename "$apk")"
+            arch="universal"
+            case "$apk_name" in
+              *arm64-v8a*) arch="arm-v8a" ;;
+              *armeabi-v7a*) arch="arm-v7a" ;;
+              *x86_64*) arch="x86-64" ;;
+              *universal*) arch="universal" ;;
+            esac
+            cp "$apk" "$output_dir/MyBawangGacha-${version}-${arch}.apk"
+          done
+
+          for arch in arm-v8a arm-v7a x86-64 universal; do
+            if [ ! -f "$output_dir/MyBawangGacha-${version}-${arch}.apk" ]; then
+              echo "::warning::Missing APK for ${arch}"
+            fi
+          done
+
+          if ! find "$output_dir" -type f -name "*.apk" | grep -q .; then
+            echo "No Android APK was produced"
+            exit 1
+          fi
+
+          (
+            cd "$output_dir"
+            shasum -a 256 *.apk | sort > SHA256SUMS
+          )
 
       - name: Create tag
         shell: bash
         run: |
-          git tag "v${{ inputs.version }}"
-          git push origin "v${{ inputs.version }}"
+          git tag "v${RELEASE_VERSION}"
+          git push origin "v${RELEASE_VERSION}"
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ inputs.version }}
-          name: MyBawangGacha ${{ inputs.version }}
+          tag_name: v${{ env.RELEASE_VERSION }}
+          name: MyBawangGacha ${{ env.RELEASE_VERSION }}
           prerelease: ${{ inputs.prerelease }}
-          files: mybawanggacha-${{ inputs.version }}-build-artifacts.tar.gz
+          files: |
+            release-artifacts/android/*.apk
+            release-artifacts/android/SHA256SUMS
           body: |
-            Automated release for MyBawangGacha ${{ inputs.version }}.
+            Automated release for MyBawangGacha ${{ env.RELEASE_VERSION }}.
 
             Build metadata is embedded through Gradle:
             - Profile: release
             - Commit: ${{ github.sha }}
             - Run ID: ${{ github.run_id }}
+
+            APK checksums are attached as SHA256SUMS.

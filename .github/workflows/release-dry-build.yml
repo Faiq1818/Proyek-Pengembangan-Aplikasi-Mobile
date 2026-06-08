@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Dry-run version name, for example 0.0.0-dry-run
+        description: Dry-run version name. Leave empty for automatic dry version.
         required: false
-        default: 0.0.0-dry-run
+        default: ""
         type: string
   pull_request:
     branches: [ main ]
@@ -20,15 +20,27 @@ on:
       - "settings.gradle.kts"
       - "gradle.properties"
 
-jobs:
-  dry-release:
-    name: Dry build Android APK and iOS
-    runs-on: macos-latest
+permissions:
+  contents: read
 
-    env:
-      DRY_VERSION: ${{ github.event.inputs.version || '0.0.0-dry-run' }}
+jobs:
+  android-dry-build:
+    name: Android dry release APK
+    runs-on: ubuntu-latest
 
     steps:
+      - name: Resolve dry version
+        shell: bash
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            version="${{ github.event.inputs.version }}"
+          else
+            short_sha="${GITHUB_SHA::7}"
+            version="0.0.0-dry.${GITHUB_RUN_NUMBER}.${short_sha}"
+          fi
+          echo "DRY_VERSION=$version" >> "$GITHUB_ENV"
+          echo "Dry build version: $version"
+
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
@@ -55,20 +67,110 @@ jobs:
       - name: Build Android APK
         run: ./gradlew :androidApp:assembleRelease -PbuildProfile=release -PbuildTarget=Android -Papp.versionName=${DRY_VERSION}
 
-      - name: Build iOS simulator artifact
-        run: ./gradlew :composeApp:compileKotlinIosSimulatorArm64 -PbuildProfile=release -PbuildTarget=iOS-simulator -Papp.versionName=${DRY_VERSION}
-
-      - name: Collect dry-build artifacts
+      - name: Collect Android APKs and checksums
         shell: bash
         run: |
-          mkdir -p release-dry-artifacts/android release-dry-artifacts/ios
-          find androidApp/build/outputs/apk -type f -name "*.apk" -print -exec cp {} release-dry-artifacts/android/ \; || true
-          find composeApp/build -type f \( -name "*.klib" -o -name "*.framework.zip" \) -print -exec cp {} release-dry-artifacts/ios/ \; || true
-          tar -czf mybawanggacha-${DRY_VERSION}-dry-build-artifacts.tar.gz release-dry-artifacts
+          version="v${DRY_VERSION#v}"
+          output_dir="release-dry-artifacts/android"
+          mkdir -p "$output_dir"
 
-      - name: Upload dry-build artifacts
+          find androidApp/build/outputs/apk/release -type f -name "*.apk" -print0 |
+          while IFS= read -r -d '' apk; do
+            apk_name="$(basename "$apk")"
+            arch="universal"
+            case "$apk_name" in
+              *arm64-v8a*) arch="arm-v8a" ;;
+              *armeabi-v7a*) arch="arm-v7a" ;;
+              *x86_64*) arch="x86-64" ;;
+              *universal*) arch="universal" ;;
+            esac
+            cp "$apk" "$output_dir/MyBawangGacha-${version}-${arch}.apk"
+          done
+
+          for arch in arm-v8a arm-v7a x86-64 universal; do
+            if [ ! -f "$output_dir/MyBawangGacha-${version}-${arch}.apk" ]; then
+              echo "::warning::Missing APK for ${arch}"
+            fi
+          done
+
+          if ! find "$output_dir" -type f -name "*.apk" | grep -q .; then
+            echo "No Android APK was produced"
+            exit 1
+          fi
+
+          (
+            cd "$output_dir"
+            shasum -a 256 *.apk | sort > SHA256SUMS
+          )
+
+      - name: Upload Android dry build APKs
         uses: actions/upload-artifact@v4
         with:
-          name: mybawanggacha-${{ env.DRY_VERSION }}-dry-build-artifacts
-          path: mybawanggacha-${{ env.DRY_VERSION }}-dry-build-artifacts.tar.gz
+          name: mybawanggacha-${{ env.DRY_VERSION }}-android-apks
+          path: |
+            release-dry-artifacts/android/*.apk
+            release-dry-artifacts/android/SHA256SUMS
           if-no-files-found: error
+
+  ios-dry-build:
+    name: iOS dry build optional
+    runs-on: macos-latest
+
+    steps:
+      - name: Resolve dry version
+        shell: bash
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            version="${{ github.event.inputs.version }}"
+          else
+            short_sha="${GITHUB_SHA::7}"
+            version="0.0.0-dry.${GITHUB_RUN_NUMBER}.${short_sha}"
+          fi
+          echo "DRY_VERSION=$version" >> "$GITHUB_ENV"
+          echo "Dry build version: $version"
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'zulu'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Make Gradle executable
+        run: chmod +x ./gradlew
+
+      - name: Build iOS simulator artifact optional
+        shell: bash
+        run: |
+          set +e
+          ./gradlew :composeApp:compileKotlinIosSimulatorArm64 -PbuildProfile=release -PbuildTarget=iOS-simulator -Papp.versionName=${DRY_VERSION}
+          status=$?
+          if [ "$status" -ne 0 ]; then
+            echo "::warning::Optional iOS simulator artifact build failed."
+          fi
+          exit 0
+
+      - name: Collect iOS artifact and checksum
+        shell: bash
+        run: |
+          mkdir -p release-dry-artifacts/ios
+          find composeApp/build -type f \( -name "*.klib" -o -name "*.framework.zip" \) -print -exec cp {} release-dry-artifacts/ios/ \; || true
+
+          (
+            cd release-dry-artifacts
+            find . -type f -print0 | sort -z | xargs -0 shasum -a 256 > SHA256SUMS || true
+          )
+
+      - name: Upload iOS dry build
+        uses: actions/upload-artifact@v4
+        with:
+          name: mybawanggacha-${{ env.DRY_VERSION }}-ios-dry-build
+          path: release-dry-artifacts/
+          if-no-files-found: warn

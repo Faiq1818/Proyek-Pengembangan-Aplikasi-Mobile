@@ -21,13 +21,28 @@ android {
         applicationId = "com.example.mybawanggacha"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = project.findProperty("app.versionCode")
+            ?.toString()
+            ?.toIntOrNull()
+            ?: System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull()
+            ?: 1
+        versionName = project.findProperty("app.versionName")?.toString()
+            ?: System.getenv("APP_VERSION_NAME")
+            ?: "1.0.0"
 
         val geminiApiKey = project.findProperty("GEMINI_API_KEY")?.toString()
             ?: System.getenv("GEMINI_API_KEY")
             ?: ""
         buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
+    }
+
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("armeabi-v7a", "arm64-v8a", "x86_64")
+            isUniversalApk = true
+        }
     }
 
     buildFeatures {

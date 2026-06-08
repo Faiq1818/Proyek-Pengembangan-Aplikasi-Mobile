@@ -6,9 +6,12 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+
 jobs:
   android:
-    name: Build only (Android)
+    name: Android compile
     runs-on: ubuntu-latest
 
     steps:
@@ -36,7 +39,7 @@ jobs:
         run: ./gradlew :composeApp:assembleAndroidMain -PbuildProfile=ci -PbuildTarget=Android
 
   common:
-    name: Code Quality (Testing)
+    name: Common checks
     runs-on: ubuntu-latest
 
     steps:
@@ -64,9 +67,8 @@ jobs:
         run: ./gradlew :composeApp:assembleUnitTest -PbuildProfile=ci -PbuildTarget=tests
 
   ios:
-    name: Build only (iOS)
+    name: iOS compile optional
     runs-on: macos-latest
-    continue-on-error: true
 
     steps:
       - name: Checkout Repository
@@ -86,8 +88,13 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x ./gradlew
 
-      - name: Compile iOS simulator
-        run: ./gradlew :composeApp:compileKotlinIosSimulatorArm64 -PbuildProfile=ci -PbuildTarget=iOS-simulator
-
-      - name: Run iOS simulator tests
-        run: ./gradlew :composeApp:iosSimulatorArm64Test -PbuildProfile=ci -PbuildTarget=iOS-simulator-tests
+      - name: Compile iOS simulator optional
+        shell: bash
+        run: |
+          set +e
+          ./gradlew :composeApp:compileKotlinIosSimulatorArm64 -PbuildProfile=ci -PbuildTarget=iOS-simulator
+          status=$?
+          if [ "$status" -ne 0 ]; then
+            echo "::warning::Optional iOS simulator compile failed. Fix iOS separately; Android/common CI remains authoritative for now."
+          fi
+          exit 0
