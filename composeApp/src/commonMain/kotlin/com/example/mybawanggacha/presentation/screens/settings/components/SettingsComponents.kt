@@ -1,10 +1,7 @@
 package com.example.mybawanggacha.presentation.screens.settings.components
 
-import com.example.mybawanggacha.presentation.screens.settings.*
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +15,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Cloud
@@ -33,8 +33,8 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,24 +43,31 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
+import com.example.mybawanggacha.core.build.AppBuildInfo
+import com.example.mybawanggacha.core.build.AppBuildInfo.Companion.isKnownBuildValue
+import com.example.mybawanggacha.core.build.AppBuildInfoProvider
 import com.example.mybawanggacha.domain.settings.model.AiApiModel
 import com.example.mybawanggacha.domain.settings.model.AiApiSettings
+import com.example.mybawanggacha.domain.settings.model.AiPersonality
 import com.example.mybawanggacha.domain.settings.model.AppColorScheme
 import com.example.mybawanggacha.domain.settings.model.NetworkMode
 import com.example.mybawanggacha.domain.settings.model.ThemeMode
 import com.example.mybawanggacha.presentation.components.MBGMainRailKey
 import com.example.mybawanggacha.presentation.components.MBGRailBackButton
 import com.example.mybawanggacha.presentation.components.MBGSideRailScaffold
+import com.example.mybawanggacha.presentation.screens.settings.*
 import org.koin.compose.viewmodel.koinViewModel
-import com.example.mybawanggacha.domain.settings.model.AiPersonality
 
 @Composable
 internal fun SettingsMainMenu(
@@ -713,6 +720,8 @@ private fun SettingsChoiceChip(
 internal fun SettingsAboutSection(
     showTitle: Boolean = true
 ) {
+    val buildInfo = AppBuildInfoProvider.current
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -728,20 +737,244 @@ internal fun SettingsAboutSection(
 
         SettingsInfoCard(
             icon = Icons.Default.Info,
-            title = "MyBawangGacha",
-            description = "Anime, manga, library dan gacha di 1 app."
+            title = buildInfo.appName,
+            description = "Anime, manga, library, gacha, dan AI assistant dalam satu aplikasi."
         )
 
-        SettingsInfoCard(
-            icon = Icons.Default.Verified,
-            title = "Version 1.0",
-            description = "lebih tepatnya karena masih sprint 3, jadi v1.0-rc3 lmao."
-        )
+        SettingsBuildInfoCard(buildInfo = buildInfo)
 
-        SettingsInfoCard(
+        SettingsDetailCard(
             icon = Icons.Default.Cloud,
-            title = "Data source",
-            description = "Anime dan manga metadata dari API Jikan, API MyAnimeList yang unofficial."
+            title = "Data & AI",
+            rows = listOf(
+                "Data source" to buildInfo.dataSource,
+                "AI provider" to buildInfo.aiProvider,
+                "Library" to "Local SQLDelight database + DataStore preferences",
+                "Offline mode" to "Network/cache policy dapat diatur di Data & Offline"
+            )
+        )
+
+        SettingsDetailCard(
+            icon = Icons.Default.Storage,
+            title = "Runtime",
+            rows = listOf(
+                "Platform" to buildInfo.runtimePlatform,
+                "Device" to buildInfo.device,
+                "Application ID" to buildInfo.applicationId,
+                "Database schema" to buildInfo.databaseSchema
+            )
+        )
+
+        SettingsDevelopersCard()
+    }
+}
+
+@Composable
+private fun SettingsDevelopersCard() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+            contentColor = MaterialTheme.colorScheme.onSurface
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            Icon(
+                imageVector = Icons.Default.Info,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "Developers",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold
+                )
+
+                SettingsDeveloperRow(
+                    name = "Varasina Farmadani",
+                    handle = "@sinavarasina",
+                    githubUrl = "github.com/sinavarasina",
+                    avatarUrl = "https://github.com/sinavarasina.png?size=128"
+                )
+
+                SettingsDeveloperRow(
+                    name = "Faiq",
+                    handle = "@Faiq1818",
+                    githubUrl = "github.com/Faiq1818",
+                    avatarUrl = "https://github.com/Faiq1818.png?size=128"
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SettingsDeveloperRow(
+    name: String,
+    handle: String,
+    githubUrl: String,
+    avatarUrl: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        AsyncImage(
+            model = avatarUrl,
+            contentDescription = "$name GitHub avatar",
+            modifier = Modifier
+                .size(42.dp)
+                .clip(CircleShape),
+            contentScale = ContentScale.Crop
+        )
+
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            Text(
+                text = name,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = "$handle • $githubUrl",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontFamily = FontFamily.Monospace
+            )
+        }
+    }
+}
+
+@Composable
+private fun SettingsBuildInfoCard(buildInfo: AppBuildInfo) {
+    SettingsDetailCard(
+        icon = Icons.Default.Verified,
+        title = "Build info",
+        rows = buildInfoRows(buildInfo)
+    )
+}
+
+private fun buildInfoRows(buildInfo: AppBuildInfo): List<Pair<String, String>> {
+    return buildList {
+        add("Version" to buildInfo.versionDisplay())
+        add("Profile" to buildInfo.buildProfile)
+        add("Target" to buildInfo.buildTarget)
+        add("Repository" to buildInfo.repository)
+
+        if (buildInfo.hasEmbeddedGitMetadata) {
+            addKnown("Branch", buildInfo.branch)
+            addKnown("Commit", buildInfo.commit)
+            addKnown("State", buildInfo.commitState)
+            addKnown("Build date", buildInfo.buildDate)
+            addKnown("CI", buildInfo.ci)
+        } else {
+            add("Git metadata" to "not embedded in this composeApp library build")
+        }
+
+        add("Version ABI" to buildInfo.versionAbiString)
+    }
+}
+
+private fun AppBuildInfo.versionDisplay(): String {
+    return if (versionCode.isKnownBuildValue()) {
+        "$versionName ($versionCode)"
+    } else {
+        versionName
+    }
+}
+
+private fun MutableList<Pair<String, String>>.addKnown(
+    label: String,
+    value: String
+) {
+    if (value.isKnownBuildValue()) {
+        add(label to value)
+    }
+}
+
+@Composable
+private fun SettingsDetailCard(
+    icon: ImageVector,
+    title: String,
+    rows: List<Pair<String, String>>
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+            contentColor = MaterialTheme.colorScheme.onSurface
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold
+                )
+
+                rows.forEach { (label, value) ->
+                    SettingsDetailRow(
+                        label = label,
+                        value = value
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SettingsDetailRow(
+    label: String,
+    value: String
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.SemiBold
+        )
+        Text(
+            text = value.ifBlank { "unknown" },
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontFamily = FontFamily.Monospace
         )
     }
 }
