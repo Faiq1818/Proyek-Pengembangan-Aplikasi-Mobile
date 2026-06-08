@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -104,13 +105,15 @@ fun AIAssistantScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             MBGTopBar(
-                title = "AI Assistant",
+                title = uiState.aiApiModel.label,
                 onNavigateBack = onNavigateBack,
-                actions = {
+                titleContent = {
                     AiModelMenu(
                         selected = uiState.aiApiModel,
                         onSelected = viewModel::setAiApiModel
                     )
+                },
+                actions = {
                     IconButton(onClick = viewModel::resetSession) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
@@ -125,6 +128,7 @@ fun AIAssistantScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .imePadding()
                 .padding(16.dp)
         ) {
             LazyColumn(

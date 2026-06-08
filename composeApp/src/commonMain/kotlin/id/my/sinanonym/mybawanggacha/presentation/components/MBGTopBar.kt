@@ -16,12 +16,19 @@ import androidx.compose.ui.Modifier
 fun MBGTopBar(
     title: String,
     modifier: Modifier = Modifier,
+    titleContent: (@Composable () -> Unit)? = null,
     onNavigateBack: (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     TopAppBar(
         modifier = modifier,
-        title = { Text(title) },
+        title = {
+            if (titleContent != null) {
+                titleContent()
+            } else {
+                Text(title)
+            }
+        },
         navigationIcon = {
             if (onNavigateBack != null) {
                 IconButton(onClick = onNavigateBack) {
