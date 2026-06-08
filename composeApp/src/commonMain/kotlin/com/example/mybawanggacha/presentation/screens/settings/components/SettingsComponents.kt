@@ -884,6 +884,7 @@ private fun buildInfoRows(buildInfo: AppBuildInfo): List<Pair<String, String>> {
             addKnown("State", buildInfo.commitState)
             addKnown("Build date", buildInfo.buildDate)
             addKnown("CI", buildInfo.ci)
+            addKnown("Run ID", buildInfo.ciRunId)
         } else {
             add("Git metadata" to "not embedded in this composeApp library build")
         }

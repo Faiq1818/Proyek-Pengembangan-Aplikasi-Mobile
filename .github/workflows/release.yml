@@ -1,0 +1,85 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version name, for example 1.0.0-rc4
+        required: true
+        type: string
+      prerelease:
+        description: Mark GitHub release as pre-release
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish GitHub release
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate version
+        shell: bash
+        run: |
+          if [[ ! "${{ inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9._-]+)?$ ]]; then
+            echo "Version must look like 1.0.0 or 1.0.0-rc4"
+            exit 1
+          fi
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'zulu'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Make Gradle executable
+        run: chmod +x ./gradlew
+
+      - name: Test
+        run: ./gradlew :composeApp:allTests -PbuildProfile=release -PbuildTarget=tests -Papp.versionName=${{ inputs.version }}
+
+      - name: Build Android artifact
+        run: ./gradlew :composeApp:assembleAndroidMain -PbuildProfile=release -PbuildTarget=Android -Papp.versionName=${{ inputs.version }}
+
+      - name: Build iOS simulator artifact
+        run: ./gradlew :composeApp:compileKotlinIosSimulatorArm64 -PbuildProfile=release -PbuildTarget=iOS-simulator -Papp.versionName=${{ inputs.version }}
+
+      - name: Collect artifacts
+        shell: bash
+        run: |
+          mkdir -p release-artifacts
+          find composeApp/build -type f \( -name "*.aar" -o -name "*.klib" -o -name "*.framework.zip" \) -print -exec cp {} release-artifacts/ \; || true
+          tar -czf mybawanggacha-${{ inputs.version }}-build-artifacts.tar.gz release-artifacts
+
+      - name: Create tag
+        shell: bash
+        run: |
+          git tag "v${{ inputs.version }}"
+          git push origin "v${{ inputs.version }}"
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ inputs.version }}
+          name: MyBawangGacha ${{ inputs.version }}
+          prerelease: ${{ inputs.prerelease }}
+          files: mybawanggacha-${{ inputs.version }}-build-artifacts.tar.gz
+          body: |
+            Automated release for MyBawangGacha ${{ inputs.version }}.
+
+            Build metadata is embedded through Gradle:
+            - Profile: release
+            - Commit: ${{ github.sha }}
+            - Run ID: ${{ github.run_id }}

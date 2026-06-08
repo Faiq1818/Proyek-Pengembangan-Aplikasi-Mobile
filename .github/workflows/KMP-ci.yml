@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -28,10 +30,10 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Compile Android target
-        run: ./gradlew :composeApp:compileAndroidMain
+        run: ./gradlew :composeApp:compileAndroidMain -PbuildProfile=ci -PbuildTarget=Android
 
       - name: Assemble Android target
-        run: ./gradlew :composeApp:assembleAndroidMain
+        run: ./gradlew :composeApp:assembleAndroidMain -PbuildProfile=ci -PbuildTarget=Android
 
   common:
     name: Code Quality (Testing)
@@ -40,6 +42,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -54,13 +58,13 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Compile Kotlin metadata
-        run: ./gradlew :composeApp:compileKotlinMetadata
+        run: ./gradlew :composeApp:compileKotlinMetadata -PbuildProfile=ci -PbuildTarget=metadata
 
       - name: Assemble unit tests
-        run: ./gradlew :composeApp:assembleUnitTest
+        run: ./gradlew :composeApp:assembleUnitTest -PbuildProfile=ci -PbuildTarget=tests
 
       - name: Run unit tests
-        run: ./gradlew :composeApp:allTests
+        run: ./gradlew :composeApp:allTests -PbuildProfile=ci -PbuildTarget=tests
 
   ios:
     name: Build only (iOS)
@@ -70,6 +74,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -84,4 +90,4 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Compile iOS simulator
-        run: ./gradlew :composeApp:compileKotlinIosSimulatorArm64
+        run: ./gradlew :composeApp:compileKotlinIosSimulatorArm64 -PbuildProfile=ci -PbuildTarget=iOS-simulator
