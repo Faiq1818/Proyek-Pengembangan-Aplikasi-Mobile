@@ -1,9 +1,11 @@
 package com.example.mybawanggacha.presentation.screens.settings
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,16 +18,20 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -38,10 +44,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.mybawanggacha.domain.settings.model.AiApiModel
+import com.example.mybawanggacha.domain.settings.model.AiApiSettings
 import com.example.mybawanggacha.domain.settings.model.AppColorScheme
 import com.example.mybawanggacha.domain.settings.model.NetworkMode
 import com.example.mybawanggacha.domain.settings.model.ThemeMode
@@ -105,6 +114,7 @@ fun SettingsScreen(
                         isDarkMode = isDarkMode,
                         networkMode = uiState.networkMode,
                         appColorScheme = uiState.appColorScheme,
+                        aiApiSettings = uiState.aiApiSettings,
                         requestUsage = uiState.requestUsage,
                         onPaneSelected = { selectedPane = it }
                     )
@@ -141,6 +151,18 @@ fun SettingsScreen(
                     )
                 }
 
+                SettingsPane.Api -> {
+                    SettingsPaneHeader(
+                        title = "AI API",
+                        description = "Pilih model dan simpan token API untuk fitur AI."
+                    )
+                    SettingsApiSection(
+                        settings = uiState.aiApiSettings,
+                        onModelSelected = viewModel::setAiApiModel,
+                        onTokenChange = viewModel::setAiApiToken
+                    )
+                }
+
                 SettingsPane.RequestUsage -> {
                     SettingsPaneHeader(
                         title = "Request Usage",
@@ -166,6 +188,7 @@ private enum class SettingsPane {
     Main,
     Appearance,
     DataAccess,
+    Api,
     RequestUsage,
     About
 }
@@ -176,6 +199,7 @@ private fun SettingsMainMenu(
     isDarkMode: Boolean,
     networkMode: NetworkMode,
     appColorScheme: AppColorScheme,
+    aiApiSettings: AiApiSettings,
     requestUsage: SettingsRequestUsageUiState,
     onPaneSelected: (SettingsPane) -> Unit
 ) {
@@ -212,6 +236,13 @@ private fun SettingsMainMenu(
             title = "Data & Offline",
             description = networkMode.description,
             onClick = { onPaneSelected(SettingsPane.DataAccess) }
+        )
+
+        SettingsMenuRow(
+            icon = Icons.Default.Cloud,
+            title = "AI API",
+            description = "${aiApiSettings.model.label} • ${if (aiApiSettings.hasToken) "Token tersimpan" else "Token belum diisi"}",
+            onClick = { onPaneSelected(SettingsPane.Api) }
         )
 
         SettingsMenuRow(
@@ -437,6 +468,119 @@ private fun ColorSwatch(hex: String) {
 private fun String.toColor(): Color {
     val rgb = removePrefix("#").toLongOrNull(radix = 16) ?: 0L
     return Color(0xFF000000L or rgb)
+}
+
+
+
+@Composable
+private fun SettingsApiSection(
+    settings: AiApiSettings,
+    onModelSelected: (AiApiModel) -> Unit,
+    onTokenChange: (String) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = "Model",
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onBackground,
+            fontWeight = FontWeight.SemiBold
+        )
+
+        AiModelDropdown(
+            selected = settings.model,
+            onSelected = onModelSelected
+        )
+
+        SettingsDivider()
+
+        Text(
+            text = "API token",
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onBackground,
+            fontWeight = FontWeight.SemiBold
+        )
+
+        OutlinedTextField(
+            value = settings.token,
+            onValueChange = onTokenChange,
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            label = { Text("Token") },
+            placeholder = { Text("Gemini API key") },
+            visualTransformation = PasswordVisualTransformation()
+        )
+
+        Text(
+            text = if (settings.hasToken) {
+                "Token tersimpan lokal. Kosongkan untuk fallback ke config platform."
+            } else {
+                "Kosong: memakai config platform jika tersedia."
+            },
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun AiModelDropdown(
+    selected: AiApiModel,
+    onSelected: (AiApiModel) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(modifier = Modifier.fillMaxWidth()) {
+        OutlinedTextField(
+            value = "${selected.label}  ·  ${selected.modelId}",
+            onValueChange = {},
+            modifier = Modifier.fillMaxWidth(),
+            readOnly = true,
+            singleLine = true,
+            trailingIcon = {
+                Icon(
+                    imageVector = Icons.Default.ArrowDropDown,
+                    contentDescription = null
+                )
+            }
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .clickable { expanded = true }
+        )
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            AiApiModel.entries.forEach { model ->
+                DropdownMenuItem(
+                    text = {
+                        Column {
+                            Text(
+                                text = model.label,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = model.modelId,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    },
+                    onClick = {
+                        expanded = false
+                        onSelected(model)
+                    }
+                )
+            }
+        }
+    }
 }
 
 

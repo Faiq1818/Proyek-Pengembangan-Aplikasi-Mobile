@@ -1,6 +1,7 @@
 package com.example.mybawanggacha.data.remote.gemini.api
 
 import com.example.mybawanggacha.core.network.ApiConfig
+import com.example.mybawanggacha.data.local.datastore.UserPreferences
 import com.example.mybawanggacha.data.remote.gemini.dto.GeminiContent
 import com.example.mybawanggacha.data.remote.gemini.dto.GeminiPart
 import com.example.mybawanggacha.data.remote.gemini.dto.GeminiRequest
@@ -8,6 +9,7 @@ import com.example.mybawanggacha.data.remote.gemini.dto.GeminiResponse
 import com.example.mybawanggacha.data.remote.gemini.dto.GenerationConfig
 import com.example.mybawanggacha.data.remote.gemini.dto.getErrorMessage
 import com.example.mybawanggacha.data.remote.gemini.dto.getTextContent
+import com.example.mybawanggacha.domain.settings.model.AiApiModel
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.parameter
@@ -15,12 +17,15 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import kotlinx.coroutines.flow.first
 
-class GeminiService(private val client: HttpClient) {
+class GeminiService(
+    private val client: HttpClient,
+    private val userPreferences: UserPreferences
+) {
 
     companion object {
         private const val BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
-        private const val MODEL = "gemini-3.5-flash"
     }
 
     suspend fun generateContent(
@@ -34,9 +39,19 @@ class GeminiService(private val client: HttpClient) {
             )
         )
 
-        val response: GeminiResponse = client.post("$BASE_URL/models/$MODEL:generateContent") {
+        val model = AiApiModel.fromString(userPreferences.aiApiModel.first())
+        val apiKey = userPreferences.aiApiToken
+            .first()
+            .trim()
+            .ifBlank { ApiConfig.geminiApiKey.trim() }
+
+        if (apiKey.isBlank()) {
+            throw IllegalStateException("AI API token belum diatur di Settings.")
+        }
+
+        val response: GeminiResponse = client.post("$BASE_URL/models/${model.modelId}:generateContent") {
             contentType(ContentType.Application.Json)
-            parameter("key", ApiConfig.geminiApiKey)
+            parameter("key", apiKey)
             setBody(request)
         }.body()
 

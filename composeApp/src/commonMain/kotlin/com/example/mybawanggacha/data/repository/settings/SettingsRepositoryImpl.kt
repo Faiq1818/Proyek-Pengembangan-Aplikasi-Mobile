@@ -1,11 +1,14 @@
 package com.example.mybawanggacha.data.repository.settings
 
 import com.example.mybawanggacha.data.local.datastore.UserPreferences
+import com.example.mybawanggacha.domain.settings.model.AiApiModel
+import com.example.mybawanggacha.domain.settings.model.AiApiSettings
 import com.example.mybawanggacha.domain.settings.model.AppColorScheme
 import com.example.mybawanggacha.domain.settings.model.NetworkMode
 import com.example.mybawanggacha.domain.settings.model.ThemeMode
 import com.example.mybawanggacha.domain.settings.repository.SettingsRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 
 class SettingsRepositoryImpl(
@@ -28,6 +31,16 @@ class SettingsRepositoryImpl(
         AppColorScheme.fromString(value)
     }
 
+    override val aiApiSettings: Flow<AiApiSettings> = combine(
+        userPreferences.aiApiModel,
+        userPreferences.aiApiToken
+    ) { model, token ->
+        AiApiSettings(
+            model = AiApiModel.fromString(model),
+            token = token
+        )
+    }
+
     override suspend fun setThemeMode(themeMode: ThemeMode) {
         userPreferences.setDarkMode(
             when (themeMode) {
@@ -44,5 +57,13 @@ class SettingsRepositoryImpl(
 
     override suspend fun setAppColorScheme(appColorScheme: AppColorScheme) {
         userPreferences.setColorScheme(appColorScheme.name)
+    }
+
+    override suspend fun setAiApiModel(aiApiModel: AiApiModel) {
+        userPreferences.setAiApiModel(aiApiModel.name)
+    }
+
+    override suspend fun setAiApiToken(token: String) {
+        userPreferences.setAiApiToken(token.trim())
     }
 }

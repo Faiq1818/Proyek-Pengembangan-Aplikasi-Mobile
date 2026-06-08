@@ -31,6 +31,8 @@ class UserPreferences(
         val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
         val NETWORK_MODE = stringPreferencesKey("network_mode")
         val COLOR_SCHEME = stringPreferencesKey("color_scheme")
+        val AI_API_MODEL = stringPreferencesKey("ai_api_model")
+        val AI_API_TOKEN = stringPreferencesKey("ai_api_token")
         val GACHA_PREFERENCE = stringPreferencesKey("gacha_preference")
         val GACHA_HISTORY = stringPreferencesKey("gacha_history")
     }
@@ -139,6 +141,28 @@ class UserPreferences(
     suspend fun setColorScheme(value: String) {
         dataStore.edit { prefs ->
             prefs[Keys.COLOR_SCHEME] = value
+        }
+    }
+
+    // ==================== AI API ====================
+
+    val aiApiModel: Flow<String> = dataStore.data.map { prefs ->
+        prefs[Keys.AI_API_MODEL] ?: "Gemini35Flash"
+    }
+
+    suspend fun setAiApiModel(value: String) {
+        dataStore.edit { prefs ->
+            prefs[Keys.AI_API_MODEL] = value
+        }
+    }
+
+    val aiApiToken: Flow<String> = dataStore.data.map { prefs ->
+        prefs[Keys.AI_API_TOKEN] ?: ""
+    }
+
+    suspend fun setAiApiToken(value: String) {
+        dataStore.edit { prefs ->
+            prefs[Keys.AI_API_TOKEN] = value
         }
     }
 

@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CollectionsBookmark
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Card
@@ -54,6 +55,7 @@ import com.example.mybawanggacha.presentation.components.MBGMainRailKey
 import com.example.mybawanggacha.presentation.components.MBGRailBackButton
 import com.example.mybawanggacha.presentation.components.MBGSideRailScaffold
 import com.example.mybawanggacha.presentation.components.PullRefreshContainer
+import com.example.mybawanggacha.presentation.components.ScreenHeader
 import com.example.mybawanggacha.presentation.screens.library.LibraryUiState
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -114,20 +116,10 @@ fun MyListScreen(
                     .fillMaxSize()
                     .padding(start = 4.dp, top = 32.dp, end = 18.dp)
             ) {
-                Text(
-                    text = "My Library",
-                    style = MaterialTheme.typography.headlineLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Text(
-                    text = "Daftar yang kamu simpan",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = FontWeight.SemiBold
+                ScreenHeader(
+                    icon = Icons.Default.CollectionsBookmark,
+                    title = "My Library",
+                    subtitle = "Daftar yang kamu simpan"
                 )
 
                 Spacer(modifier = Modifier.height(14.dp))

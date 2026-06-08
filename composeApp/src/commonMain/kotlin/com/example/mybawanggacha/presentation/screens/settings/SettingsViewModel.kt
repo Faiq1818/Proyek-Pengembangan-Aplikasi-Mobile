@@ -2,6 +2,7 @@ package com.example.mybawanggacha.presentation.screens.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mybawanggacha.domain.settings.model.AiApiModel
 import com.example.mybawanggacha.domain.settings.model.AppColorScheme
 import com.example.mybawanggacha.domain.settings.model.JikanRequestUsage
 import com.example.mybawanggacha.domain.settings.model.NetworkMode
@@ -23,12 +24,14 @@ class SettingsViewModel(
         settingsRepository.themeMode,
         settingsRepository.networkMode,
         settingsRepository.appColorScheme,
+        settingsRepository.aiApiSettings,
         requestUsageRepository.usage
-    ) { themeMode, networkMode, appColorScheme, requestUsage ->
+    ) { themeMode, networkMode, appColorScheme, aiApiSettings, requestUsage ->
         SettingsUiState(
             themeMode = themeMode,
             networkMode = networkMode,
             appColorScheme = appColorScheme,
+            aiApiSettings = aiApiSettings,
             requestUsage = requestUsage.toUiState()
         )
     }.stateIn(
@@ -52,6 +55,18 @@ class SettingsViewModel(
     fun setAppColorScheme(appColorScheme: AppColorScheme) {
         viewModelScope.launch {
             settingsRepository.setAppColorScheme(appColorScheme)
+        }
+    }
+
+    fun setAiApiModel(aiApiModel: AiApiModel) {
+        viewModelScope.launch {
+            settingsRepository.setAiApiModel(aiApiModel)
+        }
+    }
+
+    fun setAiApiToken(token: String) {
+        viewModelScope.launch {
+            settingsRepository.setAiApiToken(token)
         }
     }
 
