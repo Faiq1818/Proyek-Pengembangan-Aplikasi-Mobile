@@ -277,6 +277,14 @@ Fokus Sprint 4: stabilitas, konsistensi UI, edge case, performa, dan test.
 - [x] Fix bug duplicate/single `HttpClient` binding di network module
 - [x] Fix compile error `AnimatedContent` content lambda pada `AnimatedSectionContent`
 - [x] Fix blink putih awal navigasi dengan root surface/background
+- [x] Fix search cache decode agar data cache lama tidak menyebabkan error saat dibaca
+- [x] Fix network mode dan cache policy agar repository dapat memilih cache/remote sesuai setting
+- [x] Fix AI chat session compile/database issues setelah fitur persistent session
+- [x] Fix build info generation agar kompatibel dengan configuration cache dan CI
+- [x] Fix Android package/application id rename ke `id.my.sinanonym.mybawanggacha`
+- [x] Fix Compose resource packaging dan launcher/About logo asset setelah rename package
+- [x] Fix Android keyboard inset pada AI chat input agar tidak tertutup keyboard
+- [x] Fix SQLDelight episode progress migration/upsert untuk watched/bookmarked episode
 - [ ] Fix semua P0 bugs
 - [ ] Fix semua broken navigation
 - [ ] Pastikan semua fitur Sprint 2 dan Sprint 3 tetap berjalan
@@ -303,6 +311,24 @@ Fokus Sprint 4: stabilitas, konsistensi UI, edge case, performa, dan test.
   - pull-refresh indicator
   - button/card feedback dasar
 - [x] UI refresh tidak mengosongkan konten lama saat refresh berjalan
+- [x] Refactor Settings menjadi submenu yang lebih rapi dan scrollable
+- [x] Tambahkan color scheme picker horizontal dan palette cards
+- [x] Tambahkan color scheme Gruvbox, Catppuccin, dan Hatsune Miku
+- [x] Polish AI Assistant:
+  - markdown rendering
+  - model dropdown langsung di header
+  - session chat persisten
+  - media card dari respons AI
+  - action reset/detail menu lebih compact
+- [x] Polish About screen:
+  - build/runtime metadata
+  - developer info/email
+  - launcher logo hero yang mengikuti asset aplikasi
+- [x] Polish episode list anime:
+  - swipe kanan ke kiri untuk toggle watched
+  - swipe kiri ke kanan untuk toggle mark/bookmark episode
+  - overlay aksi swipe dengan opacity/gradient
+  - episode watched dibuat lebih redup
 
 ### Testing
 
@@ -316,6 +342,9 @@ Fokus Sprint 4: stabilitas, konsistensi UI, edge case, performa, dan test.
 - [x] Repository/search tests dasar
 - [ ] ViewModel tests untuk screen utama
 - [x] Gacha filter/random logic tests
+- [x] Cache policy dan network mode tests
+- [x] Build info generation checks untuk CI
+- [x] Host-safe KMP tests agar CI Android/common tetap stabil
 - [ ] AI repository/session tests
 - [ ] UI tests minimal 3 critical journey:
   - buka Home → Detail
@@ -344,6 +373,9 @@ Fokus Sprint 4: stabilitas, konsistensi UI, edge case, performa, dan test.
   - pull-refresh tanpa blank state
   - stale-while-revalidate
 - [x] Kurangi blink putih saat navigasi dengan root background yang stabil
+- [x] Search components dan screen components distandarkan agar layout lebih konsisten
+- [x] Gacha filter UI dibuat lebih ringkas agar bottom sheet tidak terlalu berat
+- [x] Request usage/Jikan budget indicator ditambahkan untuk membantu kontrol request API
 - [ ] Review recomposition berat di UI besar
 
 ---
@@ -363,6 +395,9 @@ Fokus Sprint 5: finalisasi, demo, release build, dokumentasi, dan presentasi.
 - [ ] Offline/error path sudah diuji
 - [ ] Pull-refresh dan cache behavior sudah diuji pada device/emulator
 - [ ] Flow Home → Detail → Add/Edit Library → Search sudah diuji ulang
+- [ ] Flow AI Assistant → chat → media card/detail sudah diuji ulang
+- [ ] Flow episode gesture watched/bookmark sudah diuji ulang
+- [ ] Flow Settings → color scheme/model/token/About sudah diuji ulang
 
 ### Documentation
 
@@ -390,6 +425,10 @@ Fokus Sprint 5: finalisasi, demo, release build, dokumentasi, dan presentasi.
   - model/personality setting
   - sumber API token
   - batasan respons dan media card
+- [ ] Dokumentasi episode watched/bookmark gesture
+- [ ] Dokumentasi Settings color scheme dan API settings
+- [ ] Dokumentasi build metadata/About screen
+- [ ] Dokumentasi Android release signing, ABI split APK, dan checksum
 - [ ] Known limitations / future improvements
 
 ### Release & Submission
@@ -397,6 +436,17 @@ Fokus Sprint 5: finalisasi, demo, release build, dokumentasi, dan presentasi.
 - [ ] Release APK built
 - [ ] Release APK tested
 - [ ] Version name/code diset
+- [x] Release workflow GitHub Actions disiapkan
+- [x] Release dry build workflow disiapkan
+- [x] Signed Android release APK workflow disiapkan
+- [x] ABI split APK disiapkan:
+  - `arm64-v8a`
+  - `armeabi-v7a`
+  - `x86_64`
+  - universal
+- [x] SHA256SUMS untuk release artifact disiapkan
+- [x] GitHub Secrets untuk Android signing didokumentasikan/disiapkan
+- [x] Versioning/build metadata disiapkan di About screen
 - [ ] Pastikan credential/secret tidak masuk Git
 - [ ] Pastikan Gemini API token/key tidak tersimpan di repository
 - [ ] Submit:
@@ -426,6 +476,9 @@ Fokus Sprint 5: finalisasi, demo, release build, dokumentasi, dan presentasi.
   - jalankan gacha berdasarkan preferensi
   - buka AI assistant untuk catatan atau rekomendasi anime/manga
   - tunjukkan Settings AI/API jika diperlukan
+  - tunjukkan episode watched/bookmark gesture di detail anime
+  - tunjukkan Settings color scheme picker
+  - tunjukkan About build info/logo jika diperlukan
   - tunjukkan offline/error handling
 - [ ] Backup video recording demo
 - [ ] Tim latihan demo minimal 2x
@@ -434,6 +487,9 @@ Fokus Sprint 5: finalisasi, demo, release build, dokumentasi, dan presentasi.
   - kenapa Clean Architecture?
   - bagaimana handle offline?
   - bagaimana handle Jikan rate limit?
+  - bagaimana episode watched/bookmark disimpan?
+  - bagaimana signing/release APK dilakukan?
+  - bagaimana build metadata ditampilkan?
   - bagaimana pembagian kerja tim?
   - apa tantangan teknis terbesar?
 
@@ -516,6 +572,8 @@ Target durasi: 10–15 menit.
 - [ ] Buka hasil gacha ke detail
 - [ ] Buka AI Assistant dengan konteks note atau anime/manga
 - [ ] Tunjukkan konfigurasi AI model/personality/token di Settings
+- [ ] Tunjukkan gesture episode watched/bookmark
+- [ ] Tunjukkan color scheme picker dan About build info
 - [ ] Tunjukkan error/offline handling atau fallback cache
 - [x] Tunjukkan Settings/About jika tersedia
 
@@ -531,6 +589,9 @@ Target durasi: 10–15 menit.
 - [ ] Bagaimana mencegah item watched/read muncul lagi jika user tidak ingin?
 - [ ] Bagaimana AI assistant mengambil konteks dan menyimpan sesi chat?
 - [ ] Bagaimana Gemini API token disimpan agar tidak masuk Git?
+- [ ] Bagaimana Android release signing dan GitHub Secrets disiapkan?
+- [ ] Bagaimana APK split dan checksum release dibuat?
+- [ ] Bagaimana episode watched/bookmark disimpan di SQLDelight?
 - [ ] Bagaimana pembagian kerja tim?
 - [ ] Apa tantangan teknis terbesar?
 - [ ] Apa fitur yang akan dikembangkan berikutnya?
@@ -538,6 +599,7 @@ Target durasi: 10–15 menit.
 ### Backup Plan
 
 - [ ] APK release sudah tersedia
+- [ ] APK split + checksum release sudah tersedia
 - [ ] Device/emulator demo sudah dites
 - [ ] Internet/hotspot cadangan disiapkan
 - [ ] Screenshot/video backup demo disiapkan
