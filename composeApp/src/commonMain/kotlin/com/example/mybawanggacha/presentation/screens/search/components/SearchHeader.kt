@@ -1,5 +1,10 @@
-package com.example.mybawanggacha.presentation.screens.search
+package com.example.mybawanggacha.presentation.screens.search.components
 
+import com.example.mybawanggacha.presentation.screens.search.ANIME_TYPES
+import com.example.mybawanggacha.presentation.screens.search.MANGA_TYPES
+import com.example.mybawanggacha.presentation.screens.search.SORT_OPTIONS
+import com.example.mybawanggacha.presentation.screens.search.SearchTestTags
+import com.example.mybawanggacha.presentation.screens.search.SearchText
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,6 +35,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.mybawanggacha.domain.search.model.MediaSearchFilters
 import com.example.mybawanggacha.domain.search.model.SearchMediaType
+import com.example.mybawanggacha.presentation.screens.search.ANIME_STATUSES
+import com.example.mybawanggacha.presentation.screens.search.MANGA_STATUSES
 
 @Composable
 internal fun SearchPanel(

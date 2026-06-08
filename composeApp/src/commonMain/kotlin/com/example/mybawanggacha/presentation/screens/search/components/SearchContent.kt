@@ -1,5 +1,8 @@
-package com.example.mybawanggacha.presentation.screens.search
+package com.example.mybawanggacha.presentation.screens.search.components
 
+import com.example.mybawanggacha.presentation.screens.search.SearchFilterMetadataUiState
+import com.example.mybawanggacha.presentation.screens.search.SearchUiState
+import com.example.mybawanggacha.presentation.screens.search.buildActiveFilterLabels
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -38,6 +41,7 @@ import com.example.mybawanggacha.presentation.components.EmptyState
 import com.example.mybawanggacha.presentation.components.ErrorState
 import com.example.mybawanggacha.presentation.components.LoadingIndicator
 import kotlinx.coroutines.flow.distinctUntilChanged
+import com.example.mybawanggacha.presentation.screens.search.SearchText
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

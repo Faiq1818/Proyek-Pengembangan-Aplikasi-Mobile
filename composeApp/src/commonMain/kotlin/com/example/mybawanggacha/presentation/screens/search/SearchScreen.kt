@@ -11,6 +11,7 @@ import com.example.mybawanggacha.presentation.components.MBGRailBackButton
 import com.example.mybawanggacha.presentation.components.MBGSideRailScaffold
 import com.example.mybawanggacha.presentation.components.PullRefreshContainer
 import org.koin.compose.viewmodel.koinViewModel
+import com.example.mybawanggacha.presentation.screens.search.components.SearchContent
 
 @Composable
 fun SearchScreen(

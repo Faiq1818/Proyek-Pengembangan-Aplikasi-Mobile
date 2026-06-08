@@ -46,6 +46,8 @@ import com.example.mybawanggacha.presentation.components.MBGTopBar
 import com.example.mybawanggacha.domain.ai.repository.ChatMessage
 import com.example.mybawanggacha.domain.ai.repository.MessageSender
 import org.koin.compose.viewmodel.koinViewModel
+import com.example.mybawanggacha.presentation.screens.ai.components.ChatBubble
+import com.example.mybawanggacha.presentation.screens.ai.components.LoadingBubble
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -151,119 +153,6 @@ fun AIAssistantScreen(
                         contentDescription = "Kirim"
                     )
                 }
-            }
-        }
-    }
-}
-
-@Composable
-fun ChatBubble(
-    message: ChatMessage,
-    noteId: Long?,
-    onCopy: () -> Unit,
-    onApply: () -> Unit
-) {
-    val isUser = message.sender == MessageSender.USER
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
-    ) {
-        if (isUser) {
-            Card(
-                shape = RoundedCornerShape(16.dp, 16.dp, 0.dp, 16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                ),
-                modifier = Modifier.padding(start = 48.dp)
-            ) {
-                Text(
-                    text = message.text,
-                    modifier = Modifier.padding(12.dp),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
-        } else {
-            Card(
-                shape = RoundedCornerShape(16.dp, 16.dp, 16.dp, 0.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                ),
-                modifier = Modifier.padding(end = 48.dp)
-            ) {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    Text(
-                        text = message.text,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        OutlinedButton(
-                            onClick = onCopy,
-                            modifier = Modifier.height(32.dp),
-                            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.ContentCopy,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Salin", style = MaterialTheme.typography.labelSmall)
-                        }
-                        if (noteId != null) {
-                            Button(
-                                onClick = onApply,
-                                modifier = Modifier.height(32.dp),
-                                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Done,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Terapkan", style = MaterialTheme.typography.labelSmall)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun LoadingBubble() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Start
-    ) {
-        Card(
-            shape = RoundedCornerShape(16.dp, 16.dp, 16.dp, 0.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            ),
-            modifier = Modifier.padding(end = 48.dp)
-        ) {
-            Row(
-                modifier = Modifier.padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(16.dp),
-                    strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "AI sedang mengetik...",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
         }
     }
