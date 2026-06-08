@@ -10,6 +10,7 @@ import com.example.mybawanggacha.domain.settings.repository.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import com.example.mybawanggacha.domain.settings.model.AiPersonality
 
 class SettingsRepositoryImpl(
     private val userPreferences: UserPreferences
@@ -33,10 +34,12 @@ class SettingsRepositoryImpl(
 
     override val aiApiSettings: Flow<AiApiSettings> = combine(
         userPreferences.aiApiModel,
+        userPreferences.aiApiPersonality,
         userPreferences.aiApiToken
-    ) { model, token ->
+    ) { model, personality, token ->
         AiApiSettings(
             model = AiApiModel.fromString(model),
+            personality = AiPersonality.fromString(personality),
             token = token
         )
     }
@@ -61,6 +64,10 @@ class SettingsRepositoryImpl(
 
     override suspend fun setAiApiModel(aiApiModel: AiApiModel) {
         userPreferences.setAiApiModel(aiApiModel.name)
+    }
+
+    override suspend fun setAiApiPersonality(aiPersonality: AiPersonality) {
+        userPreferences.setAiApiPersonality(aiPersonality.name)
     }
 
     override suspend fun setAiApiToken(token: String) {

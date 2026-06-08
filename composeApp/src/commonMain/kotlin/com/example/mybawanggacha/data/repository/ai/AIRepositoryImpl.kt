@@ -8,9 +8,13 @@ import com.example.mybawanggacha.domain.ai.repository.AIRepository
 import com.example.mybawanggacha.domain.ai.repository.ChatMessage
 import com.example.mybawanggacha.domain.ai.repository.MessageSender
 import com.example.mybawanggacha.domain.ai.repository.WritingStyle
+import com.example.mybawanggacha.domain.settings.model.AiPersonality
+import com.example.mybawanggacha.domain.settings.repository.SettingsRepository
+import kotlinx.coroutines.flow.first
 
 class AIRepositoryImpl(
-    private val geminiService: GeminiService
+    private val geminiService: GeminiService,
+    private val settingsRepository: SettingsRepository
 ) : AIRepository {
 
     override suspend fun summarize(text: String): Result<String> {
@@ -22,7 +26,7 @@ class AIRepositoryImpl(
 
         return geminiService.generateContent(
             prompt = prompt,
-            systemPrompt = SystemPrompts.SUMMARIZER
+            systemPrompt = systemPrompt(SystemPrompts.SUMMARIZER)
         )
     }
 
@@ -33,7 +37,7 @@ class AIRepositoryImpl(
 
         return geminiService.generateContent(
             prompt = prompt,
-            systemPrompt = SystemPrompts.IDEA_GENERATOR
+            systemPrompt = systemPrompt(SystemPrompts.IDEA_GENERATOR)
         ).map { response ->
             response.lines()
                 .filter { it.isNotBlank() }
@@ -63,7 +67,7 @@ class AIRepositoryImpl(
 
         return geminiService.generateContent(
             prompt = prompt,
-            systemPrompt = SystemPrompts.WRITING_IMPROVER
+            systemPrompt = systemPrompt(SystemPrompts.WRITING_IMPROVER)
         )
     }
 
@@ -76,14 +80,14 @@ class AIRepositoryImpl(
 
         return geminiService.generateContent(
             prompt = prompt,
-            systemPrompt = SystemPrompts.TRANSLATOR
+            systemPrompt = systemPrompt(SystemPrompts.TRANSLATOR)
         )
     }
 
     override suspend fun chat(history: List<ChatMessage>, systemPrompt: String?): Result<String> {
         val contents = mutableListOf<GeminiContent>()
         val effectiveSystemPrompt = buildString {
-            append(SystemPrompts.APP_ASSISTANT)
+            append(systemPrompt(SystemPrompts.APP_ASSISTANT))
             systemPrompt
                 ?.takeIf { it.isNotBlank() }
                 ?.let { prompt ->
@@ -117,6 +121,18 @@ class AIRepositoryImpl(
         return geminiService.generateContent(contents)
     }
 
+    private suspend fun systemPrompt(basePrompt: String): String {
+        val personality = settingsRepository.aiApiSettings.first().personality
+        return buildString {
+            append(basePrompt)
+            append("\n\nGaya/personality aktif: ")
+            append(personality.label)
+            append("\n")
+            append(personality.prompt)
+            append("\nTetap prioritaskan instruksi tugas utama di atas personality.")
+        }
+    }
+
     override suspend fun suggestTitle(content: String): Result<String> {
         val prompt = """
             Berikan saran judul untuk konten berikut:
@@ -126,7 +142,7 @@ class AIRepositoryImpl(
 
         return geminiService.generateContent(
             prompt = prompt,
-            systemPrompt = SystemPrompts.TITLE_SUGGESTER
+            systemPrompt = systemPrompt(SystemPrompts.TITLE_SUGGESTER)
         ).map { it.trim().removeSurrounding("\"") }
     }
 }

@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import com.example.mybawanggacha.domain.settings.model.AiApiModel
 import com.example.mybawanggacha.domain.settings.repository.SettingsRepository
+import com.example.mybawanggacha.domain.settings.model.AiPersonality
 
 class AIAssistantViewModel(
     private val aiRepository: AIRepository,
@@ -38,7 +39,10 @@ class AIAssistantViewModel(
         viewModelScope.launch {
             settingsRepository.aiApiSettings.collect { settings ->
                 _uiState.update { state ->
-                    state.copy(aiApiModel = settings.model)
+                    state.copy(
+                        aiApiModel = settings.model,
+                        aiPersonality = settings.personality
+                    )
                 }
             }
         }
@@ -193,6 +197,7 @@ data class AIAssistantUiState(
     val writingStyle: WritingStyle = WritingStyle.NEUTRAL,
     val targetLanguage: String = "English",
     val aiApiModel: AiApiModel = AiApiModel.Gemini35Flash,
+    val aiPersonality: AiPersonality = AiPersonality.Default,
     val isLoading: Boolean = false,
     val result: String? = null,
     val error: String? = null,

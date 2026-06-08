@@ -7,6 +7,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import com.example.mybawanggacha.domain.settings.model.AiPersonality
 
 class SettingsUiContractTest {
     @Test
@@ -39,4 +40,13 @@ class SettingsUiContractTest {
         assertEquals(AppColorScheme.Catppuccin, AppColorScheme.fromString("catppuccin"))
         assertEquals(AppColorScheme.HatsuneMiku, AppColorScheme.fromString("hatsunemiku"))
     }
+    @Test
+    fun aiPersonality_fromString_shouldFallbackToDefault() {
+        assertEquals(AiPersonality.Default, AiPersonality.fromString(null))
+        assertEquals(AiPersonality.Default, AiPersonality.fromString("broken"))
+        assertEquals(AiPersonality.Kuudere, AiPersonality.fromString("kuudere"))
+        assertEquals(AiPersonality.Tsundere, AiPersonality.fromString("Tsundere"))
+        assertEquals(AiPersonality.OtakuFriend, AiPersonality.fromString("Otaku Friend"))
+    }
+
 }

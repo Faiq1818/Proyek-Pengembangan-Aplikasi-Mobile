@@ -126,6 +126,7 @@ fun SettingsScreen(
                     SettingsApiSection(
                         settings = uiState.aiApiSettings,
                         onModelSelected = viewModel::setAiApiModel,
+                        onPersonalitySelected = viewModel::setAiApiPersonality,
                         onTokenChange = viewModel::setAiApiToken
                     )
                 }

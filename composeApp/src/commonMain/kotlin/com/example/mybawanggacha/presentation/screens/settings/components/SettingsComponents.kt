@@ -60,6 +60,7 @@ import com.example.mybawanggacha.presentation.components.MBGMainRailKey
 import com.example.mybawanggacha.presentation.components.MBGRailBackButton
 import com.example.mybawanggacha.presentation.components.MBGSideRailScaffold
 import org.koin.compose.viewmodel.koinViewModel
+import com.example.mybawanggacha.domain.settings.model.AiPersonality
 
 @Composable
 internal fun SettingsMainMenu(
@@ -109,7 +110,7 @@ internal fun SettingsMainMenu(
         SettingsMenuRow(
             icon = Icons.Default.VpnKey,
             title = "AI API",
-            description = "${aiApiSettings.model.label} • ${if (aiApiSettings.hasToken) "Token tersimpan" else "Token belum diisi"}",
+            description = "${aiApiSettings.model.label} • ${aiApiSettings.personality.label} • ${if (aiApiSettings.hasToken) "Token tersimpan" else "Token belum diisi"}",
             onClick = { onPaneSelected(SettingsPane.Api) }
         )
 
@@ -343,6 +344,7 @@ private fun String.toColor(): Color {
 internal fun SettingsApiSection(
     settings: AiApiSettings,
     onModelSelected: (AiApiModel) -> Unit,
+    onPersonalitySelected: (AiPersonality) -> Unit,
     onTokenChange: (String) -> Unit
 ) {
     Column(
@@ -359,6 +361,20 @@ internal fun SettingsApiSection(
         AiModelDropdown(
             selected = settings.model,
             onSelected = onModelSelected
+        )
+
+        SettingsDivider()
+
+        Text(
+            text = "Personality",
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onBackground,
+            fontWeight = FontWeight.SemiBold
+        )
+
+        AiPersonalityDropdown(
+            selected = settings.personality,
+            onSelected = onPersonalitySelected
         )
 
         SettingsDivider()
@@ -443,6 +459,64 @@ private fun AiModelDropdown(
                     onClick = {
                         expanded = false
                         onSelected(model)
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AiPersonalityDropdown(
+    selected: AiPersonality,
+    onSelected: (AiPersonality) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(modifier = Modifier.fillMaxWidth()) {
+        OutlinedTextField(
+            value = "${selected.label}  ·  ${selected.description}",
+            onValueChange = {},
+            modifier = Modifier.fillMaxWidth(),
+            readOnly = true,
+            singleLine = true,
+            trailingIcon = {
+                Icon(
+                    imageVector = Icons.Default.ArrowDropDown,
+                    contentDescription = null
+                )
+            }
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .clickable { expanded = true }
+        )
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            AiPersonality.entries.forEach { personality ->
+                DropdownMenuItem(
+                    text = {
+                        Column {
+                            Text(
+                                text = personality.label,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = personality.description,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    },
+                    onClick = {
+                        expanded = false
+                        onSelected(personality)
                     }
                 )
             }

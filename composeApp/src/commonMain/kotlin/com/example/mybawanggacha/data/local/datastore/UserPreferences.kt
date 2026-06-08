@@ -32,6 +32,7 @@ class UserPreferences(
         val NETWORK_MODE = stringPreferencesKey("network_mode")
         val COLOR_SCHEME = stringPreferencesKey("color_scheme")
         val AI_API_MODEL = stringPreferencesKey("ai_api_model")
+        val AI_API_PERSONALITY = stringPreferencesKey("ai_api_personality")
         val AI_API_TOKEN = stringPreferencesKey("ai_api_token")
         val GACHA_PREFERENCE = stringPreferencesKey("gacha_preference")
         val GACHA_HISTORY = stringPreferencesKey("gacha_history")
@@ -153,6 +154,16 @@ class UserPreferences(
     suspend fun setAiApiModel(value: String) {
         dataStore.edit { prefs ->
             prefs[Keys.AI_API_MODEL] = value
+        }
+    }
+
+    val aiApiPersonality: Flow<String> = dataStore.data.map { prefs ->
+        prefs[Keys.AI_API_PERSONALITY] ?: "Default"
+    }
+
+    suspend fun setAiApiPersonality(value: String) {
+        dataStore.edit { prefs ->
+            prefs[Keys.AI_API_PERSONALITY] = value
         }
     }
 

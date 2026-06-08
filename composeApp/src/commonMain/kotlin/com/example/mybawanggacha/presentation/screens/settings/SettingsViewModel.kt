@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.example.mybawanggacha.domain.settings.model.AiPersonality
 
 class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
@@ -61,6 +62,12 @@ class SettingsViewModel(
     fun setAiApiModel(aiApiModel: AiApiModel) {
         viewModelScope.launch {
             settingsRepository.setAiApiModel(aiApiModel)
+        }
+    }
+
+    fun setAiApiPersonality(aiPersonality: AiPersonality) {
+        viewModelScope.launch {
+            settingsRepository.setAiApiPersonality(aiPersonality)
         }
     }
 
