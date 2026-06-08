@@ -1,15 +1,9 @@
 package com.example.mybawanggacha.presentation.screens.anime.detail
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Face
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -29,6 +23,7 @@ import com.example.mybawanggacha.presentation.components.ErrorState
 import com.example.mybawanggacha.presentation.components.LoadingIndicator
 import com.example.mybawanggacha.presentation.components.MBGRailBackButton
 import com.example.mybawanggacha.presentation.components.MBGSideRailScaffold
+import com.example.mybawanggacha.presentation.components.MediaDetailActionMenu
 import com.example.mybawanggacha.presentation.components.PullRefreshContainer
 import com.example.mybawanggacha.presentation.screens.anime.detail.components.AnimeDetailContent
 import com.example.mybawanggacha.presentation.screens.anime.detail.components.AnimeDetailSection
@@ -106,51 +101,32 @@ fun AnimeDetailScreen(
                         )
                         val isInLibrary = state.libraryEntryId != null
 
-                        Column(
+                        MediaDetailActionMenu(
+                            isInLibrary = isInLibrary,
+                            onOpenAi = {
+                                val animeContext = """
+                                    Detail Anime:
+                                    Judul: ${state.anime.title}
+                                    Genre: ${state.anime.genres.joinToString(", ")}
+                                    Skor: ${state.anime.score ?: "N/A"}
+                                    Tipe: ${state.anime.type ?: "N/A"}
+                                    Episode: ${state.anime.episodes ?: "N/A"}
+                                    Sinopsis: ${state.anime.synopsis ?: "N/A"}
+                                """.trimIndent()
+                                onNavigateToAIAssistant(
+                                    animeContext,
+                                    state.anime.malId,
+                                    "anime",
+                                    state.anime.title
+                                )
+                            },
+                            onOpenLibrary = {
+                                onNavigateToLibraryEditor(state.anime, state.libraryEntryId)
+                            },
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
-                                .padding(end = 16.dp, bottom = 80.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            FloatingActionButton(
-                                onClick = {
-                                    val animeContext = """
-                                        Detail Anime:
-                                        Judul: ${state.anime.title}
-                                        Genre: ${state.anime.genres.joinToString(", ")}
-                                        Skor: ${state.anime.score ?: "N/A"}
-                                        Tipe: ${state.anime.type ?: "N/A"}
-                                        Episode: ${state.anime.episodes ?: "N/A"}
-                                        Sinopsis: ${state.anime.synopsis ?: "N/A"}
-                                    """.trimIndent()
-                                    onNavigateToAIAssistant(
-                                        animeContext,
-                                        state.anime.malId,
-                                        "anime",
-                                        state.anime.title
-                                    )
-                                },
-                                modifier = Modifier.padding(bottom = 16.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Face,
-                                    contentDescription = "AI Assistant"
-                                )
-                            }
-
-                            FloatingActionButton(
-                                onClick = { onNavigateToLibraryEditor(state.anime, state.libraryEntryId) }
-                            ) {
-                                Icon(
-                                    imageVector = if (isInLibrary) Icons.Default.Edit else Icons.Default.Add,
-                                    contentDescription = if (isInLibrary) {
-                                        "Edit My Library"
-                                    } else {
-                                        "Tambah ke My Library"
-                                    }
-                                )
-                            }
-                        }
+                                .padding(end = 16.dp, bottom = 80.dp)
+                        )
                     }
                 }
 

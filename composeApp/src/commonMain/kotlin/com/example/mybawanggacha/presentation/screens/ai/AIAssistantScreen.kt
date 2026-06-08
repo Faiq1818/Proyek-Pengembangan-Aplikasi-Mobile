@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -42,14 +43,13 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.mybawanggacha.presentation.components.MBGTopBar
 import com.example.mybawanggacha.domain.ai.repository.ChatMessage
 import com.example.mybawanggacha.domain.ai.repository.MessageSender
-import org.koin.compose.viewmodel.koinViewModel
+import com.example.mybawanggacha.presentation.components.MBGTopBar
+import com.example.mybawanggacha.presentation.screens.ai.components.AiModelMenu
 import com.example.mybawanggacha.presentation.screens.ai.components.ChatBubble
 import com.example.mybawanggacha.presentation.screens.ai.components.LoadingBubble
-import com.example.mybawanggacha.presentation.screens.ai.components.AiModelMenu
-import androidx.compose.material3.TextButton
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -111,8 +111,11 @@ fun AIAssistantScreen(
                         selected = uiState.aiApiModel,
                         onSelected = viewModel::setAiApiModel
                     )
-                    TextButton(onClick = viewModel::resetSession) {
-                        Text("Reset")
+                    IconButton(onClick = viewModel::resetSession) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Reset session"
+                        )
                     }
                 }
             )

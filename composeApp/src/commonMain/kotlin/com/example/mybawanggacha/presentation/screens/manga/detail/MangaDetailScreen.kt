@@ -4,10 +4,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -27,14 +23,13 @@ import com.example.mybawanggacha.presentation.components.ErrorState
 import com.example.mybawanggacha.presentation.components.LoadingIndicator
 import com.example.mybawanggacha.presentation.components.MBGRailBackButton
 import com.example.mybawanggacha.presentation.components.MBGSideRailScaffold
+import com.example.mybawanggacha.presentation.components.MediaDetailActionMenu
 import com.example.mybawanggacha.presentation.components.PullRefreshContainer
 import com.example.mybawanggacha.presentation.screens.manga.detail.components.MangaDetailContent
 import com.example.mybawanggacha.presentation.screens.manga.detail.components.MangaDetailSection
 import com.example.mybawanggacha.presentation.screens.manga.detail.components.mangaDetailRailItems
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
-import androidx.compose.foundation.layout.Column
-import androidx.compose.material.icons.filled.Face
 
 @Composable
 fun MangaDetailScreen(
@@ -105,51 +100,32 @@ fun MangaDetailScreen(
 
                         val isInLibrary = state.libraryEntryId != null
 
-                        Column(
+                        MediaDetailActionMenu(
+                            isInLibrary = isInLibrary,
+                            onOpenAi = {
+                                val mangaContext = """
+                                    Detail Manga:
+                                    Judul: ${state.manga.title}
+                                    Genre: ${state.manga.genres.joinToString(", ")}
+                                    Skor: ${state.manga.score ?: "N/A"}
+                                    Tipe: ${state.manga.type ?: "N/A"}
+                                    Chapter: ${state.manga.chapters ?: "N/A"}
+                                    Sinopsis: ${state.manga.synopsis ?: "N/A"}
+                                """.trimIndent()
+                                onNavigateToAIAssistant(
+                                    mangaContext,
+                                    state.manga.malId,
+                                    "manga",
+                                    state.manga.title
+                                )
+                            },
+                            onOpenLibrary = {
+                                onNavigateToLibraryEditor(state.manga, state.libraryEntryId)
+                            },
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
-                                .padding(end = 16.dp, bottom = 80.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            FloatingActionButton(
-                                onClick = {
-                                    val mangaContext = """
-                                        Detail Manga:
-                                        Judul: ${state.manga.title}
-                                        Genre: ${state.manga.genres.joinToString(", ")}
-                                        Skor: ${state.manga.score ?: "N/A"}
-                                        Tipe: ${state.manga.type ?: "N/A"}
-                                        Chapter: ${state.manga.chapters ?: "N/A"}
-                                        Sinopsis: ${state.manga.synopsis ?: "N/A"}
-                                    """.trimIndent()
-                                    onNavigateToAIAssistant(
-                                        mangaContext,
-                                        state.manga.malId,
-                                        "manga",
-                                        state.manga.title
-                                    )
-                                },
-                                modifier = Modifier.padding(bottom = 16.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Face,
-                                    contentDescription = "AI Assistant"
-                                )
-                            }
-
-                            FloatingActionButton(
-                                onClick = { onNavigateToLibraryEditor(state.manga, state.libraryEntryId) }
-                            ) {
-                                Icon(
-                                    imageVector = if (isInLibrary) Icons.Default.Edit else Icons.Default.Add,
-                                    contentDescription = if (isInLibrary) {
-                                        "Edit My Library"
-                                    } else {
-                                        "Tambah ke My Library"
-                                    }
-                                )
-                            }
-                        }
+                                .padding(end = 16.dp, bottom = 80.dp)
+                        )
                     }
                 }
 
