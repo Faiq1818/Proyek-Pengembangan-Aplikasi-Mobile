@@ -25,7 +25,7 @@
 
 My Bawang Gacha adalah aplikasi Kotlin Multiplatform untuk menemukan, menyimpan, dan mengatur anime/manga.
 
-Pengguna dapat membuat daftar anime/manga pribadi, melacak status tontonan/bacaan, melihat detail dari Jikan API, mencari anime/manga, menyimpan item ke library lokal, serta menggunakan fitur gacha untuk mendapatkan rekomendasi acak berdasarkan preferensi seperti genre, type, score, status, serta aturan apakah item yang sudah watched/read boleh muncul kembali.
+Pengguna dapat membuat daftar anime/manga pribadi, melacak status tontonan/bacaan, melihat detail dari Jikan API, mencari anime/manga, menyimpan item ke library lokal, menggunakan fitur gacha untuk mendapatkan rekomendasi acak berdasarkan preferensi, serta memakai AI assistant untuk bantuan catatan dan eksplorasi anime/manga.
 
 ---
 
@@ -196,7 +196,7 @@ Fokus Sprint 3: fitur pencarian, integrasi API yang lebih lengkap, gacha, cache/
 
 ### Gacha Feature
 
-- [ ] GachaScreen
+- [x] GachaScreen
   - input preferensi pengguna:
     - media type: anime / manga / both
     - genre
@@ -204,17 +204,17 @@ Fokus Sprint 3: fitur pencarian, integrasi API yang lebih lengkap, gacha, cache/
     - status airing/publishing/completed
     - type: TV, Movie, OVA, Manga, Light Novel, dll
     - include watched/read item atau tidak
-- [ ] GachaResultScreen
+- [x] GachaResultScreen
   - menampilkan hasil gacha
   - tombol reroll
   - tombol buka detail
   - tombol tambah ke list
-- [ ] Gacha logic di domain/usecase
+- [x] Gacha logic di domain/usecase
   - filter kandidat berdasarkan preferensi
   - randomize hasil
   - exclude item tertentu jika user memilih exclude watched/read
-- [ ] Simpan gacha preference terakhir secara lokal
-- [ ] Optional: simpan history hasil gacha
+- [x] Simpan gacha preference terakhir secara lokal
+- [x] Simpan history hasil gacha
 
 ### Offline & Cache
 
@@ -241,11 +241,23 @@ Fokus Sprint 3: fitur pencarian, integrasi API yang lebih lengkap, gacha, cache/
 
 - [x] SettingsScreen
   - theme mode: system/light/dark
+  - colorscheme aplikasi
+  - AI API model/personality/token settings
+  - request usage / Jikan budget indicator
   - clear cache
   - app info/about
 - [x] About/Info section
   - sumber data: Jikan API
+  - build/runtime info
+  - developer info
   - keterangan bahwa list user disimpan lokal
+- [x] AIAssistantScreen
+  - chat assistant berbasis Gemini API
+  - konteks aplikasi untuk anime, manga, library, gacha, dan notes
+  - dukungan tools catatan: summarize, improve writing, generate ideas
+  - model dan personality dapat diatur dari Settings
+  - sesi chat tersimpan lokal berdasarkan konteks note/media
+  - media card dari respons AI dapat diarahkan ke detail anime/manga
 
 ---
 
@@ -303,7 +315,8 @@ Fokus Sprint 4: stabilitas, konsistensi UI, edge case, performa, dan test.
 - [x] Service tests untuk endpoint Jikan dasar
 - [x] Repository/search tests dasar
 - [ ] ViewModel tests untuk screen utama
-- [ ] Gacha filter/random logic tests
+- [x] Gacha filter/random logic tests
+- [ ] AI repository/session tests
 - [ ] UI tests minimal 3 critical journey:
   - buka Home → Detail
   - tambah item ke MyList → muncul di list
@@ -369,9 +382,14 @@ Fokus Sprint 5: finalisasi, demo, release build, dokumentasi, dan presentasi.
   - Repository
   - Local SQLDelight
   - Remote Jikan API
+  - Gemini AI API
 - [ ] Catatan endpoint Jikan yang dipakai
 - [ ] Dokumentasi cache/offline behavior
 - [ ] Dokumentasi pull-refresh dan stale-while-revalidate behavior
+- [ ] Dokumentasi AI assistant:
+  - model/personality setting
+  - sumber API token
+  - batasan respons dan media card
 - [ ] Known limitations / future improvements
 
 ### Release & Submission
@@ -380,6 +398,7 @@ Fokus Sprint 5: finalisasi, demo, release build, dokumentasi, dan presentasi.
 - [ ] Release APK tested
 - [ ] Version name/code diset
 - [ ] Pastikan credential/secret tidak masuk Git
+- [ ] Pastikan Gemini API token/key tidak tersimpan di repository
 - [ ] Submit:
   - GitHub repository
   - APK
@@ -405,6 +424,8 @@ Fokus Sprint 5: finalisasi, demo, release build, dokumentasi, dan presentasi.
   - update progress/status
   - search anime/manga
   - jalankan gacha berdasarkan preferensi
+  - buka AI assistant untuk catatan atau rekomendasi anime/manga
+  - tunjukkan Settings AI/API jika diperlukan
   - tunjukkan offline/error handling
 - [ ] Backup video recording demo
 - [ ] Tim latihan demo minimal 2x
@@ -443,8 +464,10 @@ Target durasi: 10–15 menit.
   - repository pattern
   - local storage
   - Jikan API integration
+  - Gemini AI integration
   - cache + pull-refresh
   - gacha logic
+  - AI chat session persistence
   - error/offline handling
 - [ ] Q&A, 2–3 menit:
   - jawab pertanyaan panel
@@ -491,6 +514,8 @@ Target durasi: 10–15 menit.
   - media type anime/manga
   - include/exclude watched/read
 - [ ] Buka hasil gacha ke detail
+- [ ] Buka AI Assistant dengan konteks note atau anime/manga
+- [ ] Tunjukkan konfigurasi AI model/personality/token di Settings
 - [ ] Tunjukkan error/offline handling atau fallback cache
 - [x] Tunjukkan Settings/About jika tersedia
 
@@ -504,6 +529,8 @@ Target durasi: 10–15 menit.
 - [ ] Bagaimana pull-refresh tetap mempertahankan konten lama?
 - [ ] Bagaimana gacha memilih hasil?
 - [ ] Bagaimana mencegah item watched/read muncul lagi jika user tidak ingin?
+- [ ] Bagaimana AI assistant mengambil konteks dan menyimpan sesi chat?
+- [ ] Bagaimana Gemini API token disimpan agar tidak masuk Git?
 - [ ] Bagaimana pembagian kerja tim?
 - [ ] Apa tantangan teknis terbesar?
 - [ ] Apa fitur yang akan dikembangkan berikutnya?
