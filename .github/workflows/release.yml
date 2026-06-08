@@ -1,6 +1,9 @@
 name: Release
 
 on:
+  push:
+    tags:
+      - "v*"
   workflow_dispatch:
     inputs:
       version:
@@ -23,20 +26,38 @@ jobs:
 
     outputs:
       version: ${{ steps.version.outputs.version }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
 
     steps:
-      - name: Validate release version
+      - name: Resolve release version
         id: version
         shell: bash
         run: |
-          version="${{ inputs.version }}"
+          if [ "${{ github.event_name }}" = "push" ]; then
+            tag="${GITHUB_REF_NAME}"
 
-          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9._-]+)?$ ]]; then
-            echo "Version must look like 1.0.0 or 1.0.0-rc4"
-            exit 1
+            if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9._-]+)?$ ]]; then
+              echo "Release tag must look like v1.0.0 or v1.0.0-rc4"
+              exit 1
+            fi
+
+            version="${tag#v}"
+            prerelease="false"
+            if [[ "$version" == *-* ]]; then
+              prerelease="true"
+            fi
+          else
+            version="${{ inputs.version }}"
+            prerelease="${{ inputs.prerelease }}"
+
+            if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9._-]+)?$ ]]; then
+              echo "Version must look like 1.0.0 or 1.0.0-rc4"
+              exit 1
+            fi
           fi
 
           echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
 
   android-release:
     name: Build signed Android release APKs
@@ -280,7 +301,7 @@ jobs:
             exit 1
           fi
 
-      - name: Create release tag
+      - name: Ensure release tag exists
         shell: bash
         run: |
           git fetch --tags
@@ -297,7 +318,7 @@ jobs:
         with:
           tag_name: v${{ env.RELEASE_VERSION }}
           name: MyBawangGacha ${{ env.RELEASE_VERSION }}
-          prerelease: ${{ inputs.prerelease }}
+          prerelease: ${{ needs.validate-release.outputs.prerelease }}
           files: |
             release-files/android/*.apk
             release-files/android/SHA256SUMS
