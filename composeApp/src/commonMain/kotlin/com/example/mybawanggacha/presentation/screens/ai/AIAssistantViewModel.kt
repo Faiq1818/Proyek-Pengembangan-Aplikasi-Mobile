@@ -21,6 +21,14 @@ import com.example.mybawanggacha.domain.settings.model.AiApiModel
 import com.example.mybawanggacha.domain.settings.repository.SettingsRepository
 import com.example.mybawanggacha.domain.settings.model.AiPersonality
 import com.example.mybawanggacha.domain.ai.repository.AiChatSessionRepository
+import com.example.mybawanggacha.domain.anime.repository.AnimeRepository
+import com.example.mybawanggacha.domain.manga.repository.MangaRepository
+import com.example.mybawanggacha.domain.search.model.MediaSearchFilters
+import com.example.mybawanggacha.domain.search.model.SearchMediaType
+import com.example.mybawanggacha.domain.search.repository.SearchRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.supervisorScope
 
 class AIAssistantViewModel(
     private val aiRepository: AIRepository,
@@ -28,12 +36,15 @@ class AIAssistantViewModel(
     private val improveWritingUseCase: ImproveWritingUseCase,
     private val generateIdeasUseCase: GenerateIdeasUseCase,
     private val settingsRepository: SettingsRepository,
-    private val chatSessionRepository: AiChatSessionRepository
+    private val chatSessionRepository: AiChatSessionRepository,
+    private val animeRepository: AnimeRepository,
+    private val mangaRepository: MangaRepository,
+    private val searchRepository: SearchRepository
 ) : ViewModel() {
-    
+
     private val _uiState = MutableStateFlow(AIAssistantUiState())
     val uiState: StateFlow<AIAssistantUiState> = _uiState.asStateFlow()
-    
+
     private val _events = MutableSharedFlow<AIAssistantEvent>()
     val events: SharedFlow<AIAssistantEvent> = _events.asSharedFlow()
 
@@ -50,13 +61,12 @@ class AIAssistantViewModel(
         }
     }
 
-    
     fun setInitialText(text: String?) {
         text?.let {
             _uiState.update { state -> state.copy(inputText = it) }
         }
     }
-    
+
     fun configureSession(
         noteId: Long?,
         mediaId: Int?,
@@ -87,6 +97,13 @@ class AIAssistantViewModel(
 
         viewModelScope.launch {
             val messages = chatSessionRepository.getMessages(sessionKey)
+                .map { message ->
+                    if (message.sender == MessageSender.AI) {
+                        message.copy(text = resolveMediaReferences(message.text))
+                    } else {
+                        message
+                    }
+                }
             _uiState.update { state ->
                 state.copy(
                     chatHistory = messages,
@@ -95,63 +112,64 @@ class AIAssistantViewModel(
             }
         }
     }
-    
+
     fun onInputTextChange(text: String) {
         _uiState.update { it.copy(inputText = text, error = null) }
     }
-    
+
     fun onActionSelected(action: AIAction) {
         _uiState.update { it.copy(selectedAction = action) }
     }
-    
+
     fun executeAction() {
         val state = _uiState.value
         val messageText = state.inputText.trim()
-        
+
         if (messageText.isBlank()) {
             _uiState.update { it.copy(error = "Masukkan teks terlebih dahulu") }
             return
         }
-        
+
         val userMessage = ChatMessage(sender = MessageSender.USER, text = messageText)
         val updatedHistory = state.chatHistory + userMessage
-        _uiState.update { 
+        _uiState.update {
             it.copy(
                 inputText = "",
                 isLoading = true,
                 error = null,
                 chatHistory = updatedHistory
-            ) 
+            )
         }
-        
+
         viewModelScope.launch {
             chatSessionRepository.appendMessage(state.sessionKey, userMessage)
 
             val contextPrompt = buildScreenContextPrompt(state.animeContext)
             val result = chat(updatedHistory, contextPrompt)
-            
+
             result
                 .onSuccess { output ->
-                    val aiMessage = ChatMessage(sender = MessageSender.AI, text = output)
+                    val resolvedOutput = resolveMediaReferences(output)
+                    val aiMessage = ChatMessage(sender = MessageSender.AI, text = resolvedOutput)
                     chatSessionRepository.appendMessage(state.sessionKey, aiMessage)
-                    _uiState.update { 
+                    _uiState.update {
                         it.copy(
                             isLoading = false,
                             chatHistory = it.chatHistory + aiMessage
-                        ) 
+                        )
                     }
                 }
                 .onFailure { error ->
-                    _uiState.update { 
+                    _uiState.update {
                         it.copy(
                             isLoading = false,
                             error = error.message ?: "Terjadi kesalahan"
-                        ) 
+                        )
                     }
                 }
         }
     }
-    
+
     fun resetSession() {
         val sessionKey = _uiState.value.sessionKey
         viewModelScope.launch {
@@ -171,17 +189,17 @@ class AIAssistantViewModel(
             _events.emit(AIAssistantEvent.CopyToClipboard(text))
         }
     }
-    
+
     fun applyToNote(text: String) {
         viewModelScope.launch {
             _events.emit(AIAssistantEvent.ApplyToNote(text))
         }
     }
-    
+
     fun onWritingStyleChange(style: WritingStyle) {
         _uiState.update { it.copy(writingStyle = style) }
     }
-    
+
     fun onTargetLanguageChange(language: String) {
         _uiState.update { it.copy(targetLanguage = language) }
     }
@@ -190,6 +208,198 @@ class AIAssistantViewModel(
         viewModelScope.launch {
             settingsRepository.setAiApiModel(aiApiModel)
         }
+    }
+
+    private suspend fun resolveMediaReferences(text: String): String {
+        val blocks = MEDIA_BLOCK_REGEX.findAll(text).toList()
+        if (blocks.isEmpty()) return text
+
+        val replacements = supervisorScope {
+            blocks.map { match ->
+                async {
+                    val body = match.groupValues[1]
+                    val values = parseMediaReferenceValues(body)
+                    val currentImageUrl = values["image_url"]?.takeIf { it.isUsableImageUrl() }
+                    val type = values["type"].normalizedMediaType()
+                    val title = values["title"].orEmpty()
+                    val malId = values["mal_id"]?.toIntOrNull()
+
+                    if (currentImageUrl != null) {
+                        match.value to match.value
+                    } else {
+                        val resolved = resolveMediaReference(
+                            type = type,
+                            malId = malId,
+                            title = title
+                        )
+
+                        if (resolved == null) {
+                            match.value to match.value
+                        } else {
+                            match.value to upsertMediaReferenceValues(
+                                block = match.value,
+                                values = mapOf(
+                                    "type" to resolved.type,
+                                    "mal_id" to resolved.malId.toString(),
+                                    "title" to resolved.title,
+                                    "score" to (resolved.score ?: values["score"]).orEmpty(),
+                                    "image_url" to resolved.imageUrl.orEmpty()
+                                )
+                            )
+                        }
+                    }
+                }
+            }.awaitAll()
+        }
+
+        return replacements.fold(text) { acc, (old, new) ->
+            acc.replace(old, new)
+        }
+    }
+
+    private suspend fun resolveMediaReference(
+        type: String,
+        malId: Int?,
+        title: String
+    ): ResolvedMediaReference? {
+        if (malId != null) {
+            resolveMediaById(type = type, malId = malId)?.let { return it }
+        }
+
+        return resolveMediaByTitle(
+            type = type,
+            title = title
+        )
+    }
+
+    private suspend fun resolveMediaById(
+        type: String,
+        malId: Int
+    ): ResolvedMediaReference? {
+        return runCatching {
+            when (type) {
+                "anime" -> {
+                    val detail = animeRepository.getAnimeDetail(malId).anime
+                    ResolvedMediaReference(
+                        type = "anime",
+                        malId = detail.malId,
+                        title = detail.title,
+                        score = detail.score?.toString(),
+                        imageUrl = detail.imageUrl
+                    )
+                }
+                else -> {
+                    val detail = mangaRepository.getMangaDetail(malId)
+                    ResolvedMediaReference(
+                        type = "manga",
+                        malId = detail.malId,
+                        title = detail.title,
+                        score = detail.score?.toString(),
+                        imageUrl = detail.imageUrl
+                    )
+                }
+            }
+        }.getOrNull()
+            ?.takeIf { it.imageUrl.isUsableImageUrl() }
+    }
+
+    private suspend fun resolveMediaByTitle(
+        type: String,
+        title: String
+    ): ResolvedMediaReference? {
+        if (title.isBlank()) return null
+
+        val mediaType = if (type == "anime") {
+            SearchMediaType.Anime
+        } else {
+            SearchMediaType.Manga
+        }
+
+        return runCatching {
+            searchRepository.search(
+                filters = MediaSearchFilters(
+                    mediaType = mediaType,
+                    query = title,
+                    limit = "5",
+                    sfw = true
+                ),
+                page = 1
+            ).items
+                .firstOrNull { item ->
+                    item.title.equals(title, ignoreCase = true) ||
+                            item.title.contains(title, ignoreCase = true) ||
+                            title.contains(item.title, ignoreCase = true)
+                }
+                ?: searchRepository.search(
+                    filters = MediaSearchFilters(
+                        mediaType = mediaType,
+                        query = title,
+                        limit = "5",
+                        sfw = true
+                    ),
+                    page = 1
+                ).items.firstOrNull()
+        }.getOrNull()
+            ?.takeIf { it.imageUrl.isUsableImageUrl() }
+            ?.let { item ->
+                ResolvedMediaReference(
+                    type = if (item.mediaType == SearchMediaType.Anime) "anime" else "manga",
+                    malId = item.malId,
+                    title = item.title,
+                    score = item.score?.toString(),
+                    imageUrl = item.imageUrl
+                )
+            }
+    }
+
+    private fun parseMediaReferenceValues(body: String): Map<String, String> {
+        return body.lines()
+            .mapNotNull { line ->
+                val index = line.indexOf("=")
+                if (index <= 0) return@mapNotNull null
+                line.take(index).trim().lowercase() to line.drop(index + 1).trim()
+            }
+            .toMap()
+    }
+
+    private fun upsertMediaReferenceValues(
+        block: String,
+        values: Map<String, String>
+    ): String {
+        val lines = block.lines().toMutableList()
+
+        values.forEach { (key, value) ->
+            if (value.isBlank()) return@forEach
+
+            val existingIndex = lines.indexOfFirst { line ->
+                line.substringBefore("=", missingDelimiterValue = "")
+                    .trim()
+                    .equals(key, ignoreCase = true)
+            }
+
+            if (existingIndex >= 0) {
+                lines[existingIndex] = "$key=$value"
+            } else {
+                val endIndex = lines.indexOfLast { it.trim() == ":::" }
+                    .takeIf { it >= 0 }
+                    ?: lines.size
+                lines.add(endIndex, "$key=$value")
+            }
+        }
+
+        return lines.joinToString("\n")
+    }
+
+    private fun String?.normalizedMediaType(): String {
+        return when (this?.lowercase()?.trim()) {
+            "anime" -> "anime"
+            else -> "manga"
+        }
+    }
+
+    private fun String?.isUsableImageUrl(): Boolean {
+        val value = this?.trim().orEmpty()
+        return value.startsWith("https://") || value.startsWith("http://")
     }
 
     private fun buildSessionKey(
@@ -219,33 +429,48 @@ class AIAssistantViewModel(
                 """.trimIndent()
             }
     }
-    
+
     // ==================== AI OPERATIONS ====================
-    
+
     private suspend fun summarize(text: String): Result<String> {
         return summarizeUseCase(text)
     }
-    
+
     private suspend fun generateIdeas(topic: String): Result<String> {
         return generateIdeasUseCase(topic).map { ideas ->
             ideas.mapIndexed { index, idea -> "${index + 1}. $idea" }.joinToString("\n")
         }
     }
-    
+
     private suspend fun improveWriting(text: String, style: WritingStyle): Result<String> {
         return improveWritingUseCase(text, style)
     }
-    
+
     private suspend fun translate(text: String, targetLanguage: String): Result<String> {
         return aiRepository.translate(text, targetLanguage)
     }
-    
+
     private suspend fun suggestTitle(content: String): Result<String> {
         return aiRepository.suggestTitle(content)
     }
-    
+
     private suspend fun chat(history: List<ChatMessage>, systemPrompt: String? = null): Result<String> {
         return aiRepository.chat(history, systemPrompt)
+    }
+
+    private data class ResolvedMediaReference(
+        val type: String,
+        val malId: Int,
+        val title: String,
+        val score: String?,
+        val imageUrl: String?
+    )
+
+    private companion object {
+        val MEDIA_BLOCK_REGEX = Regex(
+            pattern = ":::media\\s*\\n([\\s\\S]*?)\\n:::",
+            option = RegexOption.IGNORE_CASE
+        )
     }
 }
 
