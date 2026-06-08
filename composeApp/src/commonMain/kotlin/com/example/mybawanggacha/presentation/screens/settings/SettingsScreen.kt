@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Verified
+import androidx.compose.material.icons.filled.VpnKey
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -168,7 +169,7 @@ fun SettingsScreen(
                         title = "Request Usage",
                         description = "Pantau pemakaian request Jikan."
                     )
-                    SettingsJikanBudgetSection(requestUsage = uiState.requestUsage)
+                    SettingsRequestUsageSection(requestUsage = uiState.requestUsage)
                 }
 
                 SettingsPane.About -> {
@@ -239,7 +240,7 @@ private fun SettingsMainMenu(
         )
 
         SettingsMenuRow(
-            icon = Icons.Default.Cloud,
+            icon = Icons.Default.VpnKey,
             title = "AI API",
             description = "${aiApiSettings.model.label} • ${if (aiApiSettings.hasToken) "Token tersimpan" else "Token belum diisi"}",
             onClick = { onPaneSelected(SettingsPane.Api) }
@@ -361,17 +362,17 @@ private fun SettingsThemeSection(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            ThemeChoiceChip(
+            SettingsChoiceChip(
                 label = "System",
                 selected = themeMode == ThemeMode.System,
                 onClick = { onThemeModeSelected(ThemeMode.System) }
             )
-            ThemeChoiceChip(
+            SettingsChoiceChip(
                 label = "Light",
                 selected = themeMode == ThemeMode.Light,
                 onClick = { onThemeModeSelected(ThemeMode.Light) }
             )
-            ThemeChoiceChip(
+            SettingsChoiceChip(
                 label = "Dark",
                 selected = themeMode == ThemeMode.Dark,
                 onClick = { onThemeModeSelected(ThemeMode.Dark) }
@@ -469,7 +470,6 @@ private fun String.toColor(): Color {
     val rgb = removePrefix("#").toLongOrNull(radix = 16) ?: 0L
     return Color(0xFF000000L or rgb)
 }
-
 
 
 @Composable
@@ -608,12 +608,12 @@ private fun SettingsNetworkSection(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            NetworkChoiceChip(
+            SettingsChoiceChip(
                 label = NetworkMode.Auto.label,
                 selected = networkMode == NetworkMode.Auto,
                 onClick = { onNetworkModeSelected(NetworkMode.Auto) }
             )
-            NetworkChoiceChip(
+            SettingsChoiceChip(
                 label = NetworkMode.OfflineOnly.label,
                 selected = networkMode == NetworkMode.OfflineOnly,
                 onClick = { onNetworkModeSelected(NetworkMode.OfflineOnly) }
@@ -623,7 +623,7 @@ private fun SettingsNetworkSection(
 }
 
 @Composable
-private fun SettingsJikanBudgetSection(
+private fun SettingsRequestUsageSection(
     requestUsage: SettingsRequestUsageUiState
 ) {
     Column(
@@ -746,11 +746,26 @@ private fun SettingsUsageMetric(
     }
 }
 
+
 @Composable
 private fun SettingsDivider() {
-    Spacer(modifier = Modifier.height(24.dp))
-    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
-    Spacer(modifier = Modifier.height(24.dp))
+    HorizontalDivider(
+        modifier = Modifier.padding(vertical = 4.dp),
+        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+    )
+}
+
+@Composable
+private fun SettingsChoiceChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = { Text(text = label) }
+    )
 }
 
 @Composable
@@ -833,19 +848,6 @@ private fun SettingsInfoCard(
             }
         }
     }
-}
-
-@Composable
-private fun ThemeChoiceChip(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit
-) {
-    FilterChip(
-        selected = selected,
-        onClick = onClick,
-        label = { Text(text = label) }
-    )
 }
 
 @Composable
