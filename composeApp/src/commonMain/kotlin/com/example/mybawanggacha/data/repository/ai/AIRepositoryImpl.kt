@@ -82,22 +82,29 @@ class AIRepositoryImpl(
 
     override suspend fun chat(history: List<ChatMessage>, systemPrompt: String?): Result<String> {
         val contents = mutableListOf<GeminiContent>()
-        
-        if (systemPrompt != null) {
-            contents.add(
-                GeminiContent(
-                    parts = listOf(GeminiPart(text = systemPrompt)),
-                    role = "user"
-                )
-            )
-            contents.add(
-                GeminiContent(
-                    parts = listOf(GeminiPart(text = "Baik, saya akan mengikuti instruksi tersebut.")),
-                    role = "model"
-                )
-            )
+        val effectiveSystemPrompt = buildString {
+            append(SystemPrompts.APP_ASSISTANT)
+            systemPrompt
+                ?.takeIf { it.isNotBlank() }
+                ?.let { prompt ->
+                    append("\n\nKonteks layar saat ini:\n")
+                    append(prompt.trim())
+                }
         }
-        
+
+        contents.add(
+            GeminiContent(
+                parts = listOf(GeminiPart(text = effectiveSystemPrompt)),
+                role = "user"
+            )
+        )
+        contents.add(
+            GeminiContent(
+                parts = listOf(GeminiPart(text = "Siap. Saya akan membantu sebagai asisten MyBawangGacha dan memakai Markdown bila berguna.")),
+                role = "model"
+            )
+        )
+
         history.forEach { message ->
             contents.add(
                 GeminiContent(
@@ -106,7 +113,7 @@ class AIRepositoryImpl(
                 )
             )
         }
-        
+
         return geminiService.generateContent(contents)
     }
 

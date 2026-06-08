@@ -48,6 +48,7 @@ import com.example.mybawanggacha.domain.ai.repository.MessageSender
 import org.koin.compose.viewmodel.koinViewModel
 import com.example.mybawanggacha.presentation.screens.ai.components.ChatBubble
 import com.example.mybawanggacha.presentation.screens.ai.components.LoadingBubble
+import com.example.mybawanggacha.presentation.screens.ai.components.AiModelMenu
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,7 +93,13 @@ fun AIAssistantScreen(
         topBar = {
             MBGTopBar(
                 title = "AI Assistant",
-                onNavigateBack = onNavigateBack
+                onNavigateBack = onNavigateBack,
+                actions = {
+                    AiModelMenu(
+                        selected = uiState.aiApiModel,
+                        onSelected = viewModel::setAiApiModel
+                    )
+                }
             )
         }
     ) { paddingValues ->

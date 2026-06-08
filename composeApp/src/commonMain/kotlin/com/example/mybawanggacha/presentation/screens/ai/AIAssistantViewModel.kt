@@ -17,12 +17,15 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.example.mybawanggacha.domain.settings.model.AiApiModel
+import com.example.mybawanggacha.domain.settings.repository.SettingsRepository
 
 class AIAssistantViewModel(
     private val aiRepository: AIRepository,
     private val summarizeUseCase: SummarizeNoteUseCase,
     private val improveWritingUseCase: ImproveWritingUseCase,
-    private val generateIdeasUseCase: GenerateIdeasUseCase
+    private val generateIdeasUseCase: GenerateIdeasUseCase,
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(AIAssistantUiState())
@@ -30,6 +33,17 @@ class AIAssistantViewModel(
     
     private val _events = MutableSharedFlow<AIAssistantEvent>()
     val events: SharedFlow<AIAssistantEvent> = _events.asSharedFlow()
+
+    init {
+        viewModelScope.launch {
+            settingsRepository.aiApiSettings.collect { settings ->
+                _uiState.update { state ->
+                    state.copy(aiApiModel = settings.model)
+                }
+            }
+        }
+    }
+
     
     fun setInitialText(text: String?) {
         text?.let {
@@ -70,16 +84,8 @@ class AIAssistantViewModel(
         }
         
         viewModelScope.launch {
-            val systemPrompt = state.animeContext?.let {
-                """
-                    Kamu adalah chatbot asisten AI.
-                    Berikut adalah data konteks anime yang sedang dilihat oleh pengguna saat ini:
-                    $it
-                    
-                    Gunakan informasi di atas jika pengguna bertanya tentang anime tersebut. Jawab dengan bersahabat dan kontekstual.
-                """.trimIndent()
-            }
-            val result = chat(updatedHistory, systemPrompt)
+            val contextPrompt = buildScreenContextPrompt(state.animeContext)
+            val result = chat(updatedHistory, contextPrompt)
             
             result
                 .onSuccess { output ->
@@ -120,6 +126,26 @@ class AIAssistantViewModel(
     
     fun onTargetLanguageChange(language: String) {
         _uiState.update { it.copy(targetLanguage = language) }
+    }
+
+    fun setAiApiModel(aiApiModel: AiApiModel) {
+        viewModelScope.launch {
+            settingsRepository.setAiApiModel(aiApiModel)
+        }
+    }
+
+    private fun buildScreenContextPrompt(animeContext: String?): String? {
+        return animeContext
+            ?.takeIf { it.isNotBlank() }
+            ?.let { context ->
+                """
+                    Pengguna sedang membuka konteks anime/manga di aplikasi:
+                    $context
+
+                    Gunakan konteks ini hanya jika relevan dengan pertanyaan pengguna.
+                    Jika data konteks tidak memuat informasi yang ditanyakan, jelaskan bahwa data tersebut tidak tersedia di layar ini.
+                """.trimIndent()
+            }
     }
     
     // ==================== AI OPERATIONS ====================
@@ -166,6 +192,7 @@ data class AIAssistantUiState(
     val selectedAction: AIAction = AIAction.CHAT,
     val writingStyle: WritingStyle = WritingStyle.NEUTRAL,
     val targetLanguage: String = "English",
+    val aiApiModel: AiApiModel = AiApiModel.Gemini35Flash,
     val isLoading: Boolean = false,
     val result: String? = null,
     val error: String? = null,
