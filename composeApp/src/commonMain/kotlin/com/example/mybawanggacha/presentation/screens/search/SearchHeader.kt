@@ -32,7 +32,7 @@ import com.example.mybawanggacha.domain.search.model.MediaSearchFilters
 import com.example.mybawanggacha.domain.search.model.SearchMediaType
 
 @Composable
-internal fun SearchCompactPanel(
+internal fun SearchPanel(
     filters: MediaSearchFilters,
     activeFilterCount: Int,
     onFiltersChange: (MediaSearchFilters) -> Unit,
@@ -97,7 +97,7 @@ internal fun SearchCompactPanel(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            SearchMediaTypeDropdown(
+            MediaTypeDropdown(
                 selected = filters.mediaType,
                 modifier = Modifier.weight(1f),
                 onSelected = { mediaType ->
@@ -142,7 +142,7 @@ internal fun SearchCompactPanel(
                 )
             }
             item {
-                SearchDropdownChip(
+                DropdownChip(
                     label = SearchText.typeLabel,
                     value = filters.type,
                     options = if (filters.mediaType == SearchMediaType.Anime) ANIME_TYPES else MANGA_TYPES,
@@ -150,7 +150,7 @@ internal fun SearchCompactPanel(
                 )
             }
             item {
-                SearchDropdownChip(
+                DropdownChip(
                     label = SearchText.statusLabel,
                     value = filters.status,
                     options = if (filters.mediaType == SearchMediaType.Anime) ANIME_STATUSES else MANGA_STATUSES,
@@ -158,7 +158,7 @@ internal fun SearchCompactPanel(
                 )
             }
             item {
-                SearchDropdownChip(
+                DropdownChip(
                     label = SearchText.sortLabel,
                     value = filters.sort,
                     options = SORT_OPTIONS,

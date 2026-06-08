@@ -14,9 +14,9 @@ import com.example.mybawanggacha.presentation.components.MBGMainRailKey
 import com.example.mybawanggacha.presentation.components.MBGRailBackButton
 import com.example.mybawanggacha.presentation.components.MBGSideRailScaffold
 import com.example.mybawanggacha.presentation.components.PullRefreshContainer
-import com.example.mybawanggacha.presentation.screens.manga.list.components.MangaListContent
-import com.example.mybawanggacha.presentation.screens.manga.list.components.MangaListHeader
-import com.example.mybawanggacha.presentation.screens.manga.list.components.MangaListTabRow
+import com.example.mybawanggacha.presentation.screens.manga.list.components.ListContent
+import com.example.mybawanggacha.presentation.screens.manga.list.components.ListHeader
+import com.example.mybawanggacha.presentation.screens.manga.list.components.ListTabRow
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -60,18 +60,18 @@ fun MangaListScreen(
                     .fillMaxSize()
                     .padding(start = 4.dp, top = 32.dp, end = 18.dp)
             ) {
-                MangaListHeader()
+                ListHeader()
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                MangaListTabRow(
+                ListTabRow(
                     selectedTab = selectedTab,
                     onTabSelected = viewModel::selectTab
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                MangaListContent(
+                ListContent(
                     uiState = uiState,
                     selectedTab = selectedTab,
                     onRetry = viewModel::refresh,

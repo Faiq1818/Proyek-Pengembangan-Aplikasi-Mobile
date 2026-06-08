@@ -59,7 +59,7 @@ internal fun SearchFilterSheet(
         contentPadding = PaddingValues(start = 18.dp, end = 18.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        item { SearchFilterSheetHeader() }
+        item { FilterSheetHeader() }
 
         item {
             FilterSection(
@@ -69,13 +69,13 @@ internal fun SearchFilterSheet(
                 onToggle = { generalExpanded = !generalExpanded }
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SmallSearchTextField(
+                    SearchTextField(
                         label = SearchText.limitLabel,
                         value = filters.limit,
                         modifier = Modifier.weight(1f),
                         onValueChange = { value -> onFiltersChange(filters.copy(limit = value)) }
                     )
-                    SmallSearchTextField(
+                    SearchTextField(
                         label = SearchText.letterLabel,
                         value = filters.letter,
                         modifier = Modifier.weight(1f),
@@ -103,14 +103,14 @@ internal fun SearchFilterSheet(
                 onToggle = { classificationExpanded = !classificationExpanded }
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SearchDropdown(
+                    Dropdown(
                         label = SearchText.typeLabel,
                         value = filters.type,
                         options = if (filters.mediaType == SearchMediaType.Anime) ANIME_TYPES else MANGA_TYPES,
                         modifier = Modifier.weight(1f),
                         onSelected = { value -> onFiltersChange(filters.copy(type = value)) }
                     )
-                    SearchDropdown(
+                    Dropdown(
                         label = SearchText.statusLabel,
                         value = filters.status,
                         options = if (filters.mediaType == SearchMediaType.Anime) ANIME_STATUSES else MANGA_STATUSES,
@@ -119,7 +119,7 @@ internal fun SearchFilterSheet(
                     )
                 }
                 if (filters.mediaType == SearchMediaType.Anime) {
-                    SearchDropdown(
+                    Dropdown(
                         label = SearchText.ratingLabel,
                         value = filters.rating,
                         options = ANIME_RATINGS,
@@ -137,20 +137,20 @@ internal fun SearchFilterSheet(
                 expanded = scoreExpanded,
                 onToggle = { scoreExpanded = !scoreExpanded }
             ) {
-                SmallSearchTextField(
+                SearchTextField(
                     label = SearchText.exactScoreLabel,
                     value = filters.score,
                     modifier = Modifier.fillMaxWidth(),
                     onValueChange = { value -> onFiltersChange(filters.copy(score = value)) }
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SmallSearchTextField(
+                    SearchTextField(
                         label = SearchText.minScoreLabel,
                         value = filters.minScore,
                         modifier = Modifier.weight(1f),
                         onValueChange = { value -> onFiltersChange(filters.copy(minScore = value)) }
                     )
-                    SmallSearchTextField(
+                    SearchTextField(
                         label = SearchText.maxScoreLabel,
                         value = filters.maxScore,
                         modifier = Modifier.weight(1f),
@@ -158,13 +158,13 @@ internal fun SearchFilterSheet(
                     )
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SmallSearchTextField(
+                    SearchTextField(
                         label = SearchText.startDateLabel,
                         value = filters.startDate,
                         modifier = Modifier.weight(1f),
                         onValueChange = { value -> onFiltersChange(filters.copy(startDate = value)) }
                     )
-                    SmallSearchTextField(
+                    SearchTextField(
                         label = SearchText.endDateLabel,
                         value = filters.endDate,
                         modifier = Modifier.weight(1f),
@@ -205,13 +205,13 @@ internal fun SearchFilterSheet(
                     )
                 } else {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        SmallSearchTextField(
+                        SearchTextField(
                             label = SearchText.genreIdsLabel,
                             value = filters.genres,
                             modifier = Modifier.weight(1f),
                             onValueChange = { value -> onFiltersChange(filters.copy(genres = value)) }
                         )
-                        SmallSearchTextField(
+                        SearchTextField(
                             label = SearchText.excludedGenreIdsLabel,
                             value = filters.genresExclude,
                             modifier = Modifier.weight(1f),
@@ -249,7 +249,7 @@ internal fun SearchFilterSheet(
                         }
                     )
                 } else {
-                    SmallSearchTextField(
+                    SearchTextField(
                         label = if (filters.mediaType == SearchMediaType.Anime) {
                             SearchText.producerIdsLabel
                         } else {
@@ -281,14 +281,14 @@ internal fun SearchFilterSheet(
                 onToggle = { sortingExpanded = !sortingExpanded }
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SearchDropdown(
+                    Dropdown(
                         label = SearchText.orderByLabel,
                         value = filters.orderBy,
                         options = if (filters.mediaType == SearchMediaType.Anime) ANIME_ORDER_BY else MANGA_ORDER_BY,
                         modifier = Modifier.weight(1f),
                         onSelected = { value -> onFiltersChange(filters.copy(orderBy = value)) }
                     )
-                    SearchDropdown(
+                    Dropdown(
                         label = SearchText.sortLabel,
                         value = filters.sort,
                         options = SORT_OPTIONS,
@@ -331,7 +331,7 @@ internal fun SearchFilterSheet(
 }
 
 @Composable
-private fun SearchFilterSheetHeader() {
+private fun FilterSheetHeader() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -604,7 +604,7 @@ private fun MetadataSelectorContainer(
             )
         }
 
-        SmallSearchTextField(
+        SearchTextField(
             label = queryLabel,
             value = query,
             modifier = Modifier.fillMaxWidth(),

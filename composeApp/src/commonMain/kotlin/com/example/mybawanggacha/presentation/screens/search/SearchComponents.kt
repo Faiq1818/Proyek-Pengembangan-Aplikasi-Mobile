@@ -40,7 +40,7 @@ import com.example.mybawanggacha.domain.search.model.MediaSearchItem
 import com.example.mybawanggacha.domain.search.model.SearchMediaType
 
 @Composable
-internal fun SearchMediaTypeDropdown(
+internal fun MediaTypeDropdown(
     selected: SearchMediaType,
     modifier: Modifier = Modifier.fillMaxWidth(),
     onSelected: (SearchMediaType) -> Unit
@@ -78,7 +78,7 @@ internal fun SearchMediaTypeDropdown(
 }
 
 @Composable
-internal fun SearchDropdownChip(
+internal fun DropdownChip(
     label: String,
     value: String?,
     options: List<SearchOption>,
@@ -127,7 +127,7 @@ internal fun SearchDropdownChip(
 }
 
 @Composable
-internal fun SearchDropdown(
+internal fun Dropdown(
     label: String,
     value: String?,
     options: List<SearchOption>,
@@ -189,7 +189,7 @@ internal fun QuickFilterChip(
 }
 
 @Composable
-internal fun SmallSearchTextField(
+internal fun SearchTextField(
     label: String,
     value: String,
     modifier: Modifier = Modifier,
@@ -244,7 +244,7 @@ internal fun ToggleRow(
 }
 
 @Composable
-internal fun SearchResultCard(
+internal fun ResultCard(
     item: MediaSearchItem,
     onClick: () -> Unit
 ) {

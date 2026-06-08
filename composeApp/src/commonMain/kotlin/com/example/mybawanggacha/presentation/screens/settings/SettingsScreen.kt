@@ -849,16 +849,3 @@ private fun SettingsInfoCard(
         }
     }
 }
-
-@Composable
-private fun NetworkChoiceChip(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit
-) {
-    FilterChip(
-        selected = selected,
-        onClick = onClick,
-        label = { Text(text = label) }
-    )
-}

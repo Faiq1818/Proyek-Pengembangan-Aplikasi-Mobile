@@ -98,7 +98,7 @@ internal fun SearchContent(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item(contentType = "search_panel") {
-            SearchCompactPanel(
+            SearchPanel(
                 filters = filters,
                 activeFilterCount = activeLabels.size,
                 onFiltersChange = onFiltersChange,
@@ -152,14 +152,14 @@ internal fun SearchContent(
                         key = { item -> "${item.mediaType}:${item.malId}" },
                         contentType = { "search_result" }
                     ) { item ->
-                        SearchResultCard(
+                        ResultCard(
                             item = item,
                             onClick = { onItemClick(item) }
                         )
                     }
 
                     if (uiState.isLoadingMore) {
-                        item(contentType = "search_loading_more") { SearchLoadingMoreRow() }
+                        item(contentType = "search_loading_more") { LoadingMoreRow() }
                     }
                 }
             }
@@ -193,7 +193,7 @@ internal fun SearchContent(
 }
 
 @Composable
-private fun SearchLoadingMoreRow() {
+private fun LoadingMoreRow() {
     Row(
         modifier = Modifier
             .fillMaxWidth()

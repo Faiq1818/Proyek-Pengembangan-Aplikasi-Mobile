@@ -50,7 +50,7 @@ import com.example.mybawanggacha.presentation.components.media.MediaPosterCard
 import com.example.mybawanggacha.presentation.components.media.MediaPosterSkeletonCard
 
 @Composable
-fun MangaListHeader() {
+fun ListHeader() {
     ScreenHeader(
         icon = Icons.Default.MenuBook,
         title = "Manga List",
@@ -59,7 +59,7 @@ fun MangaListHeader() {
 }
 
 @Composable
-fun MangaListTabRow(
+fun ListTabRow(
     selectedTab: MangaListTab,
     onTabSelected: (MangaListTab) -> Unit
 ) {
@@ -96,7 +96,7 @@ fun MangaListTabRow(
 }
 
 @Composable
-fun MangaListContent(
+fun ListContent(
     uiState: MangaListUiState,
     selectedTab: MangaListTab,
     onRetry: () -> Unit,
@@ -105,7 +105,7 @@ fun MangaListContent(
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         when (uiState) {
-            MangaListUiState.Loading -> MangaListSkeleton()
+            MangaListUiState.Loading -> ListSkeleton()
             is MangaListUiState.Error -> ErrorState(
                 message = uiState.message,
                 onRetry = onRetry
@@ -130,7 +130,7 @@ fun MangaListContent(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                MangaGrid(
+                PosterGrid(
                     manga = uiState.manga,
                     showBadges = selectedTab != MangaListTab.Recommendations,
                     canLoadMore = uiState.canLoadMore,
@@ -146,7 +146,7 @@ fun MangaListContent(
 
 
 @Composable
-private fun MangaListSkeleton() {
+private fun ListSkeleton() {
     Column(modifier = Modifier.fillMaxSize()) {
         SkeletonLine(width = 174.dp, height = 24.dp)
         Spacer(modifier = Modifier.height(8.dp))
@@ -186,7 +186,7 @@ private fun SkeletonLine(
 }
 
 @Composable
-private fun MangaGrid(
+private fun PosterGrid(
     manga: List<MangaSummary>,
     showBadges: Boolean,
     canLoadMore: Boolean,
@@ -245,14 +245,14 @@ private fun MangaGrid(
                 span = { GridItemSpan(maxLineSpan) },
                 contentType = "manga_loading_more"
             ) {
-                MangaListLoadingMoreRow()
+                LoadingMoreRow()
             }
         }
     }
 }
 
 @Composable
-private fun MangaListLoadingMoreRow() {
+private fun LoadingMoreRow() {
     Row(
         modifier = Modifier
             .fillMaxWidth()

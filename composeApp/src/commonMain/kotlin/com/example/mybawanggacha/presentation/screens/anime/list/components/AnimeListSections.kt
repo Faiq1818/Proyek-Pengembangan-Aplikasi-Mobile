@@ -51,7 +51,7 @@ import com.example.mybawanggacha.presentation.screens.anime.list.AnimeListTab
 import com.example.mybawanggacha.presentation.screens.anime.list.AnimeListUiState
 
 @Composable
-fun AnimeListHeader() {
+fun ListHeader() {
     ScreenHeader(
         icon = Icons.Default.SmartDisplay,
         title = "Anime List",
@@ -60,7 +60,7 @@ fun AnimeListHeader() {
 }
 
 @Composable
-fun AnimeListTabRow(
+fun ListTabRow(
     selectedTab: AnimeListTab,
     onTabSelected: (AnimeListTab) -> Unit
 ) {
@@ -97,7 +97,7 @@ fun AnimeListTabRow(
 }
 
 @Composable
-fun AnimeSeasonArchiveRow(
+fun SeasonArchiveRow(
     seasonPeriods: List<AnimeSeasonPeriod>,
     selectedSeasonPeriod: AnimeSeasonPeriod,
     onSeasonSelected: (AnimeSeasonPeriod) -> Unit
@@ -137,7 +137,7 @@ fun AnimeSeasonArchiveRow(
 }
 
 @Composable
-fun AnimeListContent(
+fun ListContent(
     uiState: AnimeListUiState,
     selectedTab: AnimeListTab,
     onRetry: () -> Unit,
@@ -146,7 +146,7 @@ fun AnimeListContent(
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         when (uiState) {
-            AnimeListUiState.Loading -> AnimeListSkeleton()
+            AnimeListUiState.Loading -> ListSkeleton()
             is AnimeListUiState.Error -> ErrorState(
                 message = uiState.message,
                 onRetry = onRetry
@@ -171,7 +171,7 @@ fun AnimeListContent(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                AnimeGrid(
+                PosterGrid(
                     anime = uiState.anime,
                     showTopAnimeBadges = selectedTab == AnimeListTab.TopAnime,
                     canLoadMore = uiState.canLoadMore,
@@ -187,7 +187,7 @@ fun AnimeListContent(
 
 
 @Composable
-private fun AnimeListSkeleton() {
+private fun ListSkeleton() {
     Column(modifier = Modifier.fillMaxSize()) {
         SkeletonLine(width = 174.dp, height = 24.dp)
         Spacer(modifier = Modifier.height(8.dp))
@@ -227,7 +227,7 @@ private fun SkeletonLine(
 }
 
 @Composable
-fun AnimeGrid(
+fun PosterGrid(
     anime: List<AnimeSummary>,
     showTopAnimeBadges: Boolean,
     canLoadMore: Boolean,
@@ -286,14 +286,14 @@ fun AnimeGrid(
                 span = { GridItemSpan(maxLineSpan) },
                 contentType = "anime_loading_more"
             ) {
-                AnimeListLoadingMoreRow()
+                LoadingMoreRow()
             }
         }
     }
 }
 
 @Composable
-private fun AnimeListLoadingMoreRow() {
+private fun LoadingMoreRow() {
     Row(
         modifier = Modifier
             .fillMaxWidth()

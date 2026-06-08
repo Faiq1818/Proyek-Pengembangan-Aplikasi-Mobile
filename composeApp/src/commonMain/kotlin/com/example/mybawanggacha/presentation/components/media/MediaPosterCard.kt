@@ -87,9 +87,9 @@ fun MediaPosterCard(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        leadingBadge?.let { MediaPosterBadge(text = it) }
+                        leadingBadge?.let { PosterBadge(text = it) }
                         Spacer(modifier = Modifier.weight(1f))
-                        trailingBadge?.let { MediaPosterBadge(text = it) }
+                        trailingBadge?.let { PosterBadge(text = it) }
                     }
                 }
             }
@@ -150,7 +150,7 @@ fun MediaPosterSkeletonCard(
 }
 
 @Composable
-private fun MediaPosterBadge(text: String) {
+private fun PosterBadge(text: String) {
     Text(
         text = text,
         style = MaterialTheme.typography.labelSmall,

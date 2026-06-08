@@ -107,7 +107,7 @@ fun GachaScreen(
             MBGRailBackButton(onClick = onNavigateBack)
         }
     ) {
-        GachaContent(
+        Content(
             uiState = uiState,
             onPreferenceChange = viewModel::updatePreference,
             onRunGacha = viewModel::runGacha,
@@ -125,7 +125,7 @@ fun GachaScreen(
 }
 
 @Composable
-private fun GachaContent(
+private fun Content(
     uiState: GachaUiState,
     onPreferenceChange: ((GachaPreference) -> GachaPreference) -> Unit,
     onRunGacha: () -> Unit,
@@ -140,11 +140,11 @@ private fun GachaContent(
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         item(contentType = "gacha_header") {
-            GachaHeader()
+            Header()
         }
 
         item(contentType = "gacha_preferences") {
-            GachaPreferencePanel(
+            PreferencePanel(
                 preference = uiState.preference,
                 availableGenres = uiState.availableGenres,
                 isGenreLoading = uiState.isGenreLoading,
@@ -157,7 +157,7 @@ private fun GachaContent(
 
         uiState.errorMessage?.let { message ->
             item(contentType = "gacha_error") {
-                GachaInlineMessage(
+                InlineMessage(
                     text = message,
                     isError = true
                 )
@@ -166,7 +166,7 @@ private fun GachaContent(
 
         uiState.infoMessage?.let { message ->
             item(contentType = "gacha_info") {
-                GachaInlineMessage(
+                InlineMessage(
                     text = message,
                     isError = false
                 )
@@ -182,7 +182,7 @@ private fun GachaContent(
                     modifier = Modifier.height(190.dp)
                 )
             } else {
-                GachaResultScreen(
+                ResultScreen(
                     item = result,
                     isLoading = uiState.isLoading,
                     onReroll = onReroll,
@@ -194,7 +194,7 @@ private fun GachaContent(
 
         if (uiState.history.isNotEmpty()) {
             item(contentType = "gacha_history_header") {
-                GachaHistoryHeader(
+                HistoryHeader(
                     count = uiState.history.size,
                     onClearHistory = onClearHistory
                 )
@@ -205,7 +205,7 @@ private fun GachaContent(
                 key = { history -> "${history.item.mediaType}:${history.item.malId}:${history.pickedAtEpochMillis}" },
                 contentType = { "gacha_history_item" }
             ) { history ->
-                GachaHistoryRow(
+                HistoryRow(
                     history = history,
                     onClick = { onOpenDetail(history.item) }
                 )
@@ -215,7 +215,7 @@ private fun GachaContent(
 }
 
 @Composable
-private fun GachaHeader() {
+private fun Header() {
     ScreenHeader(
         icon = Icons.Default.Star,
         title = "Gacha",
@@ -225,7 +225,7 @@ private fun GachaHeader() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun GachaPreferencePanel(
+private fun PreferencePanel(
     preference: GachaPreference,
     availableGenres: List<SearchFilterOption>,
     isGenreLoading: Boolean,
@@ -243,14 +243,14 @@ private fun GachaPreferencePanel(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        GachaMediaPoolRow(
+        MediaPoolRow(
             selected = preference.mediaPool,
             onSelected = { mediaPool ->
                 onPreferenceChange { current -> current.copy(mediaPool = mediaPool) }
             }
         )
 
-        GachaActiveFilterRow(
+        ActiveFilterRow(
             labels = activeFilterLabels,
             onOpenFilters = { showFilters = true }
         )
@@ -308,7 +308,7 @@ private fun GachaPreferencePanel(
             onDismissRequest = { showFilters = false },
             sheetState = rememberModalBottomSheetState()
         ) {
-            GachaFilterSheetContent(
+            FilterSheetContent(
                 preference = preference,
                 availableGenres = availableGenres,
                 isGenreLoading = isGenreLoading,
@@ -321,7 +321,7 @@ private fun GachaPreferencePanel(
 }
 
 @Composable
-private fun GachaActiveFilterRow(
+private fun ActiveFilterRow(
     labels: List<String>,
     onOpenFilters: () -> Unit
 ) {
@@ -358,7 +358,7 @@ private fun GachaActiveFilterRow(
 }
 
 @Composable
-private fun GachaFilterSheetContent(
+private fun FilterSheetContent(
     preference: GachaPreference,
     availableGenres: List<SearchFilterOption>,
     isGenreLoading: Boolean,
@@ -407,7 +407,7 @@ private fun GachaFilterSheetContent(
         }
 
         item(contentType = "sheet_genres") {
-            GachaGenreSelector(
+            GenreSelector(
                 availableGenres = availableGenres,
                 selectedGenreIds = preference.selectedGenreIds,
                 excludedGenreIds = preference.excludedGenreIds,
@@ -433,7 +433,7 @@ private fun GachaFilterSheetContent(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                CompactTextField(
+                FilterTextField(
                     label = "Min score",
                     value = preference.minScore,
                     modifier = Modifier.weight(1f),
@@ -468,7 +468,7 @@ private fun GachaFilterSheetContent(
 
         item(contentType = "sheet_flags") {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                GachaSwitchRow(
+                SwitchRow(
                     title = "Include library",
                     subtitle = "Izinkan item yang sudah ada di My Library",
                     checked = preference.includeKnownItems,
@@ -476,7 +476,7 @@ private fun GachaFilterSheetContent(
                         onPreferenceChange { current -> current.copy(includeKnownItems = checked) }
                     }
                 )
-                GachaSwitchRow(
+                SwitchRow(
                     title = "Allow NSFW",
                     subtitle = "Matikan safe filter Jikan untuk genre explicit",
                     checked = preference.allowNsfw,
@@ -502,7 +502,7 @@ private fun GachaFilterSheetContent(
 }
 
 @Composable
-private fun GachaSwitchRow(
+private fun SwitchRow(
     title: String,
     subtitle: String,
     checked: Boolean,
@@ -539,7 +539,7 @@ private fun GachaSwitchRow(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun GachaGenreSelector(
+private fun GenreSelector(
     availableGenres: List<SearchFilterOption>,
     selectedGenreIds: List<Int>,
     excludedGenreIds: List<Int>,
@@ -746,7 +746,7 @@ private fun GachaGenreSelector(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun GachaMediaPoolRow(
+private fun MediaPoolRow(
     selected: GachaMediaPool,
     onSelected: (GachaMediaPool) -> Unit
 ) {
@@ -817,7 +817,7 @@ private fun <T> GachaDropdown(
 }
 
 @Composable
-private fun CompactTextField(
+private fun FilterTextField(
     label: String,
     value: String,
     modifier: Modifier = Modifier,
@@ -833,7 +833,7 @@ private fun CompactTextField(
 }
 
 @Composable
-private fun GachaInlineMessage(
+private fun InlineMessage(
     text: String,
     isError: Boolean
 ) {
@@ -859,7 +859,7 @@ private fun GachaInlineMessage(
 }
 
 @Composable
-private fun GachaResultScreen(
+private fun ResultScreen(
     item: GachaResultItem,
     isLoading: Boolean,
     onReroll: () -> Unit,
@@ -955,7 +955,7 @@ private fun GachaResultScreen(
 }
 
 @Composable
-private fun GachaHistoryHeader(
+private fun HistoryHeader(
     count: Int,
     onClearHistory: () -> Unit
 ) {
@@ -985,7 +985,7 @@ private fun GachaHistoryHeader(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun GachaHistoryRow(
+private fun HistoryRow(
     history: GachaHistoryEntry,
     onClick: () -> Unit
 ) {

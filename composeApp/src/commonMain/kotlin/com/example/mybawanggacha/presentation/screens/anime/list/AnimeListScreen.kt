@@ -14,10 +14,10 @@ import com.example.mybawanggacha.presentation.components.MBGMainRailKey
 import com.example.mybawanggacha.presentation.components.MBGRailBackButton
 import com.example.mybawanggacha.presentation.components.MBGSideRailScaffold
 import com.example.mybawanggacha.presentation.components.PullRefreshContainer
-import com.example.mybawanggacha.presentation.screens.anime.list.components.AnimeListContent
-import com.example.mybawanggacha.presentation.screens.anime.list.components.AnimeListHeader
-import com.example.mybawanggacha.presentation.screens.anime.list.components.AnimeListTabRow
-import com.example.mybawanggacha.presentation.screens.anime.list.components.AnimeSeasonArchiveRow
+import com.example.mybawanggacha.presentation.screens.anime.list.components.ListContent
+import com.example.mybawanggacha.presentation.screens.anime.list.components.ListHeader
+import com.example.mybawanggacha.presentation.screens.anime.list.components.ListTabRow
+import com.example.mybawanggacha.presentation.screens.anime.list.components.SeasonArchiveRow
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -63,11 +63,11 @@ fun AnimeListScreen(
                     .fillMaxSize()
                     .padding(start = 4.dp, top = 32.dp, end = 18.dp)
             ) {
-                AnimeListHeader()
+                ListHeader()
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                AnimeListTabRow(
+                ListTabRow(
                     selectedTab = selectedTab,
                     onTabSelected = viewModel::selectTab
                 )
@@ -75,7 +75,7 @@ fun AnimeListScreen(
                 if (selectedTab == AnimeListTab.SeasonArchive) {
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    AnimeSeasonArchiveRow(
+                    SeasonArchiveRow(
                         seasonPeriods = seasonPeriods,
                         selectedSeasonPeriod = selectedSeasonPeriod,
                         onSeasonSelected = viewModel::selectSeasonPeriod
@@ -84,7 +84,7 @@ fun AnimeListScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                AnimeListContent(
+                ListContent(
                     uiState = uiState,
                     selectedTab = selectedTab,
                     onRetry = viewModel::refresh,
