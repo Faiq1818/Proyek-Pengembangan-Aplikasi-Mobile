@@ -18,12 +18,12 @@ plugins {
 }
 
 compose.resources {
-    packageOfResClass = "com.example.mybawanggacha.generated.resources"
+    packageOfResClass = "id.my.sinanonym.mybawanggacha.generated.resources"
 }
 
 kotlin {
     androidLibrary {
-        namespace = "com.example.mybawanggacha.shared"
+        namespace = "id.my.sinanonym.mybawanggacha.shared"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
 
         compilerOptions {
@@ -126,7 +126,7 @@ dependencies {
 sqldelight {
     databases {
         create("NoteDatabase") {
-            packageName.set("com.example.mybawanggacha.data.local")
+            packageName.set("id.my.sinanonym.mybawanggacha.data.local")
         }
     }
 }
@@ -175,7 +175,7 @@ abstract class GenerateBuildInfoTask : DefaultTask() {
 
     @TaskAction
     fun generate() {
-        val generatedDir = outputDir.get().asFile.resolve("com/example/mybawanggacha/core/build")
+        val generatedDir = outputDir.get().asFile.resolve("id/my/sinanonym/mybawanggacha/core/build")
         generatedDir.mkdirs()
 
         val branch = branchOverride.get().takeKnown()
@@ -188,7 +188,7 @@ abstract class GenerateBuildInfoTask : DefaultTask() {
             ?: Instant.now().toString()
 
         val content = """
-            package com.example.mybawanggacha.core.build
+            package id.my.sinanonym.mybawanggacha.core.build
 
             internal object GeneratedBuildInfo {
                 const val VERSION_NAME = "${kotlinStringLiteral(versionName.get())}"

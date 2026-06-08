@@ -14,11 +14,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.mybawanggacha"
+    namespace = "id.my.sinanonym.mybawanggacha"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.example.mybawanggacha"
+        applicationId = "id.my.sinanonym.mybawanggacha"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = project.findProperty("app.versionCode")
@@ -112,7 +112,7 @@ androidComponents {
                     .projectDirectory
                     .dir("src/commonMain/composeResources")
             )
-            packageName.set("com.example.mybawanggacha.generated.resources")
+            packageName.set("id.my.sinanonym.mybawanggacha.generated.resources")
         }
 
         variant.sources.assets?.addGeneratedSourceDirectory(
