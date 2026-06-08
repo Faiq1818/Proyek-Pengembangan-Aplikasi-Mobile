@@ -80,6 +80,7 @@ fun AnimeDetailScreen(
                             episodes = state.episodes,
                             selectedSection = selectedSection,
                             onEpisodeWatchedChange = viewModel::setEpisodeWatched,
+                            onEpisodeMarkedChange = viewModel::setEpisodeMarked,
                             onRelationEntryClick = { entry ->
                                 when {
                                     entry.type.equals("anime", ignoreCase = true) -> {

@@ -124,7 +124,7 @@ internal fun AnimeDetailData.toDomain(
     )
 }
 
-internal fun AnimeEpisodeDto.toDomain(watched: Boolean): AnimeEpisode {
+internal fun AnimeEpisodeDto.toDomain(watched: Boolean, marked: Boolean = false): AnimeEpisode {
     return AnimeEpisode(
         number = mal_id,
         title = title,
@@ -133,7 +133,8 @@ internal fun AnimeEpisodeDto.toDomain(watched: Boolean): AnimeEpisode {
         aired = aired,
         filler = filler,
         recap = recap,
-        watched = watched
+        watched = watched,
+        marked = marked
     )
 }
 

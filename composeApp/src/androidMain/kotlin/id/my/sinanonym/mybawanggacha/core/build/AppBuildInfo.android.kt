@@ -22,7 +22,7 @@ actual object AppBuildInfoProvider {
             buildDate = GeneratedBuildInfo.BUILD_DATE,
             ci = GeneratedBuildInfo.CI,
             ciRunId = GeneratedBuildInfo.RUN_ID,
-            databaseSchema = "6",
+            databaseSchema = "7",
             dataSource = "Jikan REST API v4 / unofficial MyAnimeList API",
             aiProvider = "Gemini API"
         )

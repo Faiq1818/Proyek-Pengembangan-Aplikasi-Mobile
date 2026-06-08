@@ -79,7 +79,8 @@ data class AnimeEpisode(
     val aired: String?,
     val filler: Boolean,
     val recap: Boolean,
-    val watched: Boolean
+    val watched: Boolean,
+    val marked: Boolean = false
 )
 
 data class AnimeRelation(

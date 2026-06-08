@@ -325,6 +325,7 @@ class AnimeRepositoryImpl(
         forceRefresh: Boolean
     ): AnimeDetailBundle = withContext(dispatchers.default) {
         val watchedNumbers = progressLocalDataSource.getWatchedEpisodeNumbers(malId)
+        val markedNumbers = progressLocalDataSource.getMarkedEpisodeNumbers(malId)
         val cachedDetail = runCatching {
             detailCacheLocalDataSource.getAnimeDetail(malId)
         }.getOrNull()
@@ -334,6 +335,7 @@ class AnimeRepositoryImpl(
                 animeDto = cachedDetail.detail,
                 episodeDtos = cachedDetail.episodes,
                 watchedNumbers = watchedNumbers,
+                markedNumbers = markedNumbers,
                 loadRelationPreviews = true
             )
         }
@@ -344,6 +346,7 @@ class AnimeRepositoryImpl(
                     animeDto = cachedDetail.detail,
                     episodeDtos = cachedDetail.episodes,
                     watchedNumbers = watchedNumbers,
+                    markedNumbers = markedNumbers,
                     loadRelationPreviews = true
                 )
             }
@@ -353,7 +356,8 @@ class AnimeRepositoryImpl(
         runCatching {
             fetchRemoteAnimeDetailBundle(
                 malId = malId,
-                watchedNumbers = watchedNumbers
+                watchedNumbers = watchedNumbers,
+                markedNumbers = markedNumbers
             )
         }.getOrElse { error ->
             if (cachedDetail != null) {
@@ -361,6 +365,7 @@ class AnimeRepositoryImpl(
                     animeDto = cachedDetail.detail,
                     episodeDtos = cachedDetail.episodes,
                     watchedNumbers = watchedNumbers,
+                    markedNumbers = markedNumbers,
                     loadRelationPreviews = true
                 )
             } else {
@@ -371,7 +376,8 @@ class AnimeRepositoryImpl(
 
     private suspend fun fetchRemoteAnimeDetailBundle(
         malId: Int,
-        watchedNumbers: Set<Int>
+        watchedNumbers: Set<Int>,
+        markedNumbers: Set<Int>
     ): AnimeDetailBundle {
         val animeDto = remoteDataSource.fetchAnimeFullDetail(malId).data
         val episodeDtos = runCatching {
@@ -389,6 +395,7 @@ class AnimeRepositoryImpl(
             animeDto = animeDto,
             episodeDtos = episodeDtos,
             watchedNumbers = watchedNumbers,
+            markedNumbers = markedNumbers,
             loadRelationPreviews = true
         )
     }
@@ -397,11 +404,15 @@ class AnimeRepositoryImpl(
         animeDto: AnimeDetailData,
         episodeDtos: List<AnimeEpisodeDto>,
         watchedNumbers: Set<Int>,
+        markedNumbers: Set<Int>,
         loadRelationPreviews: Boolean
     ): AnimeDetailBundle {
         val episodes = if (episodeDtos.isNotEmpty()) {
             episodeDtos.map { episode ->
-                episode.toDomain(watched = episode.mal_id in watchedNumbers)
+                episode.toDomain(
+                    watched = episode.mal_id in watchedNumbers,
+                    marked = episode.mal_id in markedNumbers
+                )
             }
         } else {
             (1..(animeDto.episodes ?: 0)).map { number ->
@@ -413,7 +424,8 @@ class AnimeRepositoryImpl(
                     aired = null,
                     filler = false,
                     recap = false,
-                    watched = number in watchedNumbers
+                    watched = number in watchedNumbers,
+                    marked = number in markedNumbers
                 )
             }
         }
@@ -440,6 +452,21 @@ class AnimeRepositoryImpl(
                 animeId = animeId,
                 episodeNumber = episodeNumber,
                 watched = watched
+            )
+        }
+    }
+
+
+    override suspend fun setEpisodeMarked(
+        animeId: Int,
+        episodeNumber: Int,
+        marked: Boolean
+    ) {
+        withContext(dispatchers.default) {
+            progressLocalDataSource.setEpisodeMarked(
+                animeId = animeId,
+                episodeNumber = episodeNumber,
+                marked = marked
             )
         }
     }

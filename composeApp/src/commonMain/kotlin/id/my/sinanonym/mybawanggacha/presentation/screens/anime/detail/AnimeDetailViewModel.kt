@@ -131,6 +131,39 @@ class AnimeDetailViewModel(
         }
     }
 
+
+    fun setEpisodeMarked(
+        episodeNumber: Int,
+        marked: Boolean
+    ) {
+        val currentState = _uiState.value as? AnimeDetailUiState.Success ?: return
+
+        viewModelScope.launch {
+            val animeId = currentState.anime.malId
+
+            runCatching {
+                animeRepository.setEpisodeMarked(
+                    animeId = animeId,
+                    episodeNumber = episodeNumber,
+                    marked = marked
+                )
+            }.onSuccess {
+                val latestState = _uiState.value as? AnimeDetailUiState.Success ?: return@onSuccess
+                if (latestState.anime.malId != animeId) return@onSuccess
+
+                val updatedEpisodes = latestState.episodes.map { episode ->
+                    if (episode.number == episodeNumber) {
+                        episode.copy(marked = marked)
+                    } else {
+                        episode
+                    }
+                }
+
+                _uiState.value = latestState.copy(episodes = updatedEpisodes)
+            }
+        }
+    }
+
     private suspend fun syncLibraryProgressFromEpisodes(
         anime: AnimeDetail,
         watchedCount: Int,

@@ -8,6 +8,7 @@ CREATE TABLE AnimeEpisodeProgress (
     anime_id INTEGER NOT NULL,
     episode_number INTEGER NOT NULL,
     watched INTEGER NOT NULL DEFAULT 0,
+    marked INTEGER NOT NULL DEFAULT 0,
     updated_at INTEGER NOT NULL,
     PRIMARY KEY(anime_id, episode_number)
 );
@@ -25,14 +26,59 @@ FROM AnimeEpisodeProgress
 WHERE anime_id = ? AND watched = 1
 ORDER BY episode_number ASC;
 
-upsertEpisodeProgress:
+getMarkedEpisodeNumbers:
+SELECT episode_number
+FROM AnimeEpisodeProgress
+WHERE anime_id = ? AND marked = 1
+ORDER BY episode_number ASC;
+
+upsertEpisodeWatched:
 INSERT OR REPLACE INTO AnimeEpisodeProgress(
     anime_id,
     episode_number,
     watched,
+    marked,
     updated_at
 )
-VALUES (?, ?, ?, ?);
+VALUES (
+    :anime_id,
+    :episode_number,
+    :watched,
+    COALESCE(
+        (
+            SELECT marked
+            FROM AnimeEpisodeProgress
+            WHERE anime_id = :anime_id
+              AND episode_number = :episode_number
+        ),
+        0
+    ),
+    :updated_at
+);
+
+upsertEpisodeMarked:
+INSERT OR REPLACE INTO AnimeEpisodeProgress(
+    anime_id,
+    episode_number,
+    watched,
+    marked,
+    updated_at
+)
+VALUES (
+    :anime_id,
+    :episode_number,
+    COALESCE(
+        (
+            SELECT watched
+            FROM AnimeEpisodeProgress
+            WHERE anime_id = :anime_id
+              AND episode_number = :episode_number
+        ),
+        0
+    ),
+    :marked,
+    :updated_at
+);
 
 getAnimeDetailCache:
 SELECT *

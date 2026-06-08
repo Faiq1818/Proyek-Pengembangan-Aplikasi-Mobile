@@ -46,6 +46,7 @@ internal fun AnimeDetailContent(
     episodes: List<AnimeEpisode>,
     selectedSection: AnimeDetailSection,
     onEpisodeWatchedChange: (Int, Boolean) -> Unit,
+    onEpisodeMarkedChange: (Int, Boolean) -> Unit,
     onRelationEntryClick: (AnimeRelationEntry) -> Unit
 ) {
     AnimatedSectionContent(
@@ -60,7 +61,8 @@ internal fun AnimeDetailContent(
             AnimeDetailSection.Episodes -> AnimeEpisodeListSection(
                 anime = anime,
                 episodes = episodes,
-                onEpisodeWatchedChange = onEpisodeWatchedChange
+                onEpisodeWatchedChange = onEpisodeWatchedChange,
+                onEpisodeMarkedChange = onEpisodeMarkedChange
             )
             AnimeDetailSection.Info -> AnimeInfoSection(anime)
             AnimeDetailSection.Media -> AnimeMediaSection(anime)
