@@ -25,7 +25,7 @@ permissions:
 
 jobs:
   android-dry-build:
-    name: Android dry release APK
+    name: Android release dry build
     runs-on: ubuntu-latest
 
     steps:
@@ -41,7 +41,7 @@ jobs:
           echo "DRY_VERSION=$version" >> "$GITHUB_ENV"
           echo "Dry build version: $version"
 
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -52,22 +52,22 @@ jobs:
           java-version: '17'
           distribution: 'zulu'
 
-      - name: Setup Gradle
+      - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Make Gradle executable
+      - name: Grant Gradle wrapper execute permission
         run: chmod +x ./gradlew
 
-      - name: Compile Kotlin metadata
+      - name: Compile shared Kotlin metadata
         run: ./gradlew :composeApp:compileKotlinMetadata -PbuildProfile=release -PbuildTarget=metadata -Papp.versionName=${DRY_VERSION}
 
-      - name: Compile host-safe unit tests
+      - name: Compile unit test sources
         run: ./gradlew :composeApp:assembleUnitTest -PbuildProfile=release -PbuildTarget=tests -Papp.versionName=${DRY_VERSION}
 
-      - name: Build Android APK
+      - name: Build Android release APKs
         run: ./gradlew :androidApp:assembleRelease -PbuildProfile=release -PbuildTarget=Android -Papp.versionName=${DRY_VERSION}
 
-      - name: Collect Android APKs and checksums
+      - name: Rename Android APKs and generate checksums
         shell: bash
         run: |
           version="v${DRY_VERSION#v}"
@@ -103,7 +103,7 @@ jobs:
             shasum -a 256 *.apk | sort > SHA256SUMS
           )
 
-      - name: Upload Android dry build APKs
+      - name: Upload Android APKs and checksums
         uses: actions/upload-artifact@v4
         with:
           name: mybawanggacha-${{ env.DRY_VERSION }}-android-apks
@@ -113,7 +113,7 @@ jobs:
           if-no-files-found: error
 
   ios-dry-build:
-    name: iOS dry build optional
+    name: iOS simulator dry build (optional)
     runs-on: macos-latest
 
     steps:
@@ -129,7 +129,7 @@ jobs:
           echo "DRY_VERSION=$version" >> "$GITHUB_ENV"
           echo "Dry build version: $version"
 
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -140,13 +140,13 @@ jobs:
           java-version: '17'
           distribution: 'zulu'
 
-      - name: Setup Gradle
+      - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Make Gradle executable
+      - name: Grant Gradle wrapper execute permission
         run: chmod +x ./gradlew
 
-      - name: Build iOS simulator artifact optional
+      - name: Build iOS simulator artifact (optional)
         shell: bash
         run: |
           set +e
@@ -157,7 +157,7 @@ jobs:
           fi
           exit 0
 
-      - name: Collect iOS artifact and checksum
+      - name: Collect iOS artifact and generate checksum
         shell: bash
         run: |
           mkdir -p release-dry-artifacts/ios
@@ -168,7 +168,7 @@ jobs:
             find . -type f -print0 | sort -z | xargs -0 shasum -a 256 > SHA256SUMS || true
           )
 
-      - name: Upload iOS dry build
+      - name: Upload iOS dry build artifact
         uses: actions/upload-artifact@v4
         with:
           name: mybawanggacha-${{ env.DRY_VERSION }}-ios-dry-build

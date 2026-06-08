@@ -18,19 +18,19 @@ permissions:
 
 jobs:
   release:
-    name: Build and publish GitHub release
+    name: Publish GitHub release
     runs-on: macos-latest
 
     env:
       RELEASE_VERSION: ${{ inputs.version }}
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Validate version
+      - name: Validate release version
         shell: bash
         run: |
           if [[ ! "${RELEASE_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9._-]+)?$ ]]; then
@@ -44,22 +44,22 @@ jobs:
           java-version: '17'
           distribution: 'zulu'
 
-      - name: Setup Gradle
+      - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Make Gradle executable
+      - name: Grant Gradle wrapper execute permission
         run: chmod +x ./gradlew
 
-      - name: Compile Kotlin metadata
+      - name: Compile shared Kotlin metadata
         run: ./gradlew :composeApp:compileKotlinMetadata -PbuildProfile=release -PbuildTarget=metadata -Papp.versionName=${RELEASE_VERSION}
 
-      - name: Compile host-safe unit tests
+      - name: Compile unit test sources
         run: ./gradlew :composeApp:assembleUnitTest -PbuildProfile=release -PbuildTarget=tests -Papp.versionName=${RELEASE_VERSION}
 
-      - name: Build Android APK
+      - name: Build Android release APKs
         run: ./gradlew :androidApp:assembleRelease -PbuildProfile=release -PbuildTarget=Android -Papp.versionName=${RELEASE_VERSION}
 
-      - name: Build iOS simulator artifact optional
+      - name: Build iOS simulator artifact (optional)
         shell: bash
         run: |
           set +e
@@ -70,7 +70,7 @@ jobs:
           fi
           exit 0
 
-      - name: Collect Android APKs and checksums
+      - name: Rename Android APKs and generate checksums
         shell: bash
         run: |
           version="v${RELEASE_VERSION#v}"

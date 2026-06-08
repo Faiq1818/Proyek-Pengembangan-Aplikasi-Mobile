@@ -11,11 +11,11 @@ permissions:
 
 jobs:
   android:
-    name: Android compile
+    name: Android build
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -26,24 +26,24 @@ jobs:
           java-version: '17'
           distribution: 'zulu'
 
-      - name: Setup Gradle
+      - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Make Gradle executable
+      - name: Grant Gradle wrapper execute permission
         run: chmod +x ./gradlew
 
-      - name: Compile Android target
+      - name: Compile Android source set
         run: ./gradlew :composeApp:compileAndroidMain -PbuildProfile=ci -PbuildTarget=Android
 
-      - name: Assemble Android target
+      - name: Assemble Android source set
         run: ./gradlew :composeApp:assembleAndroidMain -PbuildProfile=ci -PbuildTarget=Android
 
   common:
-    name: Common checks
+    name: Shared Kotlin checks
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -54,24 +54,24 @@ jobs:
           java-version: '17'
           distribution: 'zulu'
 
-      - name: Setup Gradle
+      - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Make Gradle executable
+      - name: Grant Gradle wrapper execute permission
         run: chmod +x ./gradlew
 
-      - name: Compile Kotlin metadata
+      - name: Compile shared Kotlin metadata
         run: ./gradlew :composeApp:compileKotlinMetadata -PbuildProfile=ci -PbuildTarget=metadata
 
-      - name: Compile host-safe unit tests
+      - name: Compile unit test sources
         run: ./gradlew :composeApp:assembleUnitTest -PbuildProfile=ci -PbuildTarget=tests
 
   ios:
-    name: iOS compile optional
+    name: iOS simulator build (optional)
     runs-on: macos-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -82,13 +82,13 @@ jobs:
           java-version: '17'
           distribution: 'zulu'
 
-      - name: Setup Gradle
+      - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Make Gradle executable
+      - name: Grant Gradle wrapper execute permission
         run: chmod +x ./gradlew
 
-      - name: Compile iOS simulator optional
+      - name: Compile iOS simulator target (optional)
         shell: bash
         run: |
           set +e
