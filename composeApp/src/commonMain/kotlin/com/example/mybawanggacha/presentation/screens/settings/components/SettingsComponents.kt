@@ -1,5 +1,6 @@
 package com.example.mybawanggacha.presentation.screens.settings.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -7,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -15,9 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Cloud
@@ -46,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontFamily
@@ -63,10 +62,13 @@ import com.example.mybawanggacha.domain.settings.model.AiPersonality
 import com.example.mybawanggacha.domain.settings.model.AppColorScheme
 import com.example.mybawanggacha.domain.settings.model.NetworkMode
 import com.example.mybawanggacha.domain.settings.model.ThemeMode
+import com.example.mybawanggacha.generated.resources.Res
+import com.example.mybawanggacha.generated.resources.mbg_launcher_foreground
 import com.example.mybawanggacha.presentation.components.MBGMainRailKey
 import com.example.mybawanggacha.presentation.components.MBGRailBackButton
 import com.example.mybawanggacha.presentation.components.MBGSideRailScaffold
 import com.example.mybawanggacha.presentation.screens.settings.*
+import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -586,7 +588,6 @@ internal fun SettingsRequestUsageSection(
         )
 
         SettingsRequestUsageCard(requestUsage = requestUsage)
-
     }
 }
 
@@ -639,7 +640,7 @@ private fun SettingsRequestUsageCard(
                 }
 
                 LinearProgressIndicator(
-                    progress = requestUsage.minuteProgress.coerceIn(0f, 1f),
+                    progress = { requestUsage.minuteProgress.coerceIn(0f, 1f) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(6.dp)
@@ -735,11 +736,7 @@ internal fun SettingsAboutSection(
             )
         }
 
-        SettingsInfoCard(
-            icon = Icons.Default.Info,
-            title = buildInfo.appName,
-            description = "Anime, manga, library, gacha, dan AI assistant dalam satu aplikasi."
-        )
+        SettingsAboutHero(buildInfo = buildInfo)
 
         SettingsBuildInfoCard(buildInfo = buildInfo)
 
@@ -767,6 +764,51 @@ internal fun SettingsAboutSection(
 
         SettingsDevelopersCard()
     }
+}
+
+@Composable
+private fun SettingsAboutHero(buildInfo: AppBuildInfo) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.28f),
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 22.dp, horizontal = 18.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            SettingsAppLogoBadge()
+
+            Text(
+                text = buildInfo.appName,
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = "Anime, manga, library, gacha, dan AI assistant dalam satu aplikasi.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun SettingsAppLogoBadge() {
+    Image(
+        painter = painterResource(Res.drawable.mbg_launcher_foreground),
+        contentDescription = "MyBawangGacha app logo",
+        modifier = Modifier.size(200.dp),
+        contentScale = ContentScale.Fit,
+        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+    )
 }
 
 @Composable
@@ -807,6 +849,7 @@ private fun SettingsDevelopersCard() {
                     name = "Varasina Farmadani",
                     handle = "@sinavarasina",
                     githubUrl = "github.com/sinavarasina",
+                    email = "sina@sinanonym.my.id",
                     avatarUrl = "https://github.com/sinavarasina.png?size=128"
                 )
 
@@ -814,6 +857,7 @@ private fun SettingsDevelopersCard() {
                     name = "Faiq",
                     handle = "@Faiq1818",
                     githubUrl = "github.com/Faiq1818",
+                    email = "ghozyerlanggafaiq@gmail.com",
                     avatarUrl = "https://github.com/Faiq1818.png?size=128"
                 )
             }
@@ -826,6 +870,7 @@ private fun SettingsDeveloperRow(
     name: String,
     handle: String,
     githubUrl: String,
+    email: String,
     avatarUrl: String
 ) {
     Row(
@@ -856,6 +901,12 @@ private fun SettingsDeveloperRow(
                 text = "$handle • $githubUrl",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontFamily = FontFamily.Monospace
+            )
+            Text(
+                text = email,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary,
                 fontFamily = FontFamily.Monospace
             )
         }
@@ -977,50 +1028,5 @@ private fun SettingsDetailRow(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontFamily = FontFamily.Monospace
         )
-    }
-}
-
-@Composable
-private fun SettingsInfoCard(
-    icon: ImageVector,
-    title: String,
-    description: String
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
-            contentColor = MaterialTheme.colorScheme.onSurface
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.Top
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
     }
 }

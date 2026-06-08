@@ -17,6 +17,10 @@ plugins {
     alias(libs.plugins.sqldelight)
 }
 
+compose.resources {
+    packageOfResClass = "com.example.mybawanggacha.generated.resources"
+}
+
 kotlin {
     androidLibrary {
         namespace = "com.example.mybawanggacha.shared"
