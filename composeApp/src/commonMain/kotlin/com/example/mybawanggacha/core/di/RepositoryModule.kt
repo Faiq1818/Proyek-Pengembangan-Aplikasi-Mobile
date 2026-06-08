@@ -28,6 +28,8 @@ import com.example.mybawanggacha.domain.settings.repository.SettingsRepository
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
+import com.example.mybawanggacha.data.repository.ai.AiChatSessionRepositoryImpl
+import com.example.mybawanggacha.domain.ai.repository.AiChatSessionRepository
 
 val repositoryModule = module {
     singleOf(::AnimeDetailCacheLocalDataSource)
@@ -38,6 +40,7 @@ val repositoryModule = module {
     single<JikanCachePolicy> { SettingsJikanCachePolicy(get()) }
     singleOf(::JikanRequestUsageRepositoryImpl) bind JikanRequestUsageRepository::class
     singleOf(::NoteRepositoryImpl) bind NoteRepository::class
+    singleOf(::AiChatSessionRepositoryImpl) bind AiChatSessionRepository::class
     singleOf(::AIRepositoryImpl) bind AIRepository::class
     singleOf(::GachaRepositoryImpl) bind GachaRepository::class
     singleOf(::AnimeRepositoryImpl) bind AnimeRepository::class

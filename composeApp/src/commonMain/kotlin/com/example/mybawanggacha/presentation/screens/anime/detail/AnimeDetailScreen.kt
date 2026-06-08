@@ -43,7 +43,7 @@ fun AnimeDetailScreen(
     onNavigateToAnimeDetail: (Int) -> Unit = {},
     onNavigateToMangaDetail: (Int) -> Unit = {},
     onNavigateToLibraryEditor: (AnimeDetail, Long?) -> Unit = { _, _ -> },
-    onNavigateToAIAssistant: (String) -> Unit = {},
+    onNavigateToAIAssistant: (String, Int, String, String) -> Unit = { _, _, _, _ -> },
     viewModel: AnimeDetailViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -123,7 +123,12 @@ fun AnimeDetailScreen(
                                         Episode: ${state.anime.episodes ?: "N/A"}
                                         Sinopsis: ${state.anime.synopsis ?: "N/A"}
                                     """.trimIndent()
-                                    onNavigateToAIAssistant(animeContext)
+                                    onNavigateToAIAssistant(
+                                        animeContext,
+                                        state.anime.malId,
+                                        "anime",
+                                        state.anime.title
+                                    )
                                 },
                                 modifier = Modifier.padding(bottom = 16.dp)
                             ) {

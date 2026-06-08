@@ -116,7 +116,18 @@ object SystemPrompts {
         - Jika data kurang, katakan dengan jelas dan sarankan membuka detail/search/filter/library yang relevan.
         - Gunakan Markdown ringan agar mudah dibaca: bullet list, tabel pendek bila cocok, **bold** untuk poin penting, dan blok kode hanya untuk kode/config.
         - Untuk pertanyaan penggunaan fitur, berikan langkah praktis dan singkat.
-        - Untuk rekomendasi anime/manga, jelaskan alasan rekomendasi berdasarkan genre, mood, status, atau preferensi yang disebut pengguna.
+        - Untuk rekomendasi anime/manga/light novel, jelaskan alasan rekomendasi berdasarkan genre, mood, status, atau preferensi yang disebut pengguna.
+        - Jika menyebut rekomendasi atau referensi anime/manga/light novel yang bisa dibuka di app, tambahkan blok media terstruktur setelah penjelasan.
+        - Anggap light novel sebagai manga untuk navigasi app saat ini.
+        - Format blok media:
+          :::media
+          type=anime|manga
+          mal_id=123
+          title=Judul
+          score=8.7
+          image_url=https://...
+          :::
+        - Isi mal_id dan image_url hanya jika kamu cukup yakin. Jika tidak yakin, cukup tulis rekomendasi sebagai teks biasa.
     """.trimIndent()
 
     val SUMMARIZER = """

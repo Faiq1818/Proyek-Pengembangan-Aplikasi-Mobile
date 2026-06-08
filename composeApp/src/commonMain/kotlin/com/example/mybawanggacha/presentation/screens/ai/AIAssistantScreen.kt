@@ -49,6 +49,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import com.example.mybawanggacha.presentation.screens.ai.components.ChatBubble
 import com.example.mybawanggacha.presentation.screens.ai.components.LoadingBubble
 import com.example.mybawanggacha.presentation.screens.ai.components.AiModelMenu
+import androidx.compose.material3.TextButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,7 +57,12 @@ fun AIAssistantScreen(
     noteId: Long?,
     initialText: String?,
     animeContext: String?,
+    mediaId: Int? = null,
+    mediaType: String? = null,
+    mediaTitle: String? = null,
     onNavigateBack: () -> Unit,
+    onNavigateToAnimeDetail: (Int) -> Unit = {},
+    onNavigateToMangaDetail: (Int) -> Unit = {},
     onApplyResult: ((String) -> Unit)? = null,
     viewModel: AIAssistantViewModel = koinViewModel()
 ) {
@@ -68,8 +74,14 @@ fun AIAssistantScreen(
         viewModel.setInitialText(initialText)
     }
     
-    LaunchedEffect(animeContext) {
-        viewModel.setAnimeContext(animeContext)
+    LaunchedEffect(noteId, mediaId, mediaType, mediaTitle, animeContext) {
+        viewModel.configureSession(
+            noteId = noteId,
+            mediaId = mediaId,
+            mediaType = mediaType,
+            mediaTitle = mediaTitle,
+            context = animeContext
+        )
     }
     
     LaunchedEffect(Unit) {
@@ -99,6 +111,9 @@ fun AIAssistantScreen(
                         selected = uiState.aiApiModel,
                         onSelected = viewModel::setAiApiModel
                     )
+                    TextButton(onClick = viewModel::resetSession) {
+                        Text("Reset")
+                    }
                 }
             )
         }
@@ -120,9 +135,26 @@ fun AIAssistantScreen(
                         message = message,
                         noteId = noteId,
                         onCopy = { viewModel.copyResult(message.text) },
-                        onApply = { viewModel.applyToNote(message.text) }
+                        onApply = { viewModel.applyToNote(message.text) },
+                        onMediaClick = { reference ->
+                            val malId = reference.malId ?: return@ChatBubble
+                            when (reference.normalizedType) {
+                                "anime" -> onNavigateToAnimeDetail(malId)
+                                else -> onNavigateToMangaDetail(malId)
+                            }
+                        }
                     )
                 }
+                if (uiState.isLoadingSession) {
+                    item {
+                        Text(
+                            text = "Memuat session chat...",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
                 if (uiState.isLoading) {
                     item {
                         LoadingBubble()

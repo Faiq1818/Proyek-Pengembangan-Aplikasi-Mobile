@@ -1,6 +1,7 @@
 package com.example.mybawanggacha.presentation.screens.ai.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,23 +37,50 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.example.mybawanggacha.domain.ai.repository.ChatMessage
 import com.example.mybawanggacha.domain.ai.repository.MessageSender
 import com.example.mybawanggacha.domain.settings.model.AiApiModel
+
+internal data class AiMediaReference(
+    val type: String,
+    val malId: Int?,
+    val title: String,
+    val score: String?,
+    val imageUrl: String?
+) {
+    val normalizedType: String
+        get() = when (type.lowercase()) {
+            "anime" -> "anime"
+            "ln", "light novel", "light_novel", "novel" -> "manga"
+            else -> "manga"
+        }
+
+    val displayType: String
+        get() = when (type.lowercase()) {
+            "anime" -> "Anime"
+            "ln", "light novel", "light_novel", "novel" -> "Light Novel"
+            else -> "Manga"
+        }
+}
+
 
 @Composable
 internal fun ChatBubble(
     message: ChatMessage,
     noteId: Long?,
     onCopy: () -> Unit,
-    onApply: () -> Unit
+    onApply: () -> Unit,
+    onMediaClick: (AiMediaReference) -> Unit = {}
 ) {
     val isUser = message.sender == MessageSender.USER
     Row(
@@ -71,7 +99,8 @@ internal fun ChatBubble(
                     text = message.text,
                     modifier = Modifier.padding(12.dp),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    onMediaClick = onMediaClick
                 )
             }
         } else {
@@ -86,7 +115,8 @@ internal fun ChatBubble(
                     MarkdownText(
                         text = message.text,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        onMediaClick = onMediaClick
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(
@@ -216,7 +246,8 @@ private fun MarkdownText(
     text: String,
     modifier: Modifier = Modifier,
     style: TextStyle = MaterialTheme.typography.bodyMedium,
-    color: Color = MaterialTheme.colorScheme.onSurface
+    color: Color = MaterialTheme.colorScheme.onSurface,
+    onMediaClick: (AiMediaReference) -> Unit = {}
 ) {
     val blocks = remember(text) { parseMarkdownBlocks(text) }
 
@@ -246,6 +277,77 @@ private fun MarkdownText(
                     value = block.value,
                     style = style,
                     color = color
+                )
+                is MarkdownBlock.Media -> MediaReferenceCard(
+                    reference = block.reference,
+                    onClick = onMediaClick
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MediaReferenceCard(
+    reference: AiMediaReference,
+    onClick: (AiMediaReference) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(enabled = reference.malId != null) { onClick(reference) },
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.74f),
+            contentColor = MaterialTheme.colorScheme.onSurface
+        )
+    ) {
+        Row(
+            modifier = Modifier.padding(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            AsyncImage(
+                model = reference.imageUrl,
+                contentDescription = reference.title,
+                modifier = Modifier
+                    .width(58.dp)
+                    .height(82.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(10.dp)
+                    ),
+                contentScale = ContentScale.Crop
+            )
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = reference.displayType,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = reference.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                reference.score?.takeIf { it.isNotBlank() }?.let { score ->
+                    Text(
+                        text = "Score $score",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Text(
+                    text = if (reference.malId != null) "Tap untuk buka detail" else "Detail belum bisa dibuka",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -345,24 +447,48 @@ private fun MarkdownLine(
 private sealed interface MarkdownBlock {
     data class Line(val value: String) : MarkdownBlock
     data class Code(val value: String) : MarkdownBlock
+    data class Media(val reference: AiMediaReference) : MarkdownBlock
     data object Space : MarkdownBlock
 }
 
 private fun parseMarkdownBlocks(text: String): List<MarkdownBlock> {
     val blocks = mutableListOf<MarkdownBlock>()
     val codeLines = mutableListOf<String>()
+    val mediaLines = mutableListOf<String>()
     var inCode = false
+    var inMedia = false
 
     text.lines().forEach { line ->
-        if (line.trim().startsWith("```")) {
-            if (inCode) {
-                blocks += MarkdownBlock.Code(codeLines.joinToString("\n").trimEnd())
-                codeLines.clear()
-                inCode = false
-            } else {
-                inCode = true
+        val trimmed = line.trim()
+
+        when {
+            trimmed == ":::media" && !inCode -> {
+                inMedia = true
+                mediaLines.clear()
+                return@forEach
             }
-            return@forEach
+            trimmed == ":::" && inMedia -> {
+                parseMediaReference(mediaLines)?.let { reference ->
+                    blocks += MarkdownBlock.Media(reference)
+                }
+                mediaLines.clear()
+                inMedia = false
+                return@forEach
+            }
+            inMedia -> {
+                mediaLines += line
+                return@forEach
+            }
+            trimmed.startsWith("```") -> {
+                if (inCode) {
+                    blocks += MarkdownBlock.Code(codeLines.joinToString("\n").trimEnd())
+                    codeLines.clear()
+                    inCode = false
+                } else {
+                    inCode = true
+                }
+                return@forEach
+            }
         }
 
         if (inCode) {
@@ -377,8 +503,33 @@ private fun parseMarkdownBlocks(text: String): List<MarkdownBlock> {
     if (codeLines.isNotEmpty()) {
         blocks += MarkdownBlock.Code(codeLines.joinToString("\n").trimEnd())
     }
+    parseMediaReference(mediaLines)?.let { reference ->
+        blocks += MarkdownBlock.Media(reference)
+    }
 
     return blocks.ifEmpty { listOf(MarkdownBlock.Line(text)) }
+}
+
+private fun parseMediaReference(lines: List<String>): AiMediaReference? {
+    if (lines.isEmpty()) return null
+
+    val values = lines
+        .mapNotNull { line ->
+            val index = line.indexOf("=")
+            if (index <= 0) return@mapNotNull null
+            line.take(index).trim().lowercase() to line.drop(index + 1).trim()
+        }
+        .toMap()
+
+    val title = values["title"]?.takeIf { it.isNotBlank() } ?: return null
+
+    return AiMediaReference(
+        type = values["type"]?.takeIf { it.isNotBlank() } ?: "manga",
+        malId = values["mal_id"]?.toIntOrNull(),
+        title = title,
+        score = values["score"],
+        imageUrl = values["image_url"]
+    )
 }
 
 private fun inlineMarkdown(value: String) = buildAnnotatedString {

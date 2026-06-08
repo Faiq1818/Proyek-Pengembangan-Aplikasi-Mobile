@@ -33,6 +33,8 @@ import com.example.mybawanggacha.presentation.screens.manga.detail.components.Ma
 import com.example.mybawanggacha.presentation.screens.manga.detail.components.mangaDetailRailItems
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material.icons.filled.Face
 
 @Composable
 fun MangaDetailScreen(
@@ -41,6 +43,7 @@ fun MangaDetailScreen(
     onNavigateToAnimeDetail: (Int) -> Unit = {},
     onNavigateToMangaDetail: (Int) -> Unit = {},
     onNavigateToLibraryEditor: (MangaDetail, Long?) -> Unit = { _, _ -> },
+    onNavigateToAIAssistant: (String, Int, String, String) -> Unit = { _, _, _, _ -> },
     viewModel: MangaDetailViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -102,20 +105,50 @@ fun MangaDetailScreen(
 
                         val isInLibrary = state.libraryEntryId != null
 
-                        FloatingActionButton(
-                            onClick = { onNavigateToLibraryEditor(state.manga, state.libraryEntryId) },
+                        Column(
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
-                                .padding(end = 16.dp, bottom = 80.dp)
+                                .padding(end = 16.dp, bottom = 80.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Icon(
-                                imageVector = if (isInLibrary) Icons.Default.Edit else Icons.Default.Add,
-                                contentDescription = if (isInLibrary) {
-                                    "Edit My Library"
-                                } else {
-                                    "Tambah ke My Library"
-                                }
-                            )
+                            FloatingActionButton(
+                                onClick = {
+                                    val mangaContext = """
+                                        Detail Manga:
+                                        Judul: ${state.manga.title}
+                                        Genre: ${state.manga.genres.joinToString(", ")}
+                                        Skor: ${state.manga.score ?: "N/A"}
+                                        Tipe: ${state.manga.type ?: "N/A"}
+                                        Chapter: ${state.manga.chapters ?: "N/A"}
+                                        Sinopsis: ${state.manga.synopsis ?: "N/A"}
+                                    """.trimIndent()
+                                    onNavigateToAIAssistant(
+                                        mangaContext,
+                                        state.manga.malId,
+                                        "manga",
+                                        state.manga.title
+                                    )
+                                },
+                                modifier = Modifier.padding(bottom = 16.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Face,
+                                    contentDescription = "AI Assistant"
+                                )
+                            }
+
+                            FloatingActionButton(
+                                onClick = { onNavigateToLibraryEditor(state.manga, state.libraryEntryId) }
+                            ) {
+                                Icon(
+                                    imageVector = if (isInLibrary) Icons.Default.Edit else Icons.Default.Add,
+                                    contentDescription = if (isInLibrary) {
+                                        "Edit My Library"
+                                    } else {
+                                        "Tambah ke My Library"
+                                    }
+                                )
+                            }
                         }
                     }
                 }

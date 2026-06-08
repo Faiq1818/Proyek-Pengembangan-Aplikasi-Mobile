@@ -20,13 +20,15 @@ import kotlinx.coroutines.launch
 import com.example.mybawanggacha.domain.settings.model.AiApiModel
 import com.example.mybawanggacha.domain.settings.repository.SettingsRepository
 import com.example.mybawanggacha.domain.settings.model.AiPersonality
+import com.example.mybawanggacha.domain.ai.repository.AiChatSessionRepository
 
 class AIAssistantViewModel(
     private val aiRepository: AIRepository,
     private val summarizeUseCase: SummarizeNoteUseCase,
     private val improveWritingUseCase: ImproveWritingUseCase,
     private val generateIdeasUseCase: GenerateIdeasUseCase,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val chatSessionRepository: AiChatSessionRepository
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(AIAssistantUiState())
@@ -55,8 +57,43 @@ class AIAssistantViewModel(
         }
     }
     
-    fun setAnimeContext(context: String?) {
-        _uiState.update { state -> state.copy(animeContext = context) }
+    fun configureSession(
+        noteId: Long?,
+        mediaId: Int?,
+        mediaType: String?,
+        mediaTitle: String?,
+        context: String?
+    ) {
+        val sessionKey = buildSessionKey(
+            noteId = noteId,
+            mediaId = mediaId,
+            mediaType = mediaType
+        )
+
+        if (_uiState.value.sessionKey == sessionKey && _uiState.value.animeContext == context) {
+            return
+        }
+
+        _uiState.update { state ->
+            state.copy(
+                sessionKey = sessionKey,
+                sessionTitle = mediaTitle,
+                sessionMediaType = mediaType,
+                animeContext = context,
+                isLoadingSession = true,
+                error = null
+            )
+        }
+
+        viewModelScope.launch {
+            val messages = chatSessionRepository.getMessages(sessionKey)
+            _uiState.update { state ->
+                state.copy(
+                    chatHistory = messages,
+                    isLoadingSession = false
+                )
+            }
+        }
     }
     
     fun onInputTextChange(text: String) {
@@ -88,12 +125,15 @@ class AIAssistantViewModel(
         }
         
         viewModelScope.launch {
+            chatSessionRepository.appendMessage(state.sessionKey, userMessage)
+
             val contextPrompt = buildScreenContextPrompt(state.animeContext)
             val result = chat(updatedHistory, contextPrompt)
             
             result
                 .onSuccess { output ->
                     val aiMessage = ChatMessage(sender = MessageSender.AI, text = output)
+                    chatSessionRepository.appendMessage(state.sessionKey, aiMessage)
                     _uiState.update { 
                         it.copy(
                             isLoading = false,
@@ -112,6 +152,20 @@ class AIAssistantViewModel(
         }
     }
     
+    fun resetSession() {
+        val sessionKey = _uiState.value.sessionKey
+        viewModelScope.launch {
+            chatSessionRepository.clearSession(sessionKey)
+            _uiState.update {
+                it.copy(
+                    chatHistory = emptyList(),
+                    error = null,
+                    isLoading = false
+                )
+            }
+        }
+    }
+
     fun copyResult(text: String) {
         viewModelScope.launch {
             _events.emit(AIAssistantEvent.CopyToClipboard(text))
@@ -135,6 +189,20 @@ class AIAssistantViewModel(
     fun setAiApiModel(aiApiModel: AiApiModel) {
         viewModelScope.launch {
             settingsRepository.setAiApiModel(aiApiModel)
+        }
+    }
+
+    private fun buildSessionKey(
+        noteId: Long?,
+        mediaId: Int?,
+        mediaType: String?
+    ): String {
+        return when {
+            mediaId != null && !mediaType.isNullOrBlank() -> {
+                "${mediaType.uppercase()}:$mediaId"
+            }
+            noteId != null -> "NOTE:$noteId"
+            else -> "GLOBAL"
         }
     }
 
@@ -199,6 +267,10 @@ data class AIAssistantUiState(
     val aiApiModel: AiApiModel = AiApiModel.Gemini35Flash,
     val aiPersonality: AiPersonality = AiPersonality.Default,
     val isLoading: Boolean = false,
+    val isLoadingSession: Boolean = false,
+    val sessionKey: String = "GLOBAL",
+    val sessionTitle: String? = null,
+    val sessionMediaType: String? = null,
     val result: String? = null,
     val error: String? = null,
     val chatHistory: List<ChatMessage> = emptyList(),

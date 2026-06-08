@@ -45,7 +45,10 @@ sealed interface Route {
     data class AIAssistant(
         val noteId: Long? = null,
         val initialText: String? = null,
-        val animeContext: String? = null
+        val animeContext: String? = null,
+        val mediaId: Int? = null,
+        val mediaType: String? = null,
+        val mediaTitle: String? = null
     ) : Route
 
     @Serializable
@@ -73,7 +76,14 @@ interface NavigationActions {
     fun navigateToSettings()
     fun navigateToAddNote(noteId: Long? = null)
     fun navigateToNoteDetail(noteId: Long)
-    fun navigateToAIAssistant(noteId: Long? = null, initialText: String? = null, animeContext: String? = null)
+    fun navigateToAIAssistant(
+        noteId: Long? = null,
+        initialText: String? = null,
+        animeContext: String? = null,
+        mediaId: Int? = null,
+        mediaType: String? = null,
+        mediaTitle: String? = null
+    )
     fun navigateToAnimeDetail(malId: Int)
     fun navigateToMangaDetail(malId: Int)
     fun navigateBack()

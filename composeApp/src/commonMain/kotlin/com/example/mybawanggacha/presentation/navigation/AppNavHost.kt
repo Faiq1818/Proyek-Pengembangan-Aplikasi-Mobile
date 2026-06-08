@@ -132,6 +132,16 @@ fun AppNavHost(
                         totalCount = manga.chapters,
                         entryId = entryId
                     )
+                },
+                onNavigateToAIAssistant = { mangaContext, mediaId, mediaType, mediaTitle ->
+                    navigationActions.navigateToAIAssistant(
+                        noteId = null,
+                        initialText = null,
+                        animeContext = mangaContext,
+                        mediaId = mediaId,
+                        mediaType = mediaType,
+                        mediaTitle = mediaTitle
+                    )
                 }
             )
         }
@@ -204,7 +214,12 @@ fun AppNavHost(
                 noteId = route.noteId,
                 initialText = route.initialText,
                 animeContext = route.animeContext,
+                mediaId = route.mediaId,
+                mediaType = route.mediaType,
+                mediaTitle = route.mediaTitle,
                 onNavigateBack = { navigationActions.navigateBack() },
+                onNavigateToAnimeDetail = { malId -> navigationActions.navigateToAnimeDetail(malId) },
+                onNavigateToMangaDetail = { malId -> navigationActions.navigateToMangaDetail(malId) },
                 onApplyResult = null
             )
         }
@@ -226,8 +241,15 @@ fun AppNavHost(
                         entryId = entryId
                     )
                 },
-                onNavigateToAIAssistant = { animeContext ->
-                    navigationActions.navigateToAIAssistant(noteId = null, initialText = null, animeContext = animeContext)
+                onNavigateToAIAssistant = { animeContext, mediaId, mediaType, mediaTitle ->
+                    navigationActions.navigateToAIAssistant(
+                        noteId = null,
+                        initialText = null,
+                        animeContext = animeContext,
+                        mediaId = mediaId,
+                        mediaType = mediaType,
+                        mediaTitle = mediaTitle
+                    )
                 }
             )
         }
@@ -294,8 +316,24 @@ private fun createNavigationActions(navController: NavHostController): Navigatio
             navController.navigate(Route.NoteDetail(noteId))
         }
         
-        override fun navigateToAIAssistant(noteId: Long?, initialText: String?, animeContext: String?) {
-            navController.navigate(Route.AIAssistant(noteId, initialText, animeContext))
+        override fun navigateToAIAssistant(
+            noteId: Long?,
+            initialText: String?,
+            animeContext: String?,
+            mediaId: Int?,
+            mediaType: String?,
+            mediaTitle: String?
+        ) {
+            navController.navigate(
+                Route.AIAssistant(
+                    noteId = noteId,
+                    initialText = initialText,
+                    animeContext = animeContext,
+                    mediaId = mediaId,
+                    mediaType = mediaType,
+                    mediaTitle = mediaTitle
+                )
+            )
         }
 
         override fun navigateToAnimeDetail(malId: Int) {
