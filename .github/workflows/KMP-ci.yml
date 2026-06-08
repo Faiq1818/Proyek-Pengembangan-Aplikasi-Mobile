@@ -60,11 +60,8 @@ jobs:
       - name: Compile Kotlin metadata
         run: ./gradlew :composeApp:compileKotlinMetadata -PbuildProfile=ci -PbuildTarget=metadata
 
-      - name: Assemble unit tests
+      - name: Compile host-safe unit tests
         run: ./gradlew :composeApp:assembleUnitTest -PbuildProfile=ci -PbuildTarget=tests
-
-      - name: Run unit tests
-        run: ./gradlew :composeApp:allTests -PbuildProfile=ci -PbuildTarget=tests
 
   ios:
     name: Build only (iOS)
@@ -91,3 +88,6 @@ jobs:
 
       - name: Compile iOS simulator
         run: ./gradlew :composeApp:compileKotlinIosSimulatorArm64 -PbuildProfile=ci -PbuildTarget=iOS-simulator
+
+      - name: Run iOS simulator tests
+        run: ./gradlew :composeApp:iosSimulatorArm64Test -PbuildProfile=ci -PbuildTarget=iOS-simulator-tests
