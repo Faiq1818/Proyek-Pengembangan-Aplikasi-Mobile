@@ -1,3 +1,13 @@
+import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.TaskAction
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeCompiler)
@@ -39,6 +49,61 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+    }
+}
+
+
+abstract class SyncCommonComposeResourcesToAndroidAssets : DefaultTask() {
+    @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val inputDir: DirectoryProperty
+
+    @get:Input
+    abstract val packageName: Property<String>
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @TaskAction
+    fun sync() {
+        val destination = outputDir.get()
+            .asFile
+            .resolve("composeResources/${packageName.get()}")
+        val source = inputDir.get().asFile
+
+        destination.deleteRecursively()
+        destination.mkdirs()
+
+        if (source.exists()) {
+            source.copyRecursively(
+                target = destination,
+                overwrite = true
+            )
+        }
+    }
+}
+
+androidComponents {
+    onVariants { variant ->
+        val capitalizedVariantName = variant.name.replaceFirstChar { char ->
+            char.uppercaseChar()
+        }
+        val syncComposeResources = tasks.register<SyncCommonComposeResourcesToAndroidAssets>(
+            "sync${capitalizedVariantName}CommonComposeResourcesToAndroidAssets"
+        ) {
+            inputDir.set(
+                project(":composeApp")
+                    .layout
+                    .projectDirectory
+                    .dir("src/commonMain/composeResources")
+            )
+            packageName.set("com.example.mybawanggacha.generated.resources")
+        }
+
+        variant.sources.assets?.addGeneratedSourceDirectory(
+            syncComposeResources,
+            SyncCommonComposeResourcesToAndroidAssets::outputDir
+        )
     }
 }
 
