@@ -82,14 +82,19 @@ class GachaViewModel(
             runCatching {
                 gachaRepository.saveLastPreference(preference)
                 runGachaUseCase(preference)
-            }.onSuccess { item ->
-                gachaRepository.saveHistoryEntry(GachaHistoryEntry(item = item))
+            }.onSuccess { result ->
+                gachaRepository.saveHistoryEntry(GachaHistoryEntry(item = result.item))
                 _uiState.update { state ->
                     state.copy(
-                        result = item,
+                        result = result.item,
                         isLoading = false,
-                        errorMessage = null
+                        errorMessage = null,
+                        infoMessage = result.infoMessage
                     )
+                }
+
+                if (result.shouldPrefetch) {
+                    prefetchNextCandidates(preference)
                 }
             }.onFailure { error ->
                 _uiState.update { state ->
@@ -98,6 +103,14 @@ class GachaViewModel(
                         errorMessage = error.message ?: "Gacha gagal dijalankan."
                     )
                 }
+            }
+        }
+    }
+
+    private fun prefetchNextCandidates(preference: GachaPreference) {
+        viewModelScope.launch {
+            runCatching {
+                runGachaUseCase.prefetchNextPage(preference)
             }
         }
     }
