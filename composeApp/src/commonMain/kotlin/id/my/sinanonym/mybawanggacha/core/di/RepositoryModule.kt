@@ -6,6 +6,7 @@ import id.my.sinanonym.mybawanggacha.data.local.source.AnimeDetailCacheLocalData
 import id.my.sinanonym.mybawanggacha.data.local.source.MediaPageCacheLocalDataSource
 import id.my.sinanonym.mybawanggacha.data.local.source.RelationPreviewCacheLocalDataSource
 import id.my.sinanonym.mybawanggacha.data.repository.ai.AIRepositoryImpl
+import id.my.sinanonym.mybawanggacha.data.repository.ai.AiTokenUsageRepositoryImpl
 import id.my.sinanonym.mybawanggacha.data.repository.gacha.GachaRepositoryImpl
 import id.my.sinanonym.mybawanggacha.data.repository.anime.AnimeRepositoryImpl
 import id.my.sinanonym.mybawanggacha.data.repository.jikan.JikanCachePolicy
@@ -23,6 +24,7 @@ import id.my.sinanonym.mybawanggacha.domain.library.repository.LibraryRepository
 import id.my.sinanonym.mybawanggacha.domain.manga.repository.MangaRepository
 import id.my.sinanonym.mybawanggacha.domain.note.repository.NoteRepository
 import id.my.sinanonym.mybawanggacha.domain.search.repository.SearchRepository
+import id.my.sinanonym.mybawanggacha.domain.settings.repository.AiTokenUsageRepository
 import id.my.sinanonym.mybawanggacha.domain.settings.repository.JikanRequestUsageRepository
 import id.my.sinanonym.mybawanggacha.domain.settings.repository.SettingsRepository
 import org.koin.core.module.dsl.singleOf
@@ -39,6 +41,7 @@ val repositoryModule = module {
     singleOf(::RelationPreviewCacheLocalDataSource)
     single<JikanCachePolicy> { SettingsJikanCachePolicy(get()) }
     singleOf(::JikanRequestUsageRepositoryImpl) bind JikanRequestUsageRepository::class
+    singleOf(::AiTokenUsageRepositoryImpl) bind AiTokenUsageRepository::class
     singleOf(::NoteRepositoryImpl) bind NoteRepository::class
     singleOf(::AiChatSessionRepositoryImpl) bind AiChatSessionRepository::class
     singleOf(::AIRepositoryImpl) bind AIRepository::class

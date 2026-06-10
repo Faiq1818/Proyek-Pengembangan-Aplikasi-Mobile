@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.filled.VpnKey
 import androidx.compose.material3.Card
+import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -79,6 +80,7 @@ internal fun SettingsMainMenu(
     appColorScheme: AppColorScheme,
     aiApiSettings: AiApiSettings,
     requestUsage: SettingsRequestUsageUiState,
+    aiTokenUsage: SettingsAiTokenUsageUiState,
     onPaneSelected: (SettingsPane) -> Unit
 ) {
     Column(
@@ -126,7 +128,7 @@ internal fun SettingsMainMenu(
         SettingsMenuRow(
             icon = Icons.Default.Storage,
             title = "Request Usage",
-            description = "${requestUsage.usedLastMinute}/${requestUsage.minuteLimit} request menit ini • ${requestUsage.remainingThisMinute} tersisa",
+            description = "Jikan ${requestUsage.usedLastMinute}/${requestUsage.minuteLimit} menit ini • AI ${aiTokenUsage.totalTokens.formatTokenCount()} token",
             onClick = { onPaneSelected(SettingsPane.RequestUsage) }
         )
 
@@ -358,7 +360,7 @@ internal fun SettingsApiSection(
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Text(
             text = "Model",
@@ -426,7 +428,7 @@ private fun AiModelDropdown(
 
     Box(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
-            value = "${selected.label}  ·  ${selected.modelId}",
+            value = selected.label,
             onValueChange = {},
             modifier = Modifier.fillMaxWidth(),
             readOnly = true,
@@ -453,17 +455,10 @@ private fun AiModelDropdown(
             AiApiModel.entries.forEach { model ->
                 DropdownMenuItem(
                     text = {
-                        Column {
-                            Text(
-                                text = model.label,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            Text(
-                                text = model.modelId,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                        Text(
+                            text = model.label,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                     },
                     onClick = {
                         expanded = false
@@ -574,11 +569,13 @@ internal fun SettingsNetworkSection(
 
 @Composable
 internal fun SettingsRequestUsageSection(
-    requestUsage: SettingsRequestUsageUiState
+    requestUsage: SettingsRequestUsageUiState,
+    aiTokenUsage: SettingsAiTokenUsageUiState,
+    onResetAiTokenUsage: () -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
             text = "Jikan Request Budget",
@@ -588,6 +585,18 @@ internal fun SettingsRequestUsageSection(
         )
 
         SettingsRequestUsageCard(requestUsage = requestUsage)
+
+        Text(
+            text = "AI Token Usage",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onBackground,
+            fontWeight = FontWeight.SemiBold
+        )
+
+        SettingsAiTokenUsageCard(
+            aiTokenUsage = aiTokenUsage,
+            onResetAiTokenUsage = onResetAiTokenUsage
+        )
     }
 }
 
@@ -673,6 +682,146 @@ private fun SettingsRequestUsageCard(
     }
 }
 
+
+@Composable
+private fun SettingsAiTokenUsageCard(
+    aiTokenUsage: SettingsAiTokenUsageUiState,
+    onResetAiTokenUsage: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+            contentColor = MaterialTheme.colorScheme.onSurface
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Total AI token",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "${aiTokenUsage.totalRequests} request tercatat",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Text(
+                    text = aiTokenUsage.totalTokens.formatTokenCount(),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            aiTokenUsage.entries.forEachIndexed { index, entry ->
+                SettingsAiModelUsageRow(entry = entry)
+                if (index != aiTokenUsage.entries.lastIndex) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.24f))
+                }
+            }
+
+            Button(
+                onClick = onResetAiTokenUsage,
+                enabled = aiTokenUsage.totalRequests > 0L
+            ) {
+                Text("Reset AI token usage")
+            }
+        }
+    }
+}
+
+@Composable
+private fun SettingsAiModelUsageRow(
+    entry: SettingsAiModelTokenUsageUiState
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = entry.label,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = "${entry.requestCount} request • ${entry.totalTokens.formatTokenCount()} token",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Text(
+                text = entry.totalTokens.formatTokenCount(),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        LinearProgressIndicator(
+            progress = { entry.lastInputProgress.coerceIn(0f, 1f) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(3.dp)
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SettingsUsageMetric(
+                label = "Last total",
+                value = entry.lastTotalTokens.formatTokenCount(),
+                modifier = Modifier.weight(1f)
+            )
+            SettingsUsageMetric(
+                label = "Input",
+                value = "${entry.lastPromptTokens.formatTokenCount()}/${entry.inputTokenLimit.formatTokenCount()}",
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SettingsUsageMetric(
+                label = "Output",
+                value = "${entry.lastCandidatesTokens.formatTokenCount()}/${entry.effectiveOutputTokenLimit.formatTokenCount()}",
+                modifier = Modifier.weight(1f)
+            )
+            SettingsUsageMetric(
+                label = "Think/cache",
+                value = "${entry.lastThoughtsTokens.formatTokenCount()} / ${entry.lastCachedContentTokens.formatTokenCount()}",
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+    }
+}
+
 @Composable
 private fun SettingsUsageMetric(
     label: String,
@@ -694,6 +843,17 @@ private fun SettingsUsageMetric(
         )
     }
 }
+
+
+private fun Long.formatTokenCount(): String {
+    return when {
+        this >= 1_000_000L -> "${this / 1_000_000L}.${((this % 1_000_000L) / 100_000L)}M"
+        this >= 1_000L -> "${this / 1_000L}.${((this % 1_000L) / 100L)}K"
+        else -> toString()
+    }
+}
+
+private fun Int.formatTokenCount(): String = toLong().formatTokenCount()
 
 
 @Composable

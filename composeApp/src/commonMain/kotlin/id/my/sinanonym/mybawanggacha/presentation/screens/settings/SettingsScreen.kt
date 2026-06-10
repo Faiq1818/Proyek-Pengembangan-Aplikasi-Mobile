@@ -85,6 +85,7 @@ fun SettingsScreen(
                         appColorScheme = uiState.appColorScheme,
                         aiApiSettings = uiState.aiApiSettings,
                         requestUsage = uiState.requestUsage,
+                        aiTokenUsage = uiState.aiTokenUsage,
                         onPaneSelected = { selectedPane = it }
                     )
                 }
@@ -134,9 +135,13 @@ fun SettingsScreen(
                 SettingsPane.RequestUsage -> {
                     SettingsPaneHeader(
                         title = "Request Usage",
-                        description = "Pantau pemakaian request Jikan."
+                        description = "Pantau pemakaian request Jikan dan token AI."
                     )
-                    SettingsRequestUsageSection(requestUsage = uiState.requestUsage)
+                    SettingsRequestUsageSection(
+                        requestUsage = uiState.requestUsage,
+                        aiTokenUsage = uiState.aiTokenUsage,
+                        onResetAiTokenUsage = viewModel::resetAiTokenUsage
+                    )
                 }
 
                 SettingsPane.About -> {
