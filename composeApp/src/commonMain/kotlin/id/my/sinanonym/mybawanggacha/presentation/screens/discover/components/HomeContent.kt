@@ -81,8 +81,7 @@ internal fun HomeDiscoveryContent(
         item {
             ScreenHeader(
                 icon = Icons.Default.Home,
-                title = "Home",
-                subtitle = "Discovery anime dan manga"
+                title = "Home"
             )
         }
 
@@ -170,10 +169,7 @@ private fun RandomPickSection(
     onAnimeClick: (Int) -> Unit,
     onMangaClick: (Int) -> Unit
 ) {
-    HomeSectionTitle(
-        title = "Random Pick",
-        subtitle = "Pilihan random untukmu"
-    )
+    HomeSectionTitle(title = "Random Pick")
 
     val items = buildList<HomeRandomPick> {
         randomAnime.forEach { anime -> add(HomeRandomPick.Anime(anime)) }
@@ -210,10 +206,7 @@ private fun RecentEpisodesSection(
     episodes: List<RecentAnimeEpisode>,
     onAnimeClick: (Int) -> Unit
 ) {
-    HomeSectionTitle(
-        title = "Recent Episodes",
-        subtitle = "Episode yang baru saja update"
-    )
+    HomeSectionTitle(title = "Recent Episodes")
 
     AutoSlidingRow(
         items = episodes,
@@ -498,8 +491,7 @@ private fun PosterBox(
 
 @Composable
 private fun HomeSectionTitle(
-    title: String,
-    subtitle: String
+    title: String
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -509,15 +501,6 @@ private fun HomeSectionTitle(
             fontWeight = FontWeight.Bold
         )
 
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(
-            text = subtitle,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
 
         Spacer(modifier = Modifier.height(12.dp))
     }

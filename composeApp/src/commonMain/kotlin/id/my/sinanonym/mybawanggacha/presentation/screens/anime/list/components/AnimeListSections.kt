@@ -54,8 +54,7 @@ import id.my.sinanonym.mybawanggacha.presentation.screens.anime.list.AnimeListUi
 fun ListHeader() {
     ScreenHeader(
         icon = Icons.Default.SmartDisplay,
-        title = "Anime List",
-        subtitle = "Katalog anime dari Jikan"
+        title = "Anime List"
     )
 }
 
@@ -161,15 +160,7 @@ fun ListContent(
                     fontWeight = FontWeight.Bold
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = uiState.subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 PosterGrid(
                     anime = uiState.anime,
@@ -190,9 +181,7 @@ fun ListContent(
 private fun ListSkeleton() {
     Column(modifier = Modifier.fillMaxSize()) {
         SkeletonLine(width = 174.dp, height = 24.dp)
-        Spacer(modifier = Modifier.height(8.dp))
-        SkeletonLine(width = 242.dp, height = 14.dp)
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 132.dp),
