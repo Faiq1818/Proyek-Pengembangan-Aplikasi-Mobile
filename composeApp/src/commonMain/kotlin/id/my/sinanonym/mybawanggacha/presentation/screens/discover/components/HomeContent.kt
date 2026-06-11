@@ -58,14 +58,22 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 internal fun HomeDiscoveryContent(
     recommendations: List<AnimeSummary>,
+    mangaRecommendations: List<MangaSummary>,
     randomAnime: List<AnimeSummary>,
     randomManga: List<MangaSummary>,
     recentEpisodes: List<RecentAnimeEpisode>,
     onAnimeClick: (Int) -> Unit,
     onMangaClick: (Int) -> Unit,
-    onOpenAnimeList: () -> Unit
+    onOpenAnimeList: () -> Unit,
+    onOpenMangaList: () -> Unit
 ) {
-    if (recommendations.isEmpty() && randomAnime.isEmpty() && randomManga.isEmpty() && recentEpisodes.isEmpty()) {
+    if (
+        recommendations.isEmpty() &&
+        mangaRecommendations.isEmpty() &&
+        randomAnime.isEmpty() &&
+        randomManga.isEmpty() &&
+        recentEpisodes.isEmpty()
+    ) {
         EmptyState(
             title = "Discovery kosong",
             message = "Jikan belum memberikan data discovery. Coba refresh nanti."
@@ -119,6 +127,21 @@ internal fun HomeDiscoveryContent(
                 )
             }
         }
+
+        if (mangaRecommendations.isNotEmpty()) {
+            item {
+                SectionHeader(
+                    title = "Manga Overview",
+                    onViewAllClick = onOpenMangaList,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                MangaOverviewPagedCarousel(
+                    recommendations = mangaRecommendations.take(24),
+                    onMangaClick = onMangaClick
+                )
+            }
+        }
     }
 }
 
@@ -149,6 +172,46 @@ private fun AnimeOverviewPagedCarousel(
                             imageUrl = anime.imageUrl,
                             label = anime.score?.let { "★ ${it.toString().take(4)}" } ?: "Anime",
                             onClick = { onAnimeClick(anime.malId) },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    if (rowItems.size == 1) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MangaOverviewPagedCarousel(
+    recommendations: List<MangaSummary>,
+    onMangaClick: (Int) -> Unit
+) {
+    val pages = recommendations.chunked(4)
+
+    AutoSlidingRow(
+        items = pages,
+        key = { page -> page.joinToString { it.malId.toString() } },
+        autoSlideMillis = 5_700L
+    ) { pageItems ->
+        Column(
+            modifier = Modifier.width(286.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            pageItems.chunked(2).forEach { rowItems ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    rowItems.forEach { manga ->
+                        HomeMiniMediaCard(
+                            title = manga.title,
+                            imageUrl = manga.imageUrl,
+                            label = manga.score?.let { "★ ${it.toString().take(4)}" } ?: (manga.type ?: "Manga"),
+                            onClick = { onMangaClick(manga.malId) },
                             modifier = Modifier.weight(1f)
                         )
                     }

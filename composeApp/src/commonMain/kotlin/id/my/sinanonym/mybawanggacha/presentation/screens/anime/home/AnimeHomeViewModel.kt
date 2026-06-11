@@ -47,6 +47,7 @@ class AnimeHomeViewModel(
 
             if (
                 homeState.recommendations.isEmpty() &&
+                homeState.mangaRecommendations.isEmpty() &&
                 homeState.randomAnime.isEmpty() &&
                 homeState.randomManga.isEmpty() &&
                 homeState.recentEpisodes.isEmpty()
@@ -125,6 +126,10 @@ class AnimeHomeViewModel(
                 runCatching { animeRepository.getRecommendations() }
                     .getOrDefault(emptyList<AnimeSummary>())
             }
+            val mangaRecommendations = async {
+                runCatching { mangaRepository.getRecommendations() }
+                    .getOrDefault(emptyList<MangaSummary>())
+            }
             val randomAnime = async {
                 runCatching {
                     animeRepository.getRandomAnimePicks(
@@ -148,6 +153,7 @@ class AnimeHomeViewModel(
 
             AnimeHomeUiState.Success(
                 recommendations = recommendations.await(),
+                mangaRecommendations = mangaRecommendations.await(),
                 randomAnime = randomAnime.await(),
                 randomManga = randomManga.await(),
                 recentEpisodes = recentEpisodes.await()
