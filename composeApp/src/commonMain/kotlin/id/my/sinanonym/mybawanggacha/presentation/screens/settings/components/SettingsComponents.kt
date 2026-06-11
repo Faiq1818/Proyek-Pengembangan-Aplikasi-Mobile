@@ -1,6 +1,7 @@
 package id.my.sinanonym.mybawanggacha.presentation.screens.settings.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -128,7 +129,13 @@ internal fun SettingsMainMenu(
         SettingsMenuRow(
             icon = Icons.Default.Storage,
             title = "Request Usage",
-            description = "Jikan ${requestUsage.usedLastMinute}/${requestUsage.minuteLimit} menit ini • AI ${aiTokenUsage.totalTokens.formatTokenCount()} token",
+            description = buildString {
+                append("Jikan ")
+                append(requestUsage.serviceStatus.label)
+                append(" • ")
+                append("${requestUsage.usedLastMinute}/${requestUsage.minuteLimit}")
+                append(" • AI ${aiTokenUsage.totalTokens.formatTokenCount()} token")
+            },
             onClick = { onPaneSelected(SettingsPane.RequestUsage) }
         )
 
@@ -635,7 +642,7 @@ private fun SettingsRequestUsageCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Request terpakai",
+                        text = "Req used",
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold
@@ -657,26 +664,44 @@ private fun SettingsRequestUsageCard(
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SettingsStatusPill(
+                        label = requestUsage.serviceStatus.label,
+                        active = requestUsage.serviceStatus.isActive,
+                        checking = requestUsage.serviceStatus.isChecking
+                    )
+                    SettingsStatusPill(
+                        label = requestUsage.requestReadyLabel,
+                        active = requestUsage.isRequestReady
+                    )
+                }
+
+                if (requestUsage.serviceStatus.shortDetail.isNotBlank()) {
+                    Text(
+                        text = requestUsage.serviceStatus.shortDetail,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     SettingsUsageMetric(
-                        label = "Menit ini",
-                        value = "${requestUsage.remainingThisMinute} tersisa",
+                        label = "Min left",
+                        value = requestUsage.remainingThisMinute.toString(),
                         modifier = Modifier.weight(1f)
                     )
                     SettingsUsageMetric(
-                        label = "Detik ini",
+                        label = "Sec",
                         value = "${requestUsage.usedLastSecond}/${requestUsage.secondLimit}",
                         modifier = Modifier.weight(1f)
                     )
                 }
-
-                Text(
-                    text = requestUsage.cooldownLabel,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
         }
     }
@@ -843,6 +868,49 @@ private fun SettingsUsageMetric(
         )
     }
 }
+
+@Composable
+private fun SettingsStatusPill(
+    label: String,
+    active: Boolean,
+    modifier: Modifier = Modifier,
+    checking: Boolean = false
+) {
+    val dotColor = when {
+        checking -> MaterialTheme.colorScheme.outline
+        active -> ActiveStatusColor
+        else -> MaterialTheme.colorScheme.error
+    }
+
+    Surface(
+        modifier = modifier,
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.50f),
+        contentColor = MaterialTheme.colorScheme.onSurface
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .clip(CircleShape)
+                    .background(dotColor)
+            )
+
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+    }
+}
+
+private val ActiveStatusColor = Color(0xFF34C759)
 
 
 private fun Long.formatTokenCount(): String {

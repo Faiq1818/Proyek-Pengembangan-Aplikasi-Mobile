@@ -6,10 +6,13 @@ import id.my.sinanonym.mybawanggacha.domain.settings.model.AiApiModel
 import id.my.sinanonym.mybawanggacha.domain.settings.model.AppColorScheme
 import id.my.sinanonym.mybawanggacha.domain.settings.model.AiTokenUsageSnapshot
 import id.my.sinanonym.mybawanggacha.domain.settings.model.JikanRequestUsage
+import id.my.sinanonym.mybawanggacha.domain.settings.model.JikanServiceStatus
+import id.my.sinanonym.mybawanggacha.domain.settings.model.JikanServiceStatusState
 import id.my.sinanonym.mybawanggacha.domain.settings.model.NetworkMode
 import id.my.sinanonym.mybawanggacha.domain.settings.model.ThemeMode
 import id.my.sinanonym.mybawanggacha.domain.settings.repository.AiTokenUsageRepository
 import id.my.sinanonym.mybawanggacha.domain.settings.repository.JikanRequestUsageRepository
+import id.my.sinanonym.mybawanggacha.domain.settings.repository.JikanServiceStatusRepository
 import id.my.sinanonym.mybawanggacha.domain.settings.repository.SettingsRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -21,22 +24,32 @@ import id.my.sinanonym.mybawanggacha.domain.settings.model.AiPersonality
 class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
     private val requestUsageRepository: JikanRequestUsageRepository,
+    private val serviceStatusRepository: JikanServiceStatusRepository,
     private val aiTokenUsageRepository: AiTokenUsageRepository
 ) : ViewModel() {
 
     private val baseUiState = combine(
-        settingsRepository.themeMode,
-        settingsRepository.networkMode,
-        settingsRepository.appColorScheme,
-        settingsRepository.aiApiSettings,
-        requestUsageRepository.usage
-    ) { themeMode, networkMode, appColorScheme, aiApiSettings, requestUsage ->
-        SettingsUiState(
-            themeMode = themeMode,
-            networkMode = networkMode,
-            appColorScheme = appColorScheme,
-            aiApiSettings = aiApiSettings,
-            requestUsage = requestUsage.toUiState()
+        combine(
+            settingsRepository.themeMode,
+            settingsRepository.networkMode,
+            settingsRepository.appColorScheme,
+            settingsRepository.aiApiSettings,
+            requestUsageRepository.usage
+        ) { themeMode, networkMode, appColorScheme, aiApiSettings, requestUsage ->
+            SettingsUiState(
+                themeMode = themeMode,
+                networkMode = networkMode,
+                appColorScheme = appColorScheme,
+                aiApiSettings = aiApiSettings,
+                requestUsage = requestUsage.toUiState()
+            )
+        },
+        serviceStatusRepository.status
+    ) { base, serviceStatus ->
+        base.copy(
+            requestUsage = base.requestUsage.copy(
+                serviceStatus = serviceStatus.toUiState()
+            )
         )
     }
 
@@ -101,6 +114,21 @@ class SettingsViewModel(
             minuteLimit = minuteLimit,
             remainingThisMinute = remainingThisMinute,
             msUntilNextRequest = msUntilNextRequest
+        )
+    }
+
+    private fun JikanServiceStatus.toUiState(): SettingsJikanServiceStatusUiState {
+        return SettingsJikanServiceStatusUiState(
+            label = when (state) {
+                JikanServiceStatusState.Checking -> "checking"
+                JikanServiceStatusState.Active -> "active"
+                JikanServiceStatusState.Down -> "down"
+            },
+            isActive = isActive,
+            isChecking = state == JikanServiceStatusState.Checking,
+            statusCode = statusCode,
+            type = type,
+            message = message
         )
     }
 }

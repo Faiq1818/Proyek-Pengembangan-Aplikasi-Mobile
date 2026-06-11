@@ -21,16 +21,39 @@ data class SettingsRequestUsageUiState(
     val usedLastMinute: Int = 0,
     val minuteLimit: Int = 60,
     val remainingThisMinute: Int = 60,
-    val msUntilNextRequest: Long = 0L
+    val msUntilNextRequest: Long = 0L,
+    val serviceStatus: SettingsJikanServiceStatusUiState = SettingsJikanServiceStatusUiState()
 ) {
     val minuteProgress: Float
         get() = if (minuteLimit <= 0) 0f else usedLastMinute.toFloat() / minuteLimit.toFloat()
 
-    val cooldownLabel: String
-        get() = if (msUntilNextRequest <= 0L) {
-            "Siap request"
+    val isRequestReady: Boolean
+        get() = msUntilNextRequest <= 0L
+
+    val requestReadyLabel: String
+        get() = if (isRequestReady) {
+            "req ready"
         } else {
-            "Cooldown ${msUntilNextRequest}ms"
+            "cooldown"
+        }
+}
+
+data class SettingsJikanServiceStatusUiState(
+    val label: String = "checking",
+    val isActive: Boolean = false,
+    val isChecking: Boolean = true,
+    val statusCode: Int? = null,
+    val type: String = "",
+    val message: String = ""
+) {
+    val shortDetail: String
+        get() = when {
+            isChecking -> ""
+            isActive -> ""
+            statusCode != null && type.isNotBlank() -> "$statusCode • $type"
+            statusCode != null -> statusCode.toString()
+            type.isNotBlank() -> type
+            else -> message
         }
 }
 
