@@ -1,5 +1,6 @@
 package id.my.sinanonym.mybawanggacha.presentation.screens.settings
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -44,6 +45,10 @@ fun SettingsScreen(
     val isDarkMode = uiState.themeMode.resolve(systemDarkTheme)
 
     var selectedPane by remember { mutableStateOf(SettingsPane.Main) }
+
+    BackHandler(enabled = selectedPane != SettingsPane.Main) {
+        selectedPane = SettingsPane.Main
+    }
 
     MBGSideRailScaffold(
         selectedRailKey = "",
