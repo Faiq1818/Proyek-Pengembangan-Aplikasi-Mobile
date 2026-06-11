@@ -49,9 +49,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
@@ -949,9 +952,12 @@ private fun SettingsChoiceChip(
 
 @Composable
 internal fun SettingsAboutSection(
-    showTitle: Boolean = true
+    showTitle: Boolean = true,
+    release: SettingsReleaseUiState = SettingsReleaseUiState(),
+    onCheckRelease: () -> Unit = {}
 ) {
     val buildInfo = AppBuildInfoProvider.current
+    val uriHandler = LocalUriHandler.current
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -969,6 +975,13 @@ internal fun SettingsAboutSection(
         SettingsAboutHero(buildInfo = buildInfo)
 
         SettingsBuildInfoCard(buildInfo = buildInfo)
+
+        SettingsReleaseCard(
+            buildInfo = buildInfo,
+            release = release,
+            onCheckRelease = onCheckRelease,
+            onOpenUrl = uriHandler::openExternalUrl
+        )
 
         SettingsDetailCard(
             icon = Icons.Default.Cloud,
@@ -1102,6 +1115,8 @@ private fun SettingsDeveloperRow(
     email: String,
     avatarUrl: String
 ) {
+    val uriHandler = LocalUriHandler.current
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -1112,7 +1127,8 @@ private fun SettingsDeveloperRow(
             contentDescription = "$name GitHub avatar",
             modifier = Modifier
                 .size(42.dp)
-                .clip(CircleShape),
+                .clip(CircleShape)
+                .clickable { uriHandler.openExternalUrl(githubUrl) },
             contentScale = ContentScale.Crop
         )
 
@@ -1127,21 +1143,122 @@ private fun SettingsDeveloperRow(
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                text = "$handle • $githubUrl",
+                text = handle,
+                modifier = Modifier.clickable { uriHandler.openExternalUrl(githubUrl) },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary,
+                fontFamily = FontFamily.Monospace,
+                textDecoration = TextDecoration.Underline
+            )
+            Text(
+                text = githubUrl,
+                modifier = Modifier.clickable { uriHandler.openExternalUrl(githubUrl) },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontFamily = FontFamily.Monospace
+                fontFamily = FontFamily.Monospace,
+                textDecoration = TextDecoration.Underline
             )
             Text(
                 text = email,
+                modifier = Modifier.clickable { uriHandler.openExternalUrl("mailto:$email") },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.primary,
-                fontFamily = FontFamily.Monospace
+                fontFamily = FontFamily.Monospace,
+                textDecoration = TextDecoration.Underline
             )
         }
     }
 }
 
+
+@Composable
+private fun SettingsReleaseCard(
+    buildInfo: AppBuildInfo,
+    release: SettingsReleaseUiState,
+    onCheckRelease: () -> Unit,
+    onOpenUrl: (String) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+            contentColor = MaterialTheme.colorScheme.onSurface
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            Icon(
+                imageVector = Icons.Default.Verified,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Release",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold
+                )
+
+                SettingsDetailRow(
+                    label = "Current",
+                    value = buildInfo.versionDisplay()
+                )
+
+                if (release.latestVersion.isNotBlank()) {
+                    SettingsDetailRow(
+                        label = "Latest",
+                        value = release.latestVersion
+                    )
+                }
+
+                Text(
+                    text = release.error.ifBlank { release.message },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (release.isUpdateAvailable) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                    fontWeight = if (release.isUpdateAvailable) FontWeight.SemiBold else FontWeight.Normal
+                )
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Button(
+                        onClick = onCheckRelease,
+                        enabled = !release.isChecking
+                    ) {
+                        Text(if (release.isChecking) "Checking" else "Check")
+                    }
+
+                    Button(
+                        onClick = {
+                            onOpenUrl(
+                                release.releaseUrl.takeIf { it.isNotBlank() }
+                                    ?: GitHubReleasesUrl
+                            )
+                        }
+                    ) {
+                        Text(if (release.canOpenRelease) "Open release" else "GitHub")
+                    }
+                }
+            }
+        }
+    }
+}
 @Composable
 private fun SettingsBuildInfoCard(buildInfo: AppBuildInfo) {
     SettingsDetailCard(
@@ -1156,7 +1273,7 @@ private fun buildInfoRows(buildInfo: AppBuildInfo): List<Pair<String, String>> {
         add("Version" to buildInfo.versionDisplay())
         add("Profile" to buildInfo.buildProfile)
         add("Target" to buildInfo.buildTarget)
-        add("Repository" to buildInfo.repository)
+        add("Repository" to buildInfo.repository.ifBlank { GitHubRepositoryUrl })
 
         if (buildInfo.hasEmbeddedGitMetadata) {
             addKnown("Branch", buildInfo.branch)
@@ -1244,6 +1361,9 @@ private fun SettingsDetailRow(
     label: String,
     value: String
 ) {
+    val uriHandler = LocalUriHandler.current
+    val normalizedUrl = value.externalUrlOrNull()
+
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(
             text = label,
@@ -1253,9 +1373,43 @@ private fun SettingsDetailRow(
         )
         Text(
             text = value.ifBlank { "unknown" },
+            modifier = if (normalizedUrl != null) {
+                Modifier.clickable { uriHandler.openExternalUrl(normalizedUrl) }
+            } else {
+                Modifier
+            },
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontFamily = FontFamily.Monospace
+            color = if (normalizedUrl != null) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            },
+            fontFamily = FontFamily.Monospace,
+            textDecoration = if (normalizedUrl != null) TextDecoration.Underline else null
         )
+    }
+}
+
+private const val GitHubRepositoryUrl =
+    "https://github.com/sinavarasina/Proyek-Pengembangan-Aplikasi-Mobile"
+private const val GitHubReleasesUrl =
+    "https://github.com/sinavarasina/Proyek-Pengembangan-Aplikasi-Mobile/releases"
+
+private fun UriHandler.openExternalUrl(url: String) {
+    url.externalUrlOrNull()?.let { normalized ->
+        runCatching { openUri(normalized) }
+    }
+}
+
+private fun String.externalUrlOrNull(): String? {
+    val value = trim()
+    if (value.isBlank()) return null
+
+    return when {
+        value.startsWith("https://") -> value
+        value.startsWith("http://") -> value
+        value.startsWith("mailto:") -> value
+        value.startsWith("github.com/") -> "https://$value"
+        else -> null
     }
 }

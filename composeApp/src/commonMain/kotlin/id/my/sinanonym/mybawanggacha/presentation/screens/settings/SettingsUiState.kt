@@ -12,8 +12,22 @@ data class SettingsUiState(
     val appColorScheme: AppColorScheme = AppColorScheme.CodeGeass,
     val aiApiSettings: AiApiSettings = AiApiSettings(),
     val requestUsage: SettingsRequestUsageUiState = SettingsRequestUsageUiState(),
-    val aiTokenUsage: SettingsAiTokenUsageUiState = SettingsAiTokenUsageUiState()
+    val aiTokenUsage: SettingsAiTokenUsageUiState = SettingsAiTokenUsageUiState(),
+    val release: SettingsReleaseUiState = SettingsReleaseUiState()
 )
+
+data class SettingsReleaseUiState(
+    val isChecking: Boolean = false,
+    val latestVersion: String = "",
+    val latestName: String = "",
+    val releaseUrl: String = "",
+    val message: String = "Belum dicek",
+    val isUpdateAvailable: Boolean = false,
+    val error: String = ""
+) {
+    val canOpenRelease: Boolean
+        get() = releaseUrl.isNotBlank()
+}
 
 data class SettingsRequestUsageUiState(
     val usedLastSecond: Int = 0,

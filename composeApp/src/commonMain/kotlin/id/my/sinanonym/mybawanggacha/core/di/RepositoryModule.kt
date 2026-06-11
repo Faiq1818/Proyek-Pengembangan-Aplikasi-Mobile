@@ -17,6 +17,7 @@ import id.my.sinanonym.mybawanggacha.data.repository.library.LibraryRepositoryIm
 import id.my.sinanonym.mybawanggacha.data.repository.manga.MangaRepositoryImpl
 import id.my.sinanonym.mybawanggacha.data.repository.note.NoteRepositoryImpl
 import id.my.sinanonym.mybawanggacha.data.repository.search.SearchRepositoryImpl
+import id.my.sinanonym.mybawanggacha.data.repository.settings.GitHubReleaseRepositoryImpl
 import id.my.sinanonym.mybawanggacha.data.repository.settings.SettingsRepositoryImpl
 import id.my.sinanonym.mybawanggacha.domain.ai.repository.AIRepository
 import id.my.sinanonym.mybawanggacha.domain.gacha.repository.GachaRepository
@@ -26,6 +27,7 @@ import id.my.sinanonym.mybawanggacha.domain.manga.repository.MangaRepository
 import id.my.sinanonym.mybawanggacha.domain.note.repository.NoteRepository
 import id.my.sinanonym.mybawanggacha.domain.search.repository.SearchRepository
 import id.my.sinanonym.mybawanggacha.domain.settings.repository.AiTokenUsageRepository
+import id.my.sinanonym.mybawanggacha.domain.settings.repository.GitHubReleaseRepository
 import id.my.sinanonym.mybawanggacha.domain.settings.repository.JikanRequestUsageRepository
 import id.my.sinanonym.mybawanggacha.domain.settings.repository.JikanServiceStatusRepository
 import id.my.sinanonym.mybawanggacha.domain.settings.repository.SettingsRepository
@@ -44,6 +46,7 @@ val repositoryModule = module {
     single<JikanCachePolicy> { SettingsJikanCachePolicy(get()) }
     singleOf(::JikanRequestUsageRepositoryImpl) bind JikanRequestUsageRepository::class
     singleOf(::JikanServiceStatusRepositoryImpl) bind JikanServiceStatusRepository::class
+    singleOf(::GitHubReleaseRepositoryImpl) bind GitHubReleaseRepository::class
     singleOf(::AiTokenUsageRepositoryImpl) bind AiTokenUsageRepository::class
     singleOf(::NoteRepositoryImpl) bind NoteRepository::class
     singleOf(::AiChatSessionRepositoryImpl) bind AiChatSessionRepository::class

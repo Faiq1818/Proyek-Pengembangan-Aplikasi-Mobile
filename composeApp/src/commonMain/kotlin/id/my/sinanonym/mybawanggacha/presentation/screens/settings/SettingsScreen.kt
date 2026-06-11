@@ -154,7 +154,11 @@ fun SettingsScreen(
                         title = "About",
                         description = "Info aplikasi dan sumber data."
                     )
-                    SettingsAboutSection(showTitle = false)
+                    SettingsAboutSection(
+                        showTitle = false,
+                        release = uiState.release,
+                        onCheckRelease = viewModel::checkLatestRelease
+                    )
                 }
             }
         }
