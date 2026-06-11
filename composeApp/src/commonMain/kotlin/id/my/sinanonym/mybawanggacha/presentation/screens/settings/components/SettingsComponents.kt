@@ -642,7 +642,7 @@ private fun SettingsRequestUsageCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Req used",
+                        text = "Request used",
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold
@@ -662,22 +662,6 @@ private fun SettingsRequestUsageCard(
                         .height(6.dp)
                 )
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    SettingsStatusPill(
-                        label = requestUsage.serviceStatus.label,
-                        active = requestUsage.serviceStatus.isActive,
-                        checking = requestUsage.serviceStatus.isChecking
-                    )
-                    SettingsStatusPill(
-                        label = requestUsage.requestReadyLabel,
-                        active = requestUsage.isRequestReady
-                    )
-                }
-
                 if (requestUsage.serviceStatus.shortDetail.isNotBlank()) {
                     Text(
                         text = requestUsage.serviceStatus.shortDetail,
@@ -689,18 +673,36 @@ private fun SettingsRequestUsageCard(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.Top
                 ) {
-                    SettingsUsageMetric(
-                        label = "Min left",
-                        value = requestUsage.remainingThisMinute.toString(),
-                        modifier = Modifier.weight(1f)
-                    )
-                    SettingsUsageMetric(
-                        label = "Sec",
-                        value = "${requestUsage.usedLastSecond}/${requestUsage.secondLimit}",
-                        modifier = Modifier.weight(1f)
-                    )
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        SettingsUsageMetric(
+                            label = "Min left",
+                            value = requestUsage.remainingThisMinute.toString()
+                        )
+                        SettingsStatusPill(
+                            label = requestUsage.serviceStatus.label,
+                            active = requestUsage.serviceStatus.isActive,
+                            checking = requestUsage.serviceStatus.isChecking
+                        )
+                    }
+
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        SettingsUsageMetric(
+                            label = "Sec",
+                            value = "${requestUsage.usedLastSecond}/${requestUsage.secondLimit}"
+                        )
+                        SettingsStatusPill(
+                            label = requestUsage.requestReadyLabel,
+                            active = requestUsage.isRequestReady
+                        )
+                    }
                 }
             }
         }
@@ -974,8 +976,7 @@ internal fun SettingsAboutSection(
             rows = listOf(
                 "Data source" to buildInfo.dataSource,
                 "AI provider" to buildInfo.aiProvider,
-                "Library" to "Local SQLDelight database + DataStore preferences",
-                "Offline mode" to "Network/cache policy dapat diatur di Data & Offline"
+                "Library" to "Local SQLDelight database + DataStore preferences"
             )
         )
 

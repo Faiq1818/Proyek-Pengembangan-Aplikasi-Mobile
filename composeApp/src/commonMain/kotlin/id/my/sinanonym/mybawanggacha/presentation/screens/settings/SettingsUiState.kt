@@ -32,7 +32,7 @@ data class SettingsRequestUsageUiState(
 
     val requestReadyLabel: String
         get() = if (isRequestReady) {
-            "req ready"
+            "request ready"
         } else {
             "cooldown"
         }
