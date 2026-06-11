@@ -20,6 +20,7 @@ import id.my.sinanonym.mybawanggacha.domain.search.repository.SearchRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -31,6 +32,10 @@ class GachaViewModel(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(GachaUiState())
     val uiState: StateFlow<GachaUiState> = _uiState.asStateFlow()
+
+    private var activeRollId = 0
+    private var skipRollRequested = false
+    private var pendingRollOutcome: PendingRollOutcome? = null
 
     init {
         viewModelScope.launch {
@@ -68,39 +73,107 @@ class GachaViewModel(
     }
 
     fun runGacha() {
+        if (_uiState.value.isLoading) return
+
         val preference = _uiState.value.preference.withValidFormat()
+        val rollId = ++activeRollId
+        skipRollRequested = false
+        pendingRollOutcome = null
+
         _uiState.update { state ->
             state.copy(
                 preference = preference,
                 isLoading = true,
+                isRolling = true,
+                canSkipRoll = true,
                 errorMessage = null,
                 infoMessage = null
             )
         }
 
         viewModelScope.launch {
+            val minimumRollJob = launch {
+                delay(GachaRollMinimumDurationMillis)
+            }
+
             runCatching {
                 gachaRepository.saveLastPreference(preference)
                 runGachaUseCase(preference)
             }.onSuccess { result ->
                 gachaRepository.saveHistoryEntry(GachaHistoryEntry(item = result.item))
+
+                val outcome = PendingRollOutcome.Success(
+                    rollId = rollId,
+                    item = result.item,
+                    infoMessage = result.infoMessage,
+                    shouldPrefetch = result.shouldPrefetch,
+                    preference = preference
+                )
+                pendingRollOutcome = outcome
+
+                if (skipRollRequested) {
+                    minimumRollJob.cancel()
+                } else {
+                    minimumRollJob.join()
+                }
+
+                revealPendingRoll(outcome)
+            }.onFailure { error ->
+                val outcome = PendingRollOutcome.Failure(
+                    rollId = rollId,
+                    message = error.message ?: "Gacha gagal dijalankan."
+                )
+                pendingRollOutcome = outcome
+
+                if (skipRollRequested) {
+                    minimumRollJob.cancel()
+                } else {
+                    minimumRollJob.join()
+                }
+
+                revealPendingRoll(outcome)
+            }
+        }
+    }
+
+    fun skipRollAnimation() {
+        skipRollRequested = true
+        _uiState.update { state ->
+            state.copy(canSkipRoll = true)
+        }
+        pendingRollOutcome?.let(::revealPendingRoll)
+    }
+
+    private fun revealPendingRoll(outcome: PendingRollOutcome) {
+        if (outcome.rollId != activeRollId || pendingRollOutcome != outcome) return
+
+        pendingRollOutcome = null
+        skipRollRequested = false
+
+        when (outcome) {
+            is PendingRollOutcome.Success -> {
                 _uiState.update { state ->
                     state.copy(
-                        result = result.item,
+                        result = outcome.item,
                         isLoading = false,
+                        isRolling = false,
+                        canSkipRoll = false,
                         errorMessage = null,
-                        infoMessage = result.infoMessage
+                        infoMessage = outcome.infoMessage
                     )
                 }
 
-                if (result.shouldPrefetch) {
-                    prefetchNextCandidates(preference)
+                if (outcome.shouldPrefetch) {
+                    prefetchNextCandidates(outcome.preference)
                 }
-            }.onFailure { error ->
+            }
+            is PendingRollOutcome.Failure -> {
                 _uiState.update { state ->
                     state.copy(
                         isLoading = false,
-                        errorMessage = error.message ?: "Gacha gagal dijalankan."
+                        isRolling = false,
+                        canSkipRoll = false,
+                        errorMessage = outcome.message
                     )
                 }
             }
@@ -263,4 +336,22 @@ class GachaViewModel(
             notes = "Added from Gacha"
         )
     }
+}
+private const val GachaRollMinimumDurationMillis = 2_500L
+
+private sealed class PendingRollOutcome {
+    abstract val rollId: Int
+
+    data class Success(
+        override val rollId: Int,
+        val item: GachaResultItem,
+        val infoMessage: String?,
+        val shouldPrefetch: Boolean,
+        val preference: GachaPreference
+    ) : PendingRollOutcome()
+
+    data class Failure(
+        override val rollId: Int,
+        val message: String
+    ) : PendingRollOutcome()
 }
