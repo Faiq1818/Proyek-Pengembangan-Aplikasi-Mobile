@@ -1,5 +1,13 @@
 # My Bawang Gacha
 
+<p align="center">
+  <a href="https://youtu.be/UAeIq0xMsbk">
+    <img src="https://img.youtube.com/vi/UAeIq0xMsbk/maxresdefault.jpg" alt="Video Demo My Bawang Gacha" width="70%">
+    <br>
+    <b>[PLAY] Putar Video Demo (YouTube)</b>
+  </a>
+</p>
+
 My Bawang Gacha adalah aplikasi Anime List, Manga List, dan Gacha yang dikembangkan menggunakan Kotlin Multiplatform (KMP) untuk platform Android dan iOS. Proyek ini dibangun di atas template Clean Architecture dan MVVM dengan integrasi Google Gemini API dan Jikan API (MyAnimeList).
 
 ![CI](https://github.com/sinavarasina/Proyek-Pengembangan-Aplikasi-Mobile/actions/workflows/KMP-ci.yml/badge.svg)
@@ -28,16 +36,12 @@ My Bawang Gacha adalah aplikasi Anime List, Manga List, dan Gacha yang dikembang
    ```bash
    cp local.properties.example local.properties
    ```
-3. Buka file `local.properties` dan isi API key Gemini Anda pada baris berikut:
-   ```properties
-   GEMINI_API_KEY=masukkan_api_key_anda_disini
-   ```
-4. Lakukan sync Gradle di Android Studio.
-5. Jalankan perintah build melalui terminal:
+3. Lakukan sync Gradle di Android Studio.
+4. Jalankan perintah build melalui terminal:
    ```bash
    ./gradlew build
    ```
-6. Untuk menjalankan aplikasi di emulator atau perangkat Android yang terhubung:
+5. Untuk menjalankan aplikasi di emulator atau perangkat Android yang terhubung:
    ```bash
    ./gradlew :androidApp:installDebug
    ```
